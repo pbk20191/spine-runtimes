@@ -94,22 +94,22 @@ public final class SkeletonDrawableWrapper: NSObject {
         self.skeletonData = skeletonData
             
         guard let nativeSkeletonDrawable = spine_skeleton_drawable_create(skeletonData.wrappee) else {
-            throw "Could not load native skeleton drawable"
+            throw "Could not load native skeleton drawable" as SpineError
         }
         skeletonDrawable = SkeletonDrawable(nativeSkeletonDrawable)
         
         guard let nativeSkeleton = spine_skeleton_drawable_get_skeleton(skeletonDrawable.wrappee) else {
-            throw "Could not load native skeleton"
+            throw "Could not load native skeleton" as SpineError
         }
         skeleton = Skeleton(nativeSkeleton)
         
         guard let nativeAnimationStateData = spine_skeleton_drawable_get_animation_state_data(skeletonDrawable.wrappee) else {
-            throw "Could not load native animation state data"
+            throw "Could not load native animation state data" as SpineError
         }
         animationStateData = AnimationStateData(nativeAnimationStateData)
         
         guard let nativeAnimationState = spine_skeleton_drawable_get_animation_state(skeletonDrawable.wrappee) else {
-            throw "Could not load native animation state"
+            throw "Could not load native animation state" as SpineError
         }
         animationState = AnimationState(nativeAnimationState)
         animationStateWrapper = AnimationStateWrapper(
