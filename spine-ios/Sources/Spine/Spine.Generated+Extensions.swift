@@ -1,6 +1,10 @@
 import Foundation
 import SwiftUI
-import SpineCppLite
+#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+private import SpineCppLite
+#else
+@_implementationOnly import SpineCppLite
+#endif
 
 public var version: String {
     return "\(majorVersion).\(minorVersion)"

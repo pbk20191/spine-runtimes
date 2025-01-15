@@ -1,6 +1,5 @@
 import SwiftUI
 import Spine
-import SpineCppLite
 
 struct DressUp: View {
     
@@ -85,7 +84,7 @@ final class DressUpModel: ObservableObject {
                     skeleton.skin = skin
                     skeleton.setToSetupPose()
                     skeleton.update(delta: 0)
-                    skeleton.updateWorldTransform(physics: SPINE_PHYSICS_UPDATE)
+                    skeleton.updateWorldTransform(physics: .SPINE_PHYSICS_UPDATE)
                     try skin.name.flatMap { skinName in
                         self.skinImages[skinName] = try drawable.renderToImage(
                             size: self.thumbnailSize,

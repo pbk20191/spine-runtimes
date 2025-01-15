@@ -1,4 +1,10 @@
-import SpineShadersStructs
+
+#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+internal import SpineShadersStructs
+#else
+@_implementationOnly import SpineShadersStructs
+#endif
+
 import Foundation
 
 extension RenderCommand {

@@ -1,6 +1,10 @@
 import Foundation
 import Spine
-import SpineCppLite
+#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+private import SpineCppLite
+#else
+@_implementationOnly import SpineCppLite
+#endif
 import CoreGraphics
 import UIKit
 
@@ -116,7 +120,7 @@ public final class SkeletonDrawableWrapper: NSObject {
             animationState: animationState,
             aninationStateEvents: skeletonDrawable.animationStateEvents
         )
-        skeleton.updateWorldTransform(physics: SPINE_PHYSICS_NONE)
+        skeleton.updateWorldTransform(physics: .SPINE_PHYSICS_NONE)
         super.init()
     }
     
@@ -130,7 +134,7 @@ public final class SkeletonDrawableWrapper: NSObject {
         animationState.apply(skeleton: skeleton)
         
         skeleton.update(delta: delta)
-        skeleton.updateWorldTransform(physics: SPINE_PHYSICS_UPDATE)
+        skeleton.updateWorldTransform(physics: .SPINE_PHYSICS_UPDATE)
     }
     
     public func dispose() {

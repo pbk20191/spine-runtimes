@@ -1,5 +1,9 @@
 import Foundation
-import SpineCppLite
+#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+private import SpineCppLite
+#else
+@_implementationOnly import SpineCppLite
+#endif
 
 public typealias AnimationStateListener = (_ type: EventType, _ entry: TrackEntry, _ event: Event?) -> Void
 
@@ -53,7 +57,7 @@ public final class AnimationStateWrapper: NSObject {
             if let stateListener {
                 stateListener(type, entry, event)
             }
-            if type == SPINE_EVENT_TYPE_DISPOSE {
+            if type.spine == .SPINE_EVENT_TYPE_DISPOSE {
                 spine_animation_state_dispose_track_entry(animationState.wrappee, entry.wrappee)
             }
         }

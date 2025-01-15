@@ -1,8 +1,13 @@
 import Foundation
 import MetalKit
-import SpineShadersStructs
 import Spine
-import SpineCppLite
+#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+internal import SpineShadersStructs
+private import SpineCppLite
+#else
+@_implementationOnly import SpineShadersStructs
+@_implementationOnly import SpineCppLite
+#endif
 
 protocol SpineRendererDelegate: AnyObject {
     func spineRendererWillUpdate(_ spineRenderer: SpineRenderer)
@@ -80,10 +85,10 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
             }
         
         let blendModes = [
-            SPINE_BLEND_MODE_NORMAL,
-            SPINE_BLEND_MODE_ADDITIVE,
-            SPINE_BLEND_MODE_MULTIPLY,
-            SPINE_BLEND_MODE_SCREEN
+            SpineCppLite.spine_blend_mode.SPINE_BLEND_MODE_NORMAL,
+            .SPINE_BLEND_MODE_ADDITIVE,
+            .SPINE_BLEND_MODE_MULTIPLY,
+            .SPINE_BLEND_MODE_SCREEN
         ]
         for blendMode in blendModes {
             let descriptor = MTLRenderPipelineDescriptor()
@@ -150,7 +155,7 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
             commandBuffer.waitUntilCompleted()
         }
     }
-    
+    @MainActor
     private func setTransform(bounds: CGRect, mode: Spine.ContentMode, alignment: Spine.Alignment) {
         let x = -bounds.minX - bounds.width / 2.0
         let y = -bounds.minY - bounds.height / 2.0
@@ -284,16 +289,16 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
     }
 }
 
-fileprivate extension BlendMode {
+fileprivate extension spine_blend_mode {
 	func sourceRGBBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
 		switch self {
-		case SPINE_BLEND_MODE_NORMAL:
+        case .SPINE_BLEND_MODE_NORMAL:
 			return premultipliedAlpha ? .one : .sourceAlpha
-		case SPINE_BLEND_MODE_ADDITIVE:
+        case .SPINE_BLEND_MODE_ADDITIVE:
 			return .sourceAlpha
-		case SPINE_BLEND_MODE_MULTIPLY:
+        case .SPINE_BLEND_MODE_MULTIPLY:
 			return .destinationColor
-		case SPINE_BLEND_MODE_SCREEN:
+        case .SPINE_BLEND_MODE_SCREEN:
 			return .one
 		default:
 			return .one // Should never be called
@@ -302,13 +307,13 @@ fileprivate extension BlendMode {
 	
 	func sourceAlphaBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
 		switch self {
-		case SPINE_BLEND_MODE_NORMAL:
+        case .SPINE_BLEND_MODE_NORMAL:
 			return premultipliedAlpha ? .one : .sourceAlpha
-		case SPINE_BLEND_MODE_ADDITIVE:
+        case .SPINE_BLEND_MODE_ADDITIVE:
 			return .sourceAlpha
-		case SPINE_BLEND_MODE_MULTIPLY:
+        case .SPINE_BLEND_MODE_MULTIPLY:
 			return .oneMinusSourceAlpha
-		case SPINE_BLEND_MODE_SCREEN:
+        case .SPINE_BLEND_MODE_SCREEN:
 			return .oneMinusSourceColor
 		default:
 			return .one // Should never be called
@@ -317,13 +322,13 @@ fileprivate extension BlendMode {
 
 	var destinationRGBBlendFactor: MTLBlendFactor {
 		switch self {
-		case SPINE_BLEND_MODE_NORMAL:
+        case .SPINE_BLEND_MODE_NORMAL:
 			return .oneMinusSourceAlpha
-		case SPINE_BLEND_MODE_ADDITIVE:
+        case .SPINE_BLEND_MODE_ADDITIVE:
 			return .one
-		case SPINE_BLEND_MODE_MULTIPLY:
+        case .SPINE_BLEND_MODE_MULTIPLY:
 			return .oneMinusSourceAlpha
-		case SPINE_BLEND_MODE_SCREEN:
+        case .SPINE_BLEND_MODE_SCREEN:
 			return .oneMinusSourceColor
 		default:
 			return .one // Should never be called
@@ -332,13 +337,13 @@ fileprivate extension BlendMode {
 
 	var destinationAlphaBlendFactor: MTLBlendFactor {
 		switch self {
-		case SPINE_BLEND_MODE_NORMAL:
+        case .SPINE_BLEND_MODE_NORMAL:
 			return .oneMinusSourceAlpha
-		case SPINE_BLEND_MODE_ADDITIVE:
+        case .SPINE_BLEND_MODE_ADDITIVE:
 			return .one
-		case SPINE_BLEND_MODE_MULTIPLY:
+        case .SPINE_BLEND_MODE_MULTIPLY:
 			return .oneMinusSourceAlpha
-		case SPINE_BLEND_MODE_SCREEN:
+        case .SPINE_BLEND_MODE_SCREEN:
 			return .oneMinusSourceColor
 		default:
 			return .one // Should never be called
@@ -348,7 +353,7 @@ fileprivate extension BlendMode {
 
 fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
 	
-	func apply(blendMode: BlendMode, with premultipliedAlpha: Bool) {
+    func apply(blendMode: spine_blend_mode, with premultipliedAlpha: Bool) {
 		isBlendingEnabled = true
 		sourceRGBBlendFactor = blendMode.sourceRGBBlendFactor(premultipliedAlpha: premultipliedAlpha)
 		sourceAlphaBlendFactor = blendMode.sourceAlphaBlendFactor(premultipliedAlpha: premultipliedAlpha)

@@ -1,6 +1,5 @@
 import SwiftUI
 import Spine
-import SpineCppLite
 
 struct AnimationStateEvents: View {
     
@@ -21,7 +20,7 @@ struct AnimationStateEvents: View {
                 print("Run animation event \(type)");
             }
             controller.animationStateWrapper.setStateListener { type, entry, event in
-                if type == SPINE_EVENT_TYPE_EVENT, let event {
+                if type == .SPINE_EVENT_TYPE_EVENT, let event {
                     print("User event: { name: \(event.data.name ?? "--"), intValue: \(event.intValue), floatValue: \(event.floatValue), stringValue: \(event.stringValue ?? "--") }")
                 }
             }

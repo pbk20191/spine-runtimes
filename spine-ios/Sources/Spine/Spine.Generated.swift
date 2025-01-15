@@ -1,16 +1,353 @@
 import Foundation
-import SpineCppLite
+#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+internal import SpineCppLite
+#else
+@_implementationOnly import SpineCppLite
+#endif
 
-public typealias BlendMode = spine_blend_mode
-public typealias MixBlend = spine_mix_blend
-public typealias EventType = spine_event_type
-public typealias AttachmentType = spine_attachment_type
-public typealias ConstraintType = spine_constraint_type
-public typealias Inherit = spine_inherit
-public typealias PositionMode = spine_position_mode
-public typealias SpacingMode = spine_spacing_mode
-public typealias RotateMode = spine_rotate_mode
-public typealias Physics = spine_physics
+@objc public enum BlendMode: Int {
+     @objc(SPINE_BLEND_MODE_NORMAL) case SPINE_BLEND_MODE_NORMAL = 0
+     @objc(SPINE_BLEND_MODE_ADDITIVE) case SPINE_BLEND_MODE_ADDITIVE = 1
+     @objc(SPINE_BLEND_MODE_MULTIPLY) case SPINE_BLEND_MODE_MULTIPLY = 2
+     @objc(SPINE_BLEND_MODE_SCREEN) case SPINE_BLEND_MODE_SCREEN = 3
+}
+
+internal extension SpineCppLite.spine_blend_mode {
+
+    var swift: BlendMode {
+        switch self {
+        case .SPINE_BLEND_MODE_NORMAL: return .SPINE_BLEND_MODE_NORMAL
+        case .SPINE_BLEND_MODE_ADDITIVE: return .SPINE_BLEND_MODE_ADDITIVE
+        case .SPINE_BLEND_MODE_MULTIPLY: return .SPINE_BLEND_MODE_MULTIPLY
+        case .SPINE_BLEND_MODE_SCREEN: return .SPINE_BLEND_MODE_SCREEN
+        @unknown default: return .SPINE_BLEND_MODE_NORMAL
+        }
+    }
+
+}
+
+internal extension BlendMode {
+
+    var spine: SpineCppLite.spine_blend_mode {
+        switch self {
+        case .SPINE_BLEND_MODE_NORMAL: return .SPINE_BLEND_MODE_NORMAL
+        case .SPINE_BLEND_MODE_ADDITIVE: return .SPINE_BLEND_MODE_ADDITIVE
+        case .SPINE_BLEND_MODE_MULTIPLY: return .SPINE_BLEND_MODE_MULTIPLY
+        case .SPINE_BLEND_MODE_SCREEN: return .SPINE_BLEND_MODE_SCREEN
+        }
+    }
+
+}
+
+@objc public enum MixBlend: Int {
+     @objc(SPINE_MIX_BLEND_SETUP) case SPINE_MIX_BLEND_SETUP = 0
+     @objc(SPINE_MIX_BLEND_FIRST) case SPINE_MIX_BLEND_FIRST = 1
+     @objc(SPINE_MIX_BLEND_REPLACE) case SPINE_MIX_BLEND_REPLACE = 2
+     @objc(SPINE_MIX_BLEND_ADD) case SPINE_MIX_BLEND_ADD = 3
+}
+
+internal extension SpineCppLite.spine_mix_blend {
+
+    var swift: MixBlend {
+        switch self {
+        case .SPINE_MIX_BLEND_SETUP: return .SPINE_MIX_BLEND_SETUP
+        case .SPINE_MIX_BLEND_FIRST: return .SPINE_MIX_BLEND_FIRST
+        case .SPINE_MIX_BLEND_REPLACE: return .SPINE_MIX_BLEND_REPLACE
+        case .SPINE_MIX_BLEND_ADD: return .SPINE_MIX_BLEND_ADD
+        @unknown default: return .SPINE_MIX_BLEND_SETUP
+        }
+    }
+
+}
+
+internal extension MixBlend {
+
+    var spine: SpineCppLite.spine_mix_blend {
+        switch self {
+        case .SPINE_MIX_BLEND_SETUP: return .SPINE_MIX_BLEND_SETUP
+        case .SPINE_MIX_BLEND_FIRST: return .SPINE_MIX_BLEND_FIRST
+        case .SPINE_MIX_BLEND_REPLACE: return .SPINE_MIX_BLEND_REPLACE
+        case .SPINE_MIX_BLEND_ADD: return .SPINE_MIX_BLEND_ADD
+        }
+    }
+
+}
+
+@objc public enum EventType: Int {
+     @objc(SPINE_EVENT_TYPE_START) case SPINE_EVENT_TYPE_START = 0
+     @objc(SPINE_EVENT_TYPE_INTERRUPT) case SPINE_EVENT_TYPE_INTERRUPT = 1
+     @objc(SPINE_EVENT_TYPE_END) case SPINE_EVENT_TYPE_END = 2
+     @objc(SPINE_EVENT_TYPE_COMPLETE) case SPINE_EVENT_TYPE_COMPLETE = 3
+     @objc(SPINE_EVENT_TYPE_DISPOSE) case SPINE_EVENT_TYPE_DISPOSE = 4
+     @objc(SPINE_EVENT_TYPE_EVENT) case SPINE_EVENT_TYPE_EVENT = 5
+}
+
+internal extension SpineCppLite.spine_event_type {
+
+    var swift: EventType {
+        switch self {
+        case .SPINE_EVENT_TYPE_START: return .SPINE_EVENT_TYPE_START
+        case .SPINE_EVENT_TYPE_INTERRUPT: return .SPINE_EVENT_TYPE_INTERRUPT
+        case .SPINE_EVENT_TYPE_END: return .SPINE_EVENT_TYPE_END
+        case .SPINE_EVENT_TYPE_COMPLETE: return .SPINE_EVENT_TYPE_COMPLETE
+        case .SPINE_EVENT_TYPE_DISPOSE: return .SPINE_EVENT_TYPE_DISPOSE
+        case .SPINE_EVENT_TYPE_EVENT: return .SPINE_EVENT_TYPE_EVENT
+        @unknown default: return .SPINE_EVENT_TYPE_START
+        }
+    }
+
+}
+
+internal extension EventType {
+
+    var spine: SpineCppLite.spine_event_type {
+        switch self {
+        case .SPINE_EVENT_TYPE_START: return .SPINE_EVENT_TYPE_START
+        case .SPINE_EVENT_TYPE_INTERRUPT: return .SPINE_EVENT_TYPE_INTERRUPT
+        case .SPINE_EVENT_TYPE_END: return .SPINE_EVENT_TYPE_END
+        case .SPINE_EVENT_TYPE_COMPLETE: return .SPINE_EVENT_TYPE_COMPLETE
+        case .SPINE_EVENT_TYPE_DISPOSE: return .SPINE_EVENT_TYPE_DISPOSE
+        case .SPINE_EVENT_TYPE_EVENT: return .SPINE_EVENT_TYPE_EVENT
+        }
+    }
+
+}
+
+@objc public enum AttachmentType: Int {
+     @objc(SPINE_ATTACHMENT_REGION) case SPINE_ATTACHMENT_REGION = 0
+     @objc(SPINE_ATTACHMENT_MESH) case SPINE_ATTACHMENT_MESH = 1
+     @objc(SPINE_ATTACHMENT_CLIPPING) case SPINE_ATTACHMENT_CLIPPING = 2
+     @objc(SPINE_ATTACHMENT_BOUNDING_BOX) case SPINE_ATTACHMENT_BOUNDING_BOX = 3
+     @objc(SPINE_ATTACHMENT_PATH) case SPINE_ATTACHMENT_PATH = 4
+     @objc(SPINE_ATTACHMENT_POINT) case SPINE_ATTACHMENT_POINT = 5
+}
+
+internal extension SpineCppLite.spine_attachment_type {
+
+    var swift: AttachmentType {
+        switch self {
+        case .SPINE_ATTACHMENT_REGION: return .SPINE_ATTACHMENT_REGION
+        case .SPINE_ATTACHMENT_MESH: return .SPINE_ATTACHMENT_MESH
+        case .SPINE_ATTACHMENT_CLIPPING: return .SPINE_ATTACHMENT_CLIPPING
+        case .SPINE_ATTACHMENT_BOUNDING_BOX: return .SPINE_ATTACHMENT_BOUNDING_BOX
+        case .SPINE_ATTACHMENT_PATH: return .SPINE_ATTACHMENT_PATH
+        case .SPINE_ATTACHMENT_POINT: return .SPINE_ATTACHMENT_POINT
+        @unknown default: return .SPINE_ATTACHMENT_REGION
+        }
+    }
+
+}
+
+internal extension AttachmentType {
+
+    var spine: SpineCppLite.spine_attachment_type {
+        switch self {
+        case .SPINE_ATTACHMENT_REGION: return .SPINE_ATTACHMENT_REGION
+        case .SPINE_ATTACHMENT_MESH: return .SPINE_ATTACHMENT_MESH
+        case .SPINE_ATTACHMENT_CLIPPING: return .SPINE_ATTACHMENT_CLIPPING
+        case .SPINE_ATTACHMENT_BOUNDING_BOX: return .SPINE_ATTACHMENT_BOUNDING_BOX
+        case .SPINE_ATTACHMENT_PATH: return .SPINE_ATTACHMENT_PATH
+        case .SPINE_ATTACHMENT_POINT: return .SPINE_ATTACHMENT_POINT
+        }
+    }
+
+}
+
+@objc public enum ConstraintType: Int {
+     @objc(SPINE_CONSTRAINT_IK) case SPINE_CONSTRAINT_IK = 0
+     @objc(SPINE_CONSTRAINT_TRANSFORM) case SPINE_CONSTRAINT_TRANSFORM = 1
+     @objc(SPINE_CONSTRAINT_PATH) case SPINE_CONSTRAINT_PATH = 2
+}
+
+internal extension SpineCppLite.spine_constraint_type {
+
+    var swift: ConstraintType {
+        switch self {
+        case .SPINE_CONSTRAINT_IK: return .SPINE_CONSTRAINT_IK
+        case .SPINE_CONSTRAINT_TRANSFORM: return .SPINE_CONSTRAINT_TRANSFORM
+        case .SPINE_CONSTRAINT_PATH: return .SPINE_CONSTRAINT_PATH
+        @unknown default: return .SPINE_CONSTRAINT_IK
+        }
+    }
+
+}
+
+internal extension ConstraintType {
+
+    var spine: SpineCppLite.spine_constraint_type {
+        switch self {
+        case .SPINE_CONSTRAINT_IK: return .SPINE_CONSTRAINT_IK
+        case .SPINE_CONSTRAINT_TRANSFORM: return .SPINE_CONSTRAINT_TRANSFORM
+        case .SPINE_CONSTRAINT_PATH: return .SPINE_CONSTRAINT_PATH
+        }
+    }
+
+}
+
+@objc public enum Inherit: Int {
+     @objc(SPINE_INHERIT_NORMAL) case SPINE_INHERIT_NORMAL = 0
+     @objc(SPINE_INHERIT_ONLY_TRANSLATION) case SPINE_INHERIT_ONLY_TRANSLATION = 1
+     @objc(SPINE_INHERIT_NO_ROTATION_OR_REFLECTION) case SPINE_INHERIT_NO_ROTATION_OR_REFLECTION = 2
+     @objc(SPINE_INHERIT_NO_SCALE) case SPINE_INHERIT_NO_SCALE = 3
+     @objc(SPINE_INHERIT_NO_SCALE_OR_REFLECTION) case SPINE_INHERIT_NO_SCALE_OR_REFLECTION = 4
+}
+
+internal extension SpineCppLite.spine_inherit {
+
+    var swift: Inherit {
+        switch self {
+        case .SPINE_INHERIT_NORMAL: return .SPINE_INHERIT_NORMAL
+        case .SPINE_INHERIT_ONLY_TRANSLATION: return .SPINE_INHERIT_ONLY_TRANSLATION
+        case .SPINE_INHERIT_NO_ROTATION_OR_REFLECTION: return .SPINE_INHERIT_NO_ROTATION_OR_REFLECTION
+        case .SPINE_INHERIT_NO_SCALE: return .SPINE_INHERIT_NO_SCALE
+        case .SPINE_INHERIT_NO_SCALE_OR_REFLECTION: return .SPINE_INHERIT_NO_SCALE_OR_REFLECTION
+        @unknown default: return .SPINE_INHERIT_NORMAL
+        }
+    }
+
+}
+
+internal extension Inherit {
+
+    var spine: SpineCppLite.spine_inherit {
+        switch self {
+        case .SPINE_INHERIT_NORMAL: return .SPINE_INHERIT_NORMAL
+        case .SPINE_INHERIT_ONLY_TRANSLATION: return .SPINE_INHERIT_ONLY_TRANSLATION
+        case .SPINE_INHERIT_NO_ROTATION_OR_REFLECTION: return .SPINE_INHERIT_NO_ROTATION_OR_REFLECTION
+        case .SPINE_INHERIT_NO_SCALE: return .SPINE_INHERIT_NO_SCALE
+        case .SPINE_INHERIT_NO_SCALE_OR_REFLECTION: return .SPINE_INHERIT_NO_SCALE_OR_REFLECTION
+        }
+    }
+
+}
+
+@objc public enum PositionMode: Int {
+     @objc(SPINE_POSITION_MODE_FIXED) case SPINE_POSITION_MODE_FIXED = 0
+     @objc(SPINE_POSITION_MODE_PERCENT) case SPINE_POSITION_MODE_PERCENT = 1
+}
+
+internal extension SpineCppLite.spine_position_mode {
+
+    var swift: PositionMode {
+        switch self {
+        case .SPINE_POSITION_MODE_FIXED: return .SPINE_POSITION_MODE_FIXED
+        case .SPINE_POSITION_MODE_PERCENT: return .SPINE_POSITION_MODE_PERCENT
+        @unknown default: return .SPINE_POSITION_MODE_FIXED
+        }
+    }
+
+}
+
+internal extension PositionMode {
+
+    var spine: SpineCppLite.spine_position_mode {
+        switch self {
+        case .SPINE_POSITION_MODE_FIXED: return .SPINE_POSITION_MODE_FIXED
+        case .SPINE_POSITION_MODE_PERCENT: return .SPINE_POSITION_MODE_PERCENT
+        }
+    }
+
+}
+
+@objc public enum SpacingMode: Int {
+     @objc(SPINE_SPACING_MODE_LENGTH) case SPINE_SPACING_MODE_LENGTH = 0
+     @objc(SPINE_SPACING_MODE_FIXED) case SPINE_SPACING_MODE_FIXED = 1
+     @objc(SPINE_SPACING_MODE_PERCENT) case SPINE_SPACING_MODE_PERCENT = 2
+     @objc(SPINE_SPACING_MODE_PROPORTIONAL) case SPINE_SPACING_MODE_PROPORTIONAL = 3
+}
+
+internal extension SpineCppLite.spine_spacing_mode {
+
+    var swift: SpacingMode {
+        switch self {
+        case .SPINE_SPACING_MODE_LENGTH: return .SPINE_SPACING_MODE_LENGTH
+        case .SPINE_SPACING_MODE_FIXED: return .SPINE_SPACING_MODE_FIXED
+        case .SPINE_SPACING_MODE_PERCENT: return .SPINE_SPACING_MODE_PERCENT
+        case .SPINE_SPACING_MODE_PROPORTIONAL: return .SPINE_SPACING_MODE_PROPORTIONAL
+        @unknown default: return .SPINE_SPACING_MODE_LENGTH
+        }
+    }
+
+}
+
+internal extension SpacingMode {
+
+    var spine: SpineCppLite.spine_spacing_mode {
+        switch self {
+        case .SPINE_SPACING_MODE_LENGTH: return .SPINE_SPACING_MODE_LENGTH
+        case .SPINE_SPACING_MODE_FIXED: return .SPINE_SPACING_MODE_FIXED
+        case .SPINE_SPACING_MODE_PERCENT: return .SPINE_SPACING_MODE_PERCENT
+        case .SPINE_SPACING_MODE_PROPORTIONAL: return .SPINE_SPACING_MODE_PROPORTIONAL
+        }
+    }
+
+}
+
+@objc public enum RotateMode: Int {
+     @objc(SPINE_ROTATE_MODE_TANGENT) case SPINE_ROTATE_MODE_TANGENT = 0
+     @objc(SPINE_ROTATE_MODE_CHAIN) case SPINE_ROTATE_MODE_CHAIN = 1
+     @objc(SPINE_ROTATE_MODE_CHAIN_SCALE) case SPINE_ROTATE_MODE_CHAIN_SCALE = 2
+}
+
+internal extension SpineCppLite.spine_rotate_mode {
+
+    var swift: RotateMode {
+        switch self {
+        case .SPINE_ROTATE_MODE_TANGENT: return .SPINE_ROTATE_MODE_TANGENT
+        case .SPINE_ROTATE_MODE_CHAIN: return .SPINE_ROTATE_MODE_CHAIN
+        case .SPINE_ROTATE_MODE_CHAIN_SCALE: return .SPINE_ROTATE_MODE_CHAIN_SCALE
+        @unknown default: return .SPINE_ROTATE_MODE_TANGENT
+        }
+    }
+
+}
+
+internal extension RotateMode {
+
+    var spine: SpineCppLite.spine_rotate_mode {
+        switch self {
+        case .SPINE_ROTATE_MODE_TANGENT: return .SPINE_ROTATE_MODE_TANGENT
+        case .SPINE_ROTATE_MODE_CHAIN: return .SPINE_ROTATE_MODE_CHAIN
+        case .SPINE_ROTATE_MODE_CHAIN_SCALE: return .SPINE_ROTATE_MODE_CHAIN_SCALE
+        }
+    }
+
+}
+
+@objc public enum Physics: Int {
+     @objc(SPINE_PHYSICS_NONE) case SPINE_PHYSICS_NONE = 0
+     @objc(SPINE_PHYSICS_RESET) case SPINE_PHYSICS_RESET = 1
+     @objc(SPINE_PHYSICS_UPDATE) case SPINE_PHYSICS_UPDATE = 2
+     @objc(SPINE_PHYSICS_POSE) case SPINE_PHYSICS_POSE = 3
+}
+
+internal extension SpineCppLite.spine_physics {
+
+    var swift: Physics {
+        switch self {
+        case .SPINE_PHYSICS_NONE: return .SPINE_PHYSICS_NONE
+        case .SPINE_PHYSICS_RESET: return .SPINE_PHYSICS_RESET
+        case .SPINE_PHYSICS_UPDATE: return .SPINE_PHYSICS_UPDATE
+        case .SPINE_PHYSICS_POSE: return .SPINE_PHYSICS_POSE
+        @unknown default: return .SPINE_PHYSICS_NONE
+        }
+    }
+
+}
+
+internal extension Physics {
+
+    var spine: SpineCppLite.spine_physics {
+        switch self {
+        case .SPINE_PHYSICS_NONE: return .SPINE_PHYSICS_NONE
+        case .SPINE_PHYSICS_RESET: return .SPINE_PHYSICS_RESET
+        case .SPINE_PHYSICS_UPDATE: return .SPINE_PHYSICS_UPDATE
+        case .SPINE_PHYSICS_POSE: return .SPINE_PHYSICS_POSE
+        }
+    }
+
+}
+
 
 @objc(SpineTransformConstraintData)
 @objcMembers
@@ -415,7 +752,7 @@ public final class AnimationStateEvents: NSObject {
 
     @discardableResult
     public func getEventType(index: Int32) -> EventType {
-        return spine_animation_state_events_get_event_type(wrappee, index)
+        return spine_animation_state_events_get_event_type(wrappee, index).swift
     }
 
     @discardableResult
@@ -573,28 +910,28 @@ public final class PathConstraintData: NSObject {
 
     public var positionMode: PositionMode {
         get {
-            return spine_path_constraint_data_get_position_mode(wrappee)
+            return spine_path_constraint_data_get_position_mode(wrappee).swift
         }
         set {
-            spine_path_constraint_data_set_position_mode(wrappee, newValue)
+            spine_path_constraint_data_set_position_mode(wrappee, newValue.spine)
         }
     }
 
     public var spacingMode: SpacingMode {
         get {
-            return spine_path_constraint_data_get_spacing_mode(wrappee)
+            return spine_path_constraint_data_get_spacing_mode(wrappee).swift
         }
         set {
-            spine_path_constraint_data_set_spacing_mode(wrappee, newValue)
+            spine_path_constraint_data_set_spacing_mode(wrappee, newValue.spine)
         }
     }
 
     public var rotateMode: RotateMode {
         get {
-            return spine_path_constraint_data_get_rotate_mode(wrappee)
+            return spine_path_constraint_data_get_rotate_mode(wrappee).swift
         }
         set {
-            spine_path_constraint_data_set_rotate_mode(wrappee, newValue)
+            spine_path_constraint_data_set_rotate_mode(wrappee, newValue.spine)
         }
     }
 
@@ -1096,7 +1433,7 @@ public final class PhysicsConstraint: NSObject {
     }
 
     public func update(physics: Physics) {
-        spine_physics_constraint_update(wrappee, physics)
+        spine_physics_constraint_update(wrappee, physics.spine)
     }
 
     public func translate(x: Float, y: Float) {
@@ -1525,7 +1862,7 @@ public final class ConstraintData: NSObject {
     }
 
     public var type: ConstraintType {
-        return spine_constraint_data_get_type(wrappee)
+        return spine_constraint_data_get_type(wrappee).swift
     }
 
     public var name: String? {
@@ -1973,7 +2310,7 @@ public final class RenderCommand: NSObject {
     }
 
     public var blendMode: BlendMode {
-        return spine_render_command_get_blend_mode(wrappee)
+        return spine_render_command_get_blend_mode(wrappee).swift
     }
 
     public var next: RenderCommand {
@@ -2544,10 +2881,10 @@ public final class TrackEntry: NSObject {
 
     public var mixBlend: MixBlend {
         get {
-            return spine_track_entry_get_mix_blend(wrappee)
+            return spine_track_entry_get_mix_blend(wrappee).swift
         }
         set {
-            spine_track_entry_set_mix_blend(wrappee, newValue)
+            spine_track_entry_set_mix_blend(wrappee, newValue.spine)
         }
     }
 
@@ -2579,7 +2916,7 @@ public final class Attachment: NSObject {
     }
 
     public var type: AttachmentType {
-        return spine_attachment_get_type(wrappee)
+        return spine_attachment_get_type(wrappee).swift
     }
 
     @discardableResult
@@ -2800,10 +3137,10 @@ public final class BoneData: NSObject {
 
     public var inherit: Inherit {
         get {
-            return spine_bone_data_get_inherit(wrappee)
+            return spine_bone_data_get_inherit(wrappee).swift
         }
         set {
-            spine_bone_data_set_inherit(wrappee, newValue)
+            spine_bone_data_set_inherit(wrappee, newValue.spine)
         }
     }
 
@@ -2882,10 +3219,10 @@ public final class SlotData: NSObject {
 
     public var blendMode: BlendMode {
         get {
-            return spine_slot_data_get_blend_mode(wrappee)
+            return spine_slot_data_get_blend_mode(wrappee).swift
         }
         set {
-            spine_slot_data_set_blend_mode(wrappee, newValue)
+            spine_slot_data_set_blend_mode(wrappee, newValue.spine)
         }
     }
 
@@ -3085,11 +3422,11 @@ public final class Skeleton: NSObject {
     }
 
     public func updateWorldTransform(physics: Physics) {
-        spine_skeleton_update_world_transform(wrappee, physics)
+        spine_skeleton_update_world_transform(wrappee, physics.spine)
     }
 
     public func updateWorldTransformBone(physics: Physics, parent: Bone) {
-        spine_skeleton_update_world_transform_bone(wrappee, physics, parent.wrappee)
+        spine_skeleton_update_world_transform_bone(wrappee, physics.spine, parent.wrappee)
     }
 
     public func setToSetupPose() {
@@ -3694,10 +4031,10 @@ public final class Bone: NSObject {
 
     public var inherit: Inherit {
         get {
-            return spine_bone_get_inherit(wrappee)
+            return spine_bone_get_inherit(wrappee).swift
         }
         set {
-            spine_bone_set_inherit(wrappee, newValue)
+            spine_bone_set_inherit(wrappee, newValue.spine)
         }
     }
 

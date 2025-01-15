@@ -61,11 +61,37 @@ def read_spine_function_declarations(data):
 
     return function_declaration
 
-def read_spine_enums(data):
+def read_spine_enums(data): 
+    # Find the start and end of the enums section
     enums_start = data.find('// @start: enums') + len('// @start: enums')
     enums_end = data.find('// @end: enums')
     enums_section = data[enums_start:enums_end]
-    return re.findall(r"typedef enum (\w+) \{", enums_section)
+
+    # Regex to match CF_ENUM definitions
+    enum_pattern = re.compile(r"typedef CF_ENUM\(int, (\w+)\) \{([^}]+)\}")
+    case_pattern = re.compile(r"(\w+)\s*=\s*([\d]+)|(\w+)")
+    from collections import OrderedDict
+    enums: OrderedDict[str, OrderedDict[str, int]] = OrderedDict()
+    for match in enum_pattern.finditer(enums_section):
+        enum_name = match.group(1)
+        cases_block = match.group(2)
+
+        # Extract cases and their values
+        cases:OrderedDict[str, int] = OrderedDict()
+        current_value = 0
+        for case_match in case_pattern.finditer(cases_block):
+            if case_match.group(1):  # Explicit value provided
+                case_name = case_match.group(1)
+                current_value = int(case_match.group(2))
+            else:  # No value provided
+                case_name = case_match.group(3)
+
+            cases[case_name] = current_value
+            current_value += 1  # Increment for the next case
+
+        enums[enum_name] = cases
+
+    return enums
 
 class SpineObject:
     def __init__(self, name, functions):
@@ -85,7 +111,7 @@ class SpineFunction:
         self.returns_optional = returns_optional
 
     def isReturningSpineClass(self):
-       return self.return_type.startswith("spine_") and self.return_type != "spine_bool"  and self.return_type not in enums
+       return self.return_type.startswith("spine_") and self.return_type != "spine_bool"  and self.return_type not in enums.keys()
 
     def __str__(self):
         return f"SpineFunction(return_type: {self.return_type}, name: {self.name}, parameters: {self.parameters}, returns_optional: {self.returns_optional})"
@@ -99,7 +125,7 @@ class SpineParam:
         self.name = name
 
     def isSpineClass(self):
-       return self.type.startswith("spine_") and self.type != "spine_bool" and self.type not in enums
+       return self.type.startswith("spine_") and self.type != "spine_bool" and self.type not in enums.keys()
 
     def __str__(self):
         return f"SpineParam(type: {self.type}, name: {self.name})"
@@ -251,16 +277,19 @@ class SwiftFunctionBodyWriter:
         if "find_" in function_name or self.spine_function.returns_optional:
           body += function_call
           body += ".flatMap { .init($0"
-          if self.spine_function.return_type in enums:
+          if self.spine_function.return_type in enums.keys():
             body += ".rawValue"
           body += ") }"
         else:
           body += ".init("
           body += function_call
-          if self.spine_function.return_type in enums:
+          if self.spine_function.return_type in enums.keys():
             body += ".rawValue"
           body += ")"
-          
+      # else if slef.spine_function
+      elif self.spine_function.return_type in enums.keys():
+         body += function_call
+         body += ".swift"
       else:
         body += function_call
       
@@ -292,6 +321,8 @@ class SwiftFunctionBodyWriter:
             swift_param_names.append(f"{spine_param.name}.wrappee")
         elif spine_param.type == "spine_bool":
            swift_param_names.append(f"{spine_param.name} ? -1 : 0")
+        elif spine_param.type in enums.keys():
+           swift_param_names.append(f"{spine_param.name}.spine")
         else:
            swift_param_names.append(spine_param.name)
          
@@ -553,21 +584,50 @@ class SwiftObjectWriter:
         object_string += "}"
 
         return object_string
-
 class SwiftEnumWriter:
-    def __init__(self, spine_enum):
+    def __init__(self, spine_enum, spine_cases:dict[str,int]):
         self.spine_enum = spine_enum
+        self.spine_cases = spine_cases
 
     def write(self):
        # TODO: Consider leaving spine prefix (objc) or map whole c enum to swift/objc compatible enum
-       return f"public typealias {snake_to_title(self.spine_enum.replace("spine_", ""))} = {self.spine_enum}"
+        swift_type_name = snake_to_title(self.spine_enum.replace("spine_", ""))
+        strings = f"@objc public enum {swift_type_name}: Int {{"
+        for case_name in self.spine_cases.keys():
+          strings += f"\n{inset} @objc({case_name}) case {case_name} = {self.spine_cases[case_name]}"
+        strings += "\n}\n\n"
+
+        strings += f"internal extension SpineCppLite.{self.spine_enum} {{\n\n"
+        strings += f"{inset}var swift: {swift_type_name} {{\n"
+        strings += f"{inset}{inset}switch self {{\n"
+        for case_name in self.spine_cases.keys():
+          strings += f"{inset}{inset}case .{case_name}: return .{case_name}\n"
+        strings += f"{inset}{inset}@unknown default: return .{[*self.spine_cases.keys()][0]}\n"
+        strings += f"{inset}{inset}}}\n"
+        strings += f"{inset}}}\n\n"
+        strings += "}\n\n"
+
+        strings += f"internal extension {swift_type_name} {{\n\n"
+        strings += f"{inset}var spine: SpineCppLite.{self.spine_enum} {{\n"
+        strings += f"{inset}{inset}switch self {{\n"
+        for case_name in self.spine_cases.keys():
+          strings += f"{inset}{inset}case .{case_name}: return .{case_name}\n"
+        strings += f"{inset}{inset}}}\n"
+        strings += f"{inset}}}\n\n"
+        strings += "}\n"
+
+        return strings
 
 print("import Foundation")
-print("import SpineCppLite")
-print("")
+print("""#if hasFeature(AccessLevelOnImport) || compiler(>=6.0)
+internal import SpineCppLite
+#else
+@_implementationOnly import SpineCppLite
+#endif
+""")
 
-for enum in enums:
-   print(SwiftEnumWriter(spine_enum=enum).write())
+for enum in enums.keys():
+   print(SwiftEnumWriter(spine_enum=enum,spine_cases=enums[enum]).write())
 
 print("")
   

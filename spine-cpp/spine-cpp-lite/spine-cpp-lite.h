@@ -54,6 +54,14 @@
 #endif
 #endif
 
+#ifdef __APPLE__
+#include <CoreFoundation/CFAvailability.h>
+#define CF_ENUM_END(name)
+#else
+#define CF_ENUM(_type, _name) enum _name
+#define CF_ENUM_END(name) name
+#endif
+
 #define SPINE_OPAQUE_TYPE(name)     \
 	typedef struct name##_wrapper { \
 	} name##_wrapper;               \
@@ -113,77 +121,77 @@ typedef char utf8;
 
 // @start: enums
 
-typedef enum spine_blend_mode {
+typedef CF_ENUM(int, spine_blend_mode) {
 	SPINE_BLEND_MODE_NORMAL = 0,
 	SPINE_BLEND_MODE_ADDITIVE,
 	SPINE_BLEND_MODE_MULTIPLY,
 	SPINE_BLEND_MODE_SCREEN
-} spine_blend_mode;
+} CF_ENUM_END(spine_blend_mode);
 
-typedef enum spine_mix_blend {
+typedef CF_ENUM(int, spine_mix_blend) {
 	SPINE_MIX_BLEND_SETUP = 0,
 	SPINE_MIX_BLEND_FIRST,
 	SPINE_MIX_BLEND_REPLACE,
 	SPINE_MIX_BLEND_ADD
-} spine_mix_blend;
+} CF_ENUM_END(spine_mix_blend);
 
-typedef enum spine_event_type {
+typedef CF_ENUM(int, spine_event_type) {
 	SPINE_EVENT_TYPE_START = 0,
 	SPINE_EVENT_TYPE_INTERRUPT,
 	SPINE_EVENT_TYPE_END,
 	SPINE_EVENT_TYPE_COMPLETE,
 	SPINE_EVENT_TYPE_DISPOSE,
 	SPINE_EVENT_TYPE_EVENT
-} spine_event_type;
+} CF_ENUM_END(spine_event_type);
 
-typedef enum spine_attachment_type {
+typedef CF_ENUM(int, spine_attachment_type) {
 	SPINE_ATTACHMENT_REGION = 0,
 	SPINE_ATTACHMENT_MESH,
 	SPINE_ATTACHMENT_CLIPPING,
 	SPINE_ATTACHMENT_BOUNDING_BOX,
 	SPINE_ATTACHMENT_PATH,
 	SPINE_ATTACHMENT_POINT,
-} spine_attachment_type;
+} CF_ENUM_END(spine_attachment_type);
 
-typedef enum spine_constraint_type {
+typedef CF_ENUM(int, spine_constraint_type) {
 	SPINE_CONSTRAINT_IK,
 	SPINE_CONSTRAINT_TRANSFORM,
 	SPINE_CONSTRAINT_PATH
-} spine_constraint_type;
+} CF_ENUM_END(spine_constraint_type);
 
-typedef enum spine_inherit {
+typedef CF_ENUM(int, spine_inherit) {
 	SPINE_INHERIT_NORMAL = 0,
 	SPINE_INHERIT_ONLY_TRANSLATION,
 	SPINE_INHERIT_NO_ROTATION_OR_REFLECTION,
 	SPINE_INHERIT_NO_SCALE,
 	SPINE_INHERIT_NO_SCALE_OR_REFLECTION
-} spine_inherit;
+} CF_ENUM_END(spine_inherit);
 
-typedef enum spine_position_mode {
+typedef CF_ENUM(int, spine_position_mode) {
 	SPINE_POSITION_MODE_FIXED = 0,
 	SPINE_POSITION_MODE_PERCENT
-} spine_position_mode;
+} CF_ENUM_END(spine_position_mode);
 
-typedef enum spine_spacing_mode {
+typedef CF_ENUM(int, spine_spacing_mode) {
 	SPINE_SPACING_MODE_LENGTH = 0,
 	SPINE_SPACING_MODE_FIXED,
 	SPINE_SPACING_MODE_PERCENT,
 	SPINE_SPACING_MODE_PROPORTIONAL
-} spine_spacing_mode;
+} CF_ENUM_END(spine_spacing_mode);
 
-typedef enum spine_rotate_mode {
+typedef CF_ENUM(int, spine_rotate_mode) {
 	SPINE_ROTATE_MODE_TANGENT = 0,
 	SPINE_ROTATE_MODE_CHAIN,
 	SPINE_ROTATE_MODE_CHAIN_SCALE
-} spine_rotate_mode;
+} CF_ENUM_END(spine_rotate_mode);
 
-typedef enum spine_physics {
+typedef CF_ENUM(int, spine_physics) {
 	SPINE_PHYSICS_NONE = 0,
 	SPINE_PHYSICS_RESET,
 	SPINE_PHYSICS_UPDATE,
 	SPINE_PHYSICS_POSE
 
-} spine_physics;
+} CF_ENUM_END(spine_physics);
 
 // @end: enums
 
