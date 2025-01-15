@@ -2,6 +2,7 @@ import Foundation
 import CoreGraphics
 import QuartzCore
 import UIKit
+import Combine
 
 public typealias SpineControllerCallback = (_ controller: SpineController) -> Void
 
@@ -145,20 +146,23 @@ public final class SpineController: NSObject, ObservableObject {
         isPlaying = true
     }
     
-    internal func load(atlasFile: String, skeletonFile: String, bundle: Bundle = .main) async throws {
+    internal func load(atlasFile: String, skeletonFile: String, bundle: Bundle = .main, isolation actor: isolated (any Actor)? = #isolation) async throws {
         let atlasAndPages = try await Atlas.fromBundle(atlasFile, bundle: bundle)
         let skeletonData = try await SkeletonData.fromBundle(
             atlas: atlasAndPages.0,
             skeletonFileName: skeletonFile,
             bundle: bundle
         )
+        nonisolated(unsafe)
+        let ref = self
         try await MainActor.run {
             let skeletonDrawableWrapper = try SkeletonDrawableWrapper(
                 atlas: atlasAndPages.0,
                 atlasPages: atlasAndPages.1,
                 skeletonData: skeletonData
             )
-            self.drawable = skeletonDrawableWrapper
+            
+            ref.drawable = skeletonDrawableWrapper
         }
     }
     

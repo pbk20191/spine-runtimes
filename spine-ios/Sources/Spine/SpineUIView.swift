@@ -60,7 +60,7 @@ public final class SpineUIView: MTKView {
         backgroundColor: UIColor = .clear
     ) {
         self.init(controller: controller, mode: mode, alignment: alignment, boundsProvider: boundsProvider, backgroundColor: backgroundColor)
-        Task.detached(priority: .high) {
+        Task(priority: .high) {
             do {
                 let drawable = try await source.loadDrawable()
                 try await self.load(drawable: drawable)
@@ -236,8 +236,8 @@ public enum SpineViewSource {
     case file(atlasFile: URL, skeletonFile: URL)
     case http(atlasURL: URL, skeletonURL: URL)
     case drawable(SkeletonDrawableWrapper)
-    
-    internal func loadDrawable() async throws -> SkeletonDrawableWrapper {
+
+    internal func loadDrawable(isolated actor: isolated (any Actor)? = #isolation) async throws -> SkeletonDrawableWrapper {
         switch self {
         case .bundle(let atlasFileName, let skeletonFileName, let bundle):
             let atlasAndPages = try await Atlas.fromBundle(atlasFileName, bundle: bundle)
