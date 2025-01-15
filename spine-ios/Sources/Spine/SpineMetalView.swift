@@ -1,16 +1,15 @@
-import UIKit
 import MetalKit
 
-/// A ``UIView`` to display a Spine skeleton. The skeleton can be loaded from a bundle, local files, http, or a pre-loaded ``SkeletonDrawableWrapper``.
+/// A ``PlatformView`` to display a Spine skeleton. The skeleton can be loaded from a bundle, local files, http, or a pre-loaded ``SkeletonDrawableWrapper``.
 ///
-/// The skeleton displayed by a ``SpineUIView`` can be controlled via a ``SpineController``.
+/// The skeleton displayed by a ``SpineMetalView`` can be controlled via a ``SpineController``.
 ///
 /// The size of the widget can be derived from the bounds provided by a ``BoundsProvider``. If the view is not sized by the bounds
 /// computed by the ``BoundsProvider``, the widget will use the computed bounds to fit the skeleton inside the view's dimensions.
 ///
 /// This is a direct subclass of ``MTKView`` and is using `Metal` to render the skeleton.
 @objc
-public final class SpineUIView: MTKView {
+public final class SpineMetalView: MTKView {
     
     let controller: SpineController
     let mode: Spine.ContentMode
@@ -20,12 +19,27 @@ public final class SpineUIView: MTKView {
     internal var computedBounds: CGRect = .zero
     internal var renderer: SpineRenderer?
     
+    #if os(macOS) && !targetEnvironment(macCatalyst)
+    internal var _isOpaque: Bool = false
+    public override var isOpaque: Bool {
+        get {
+            _isOpaque
+        }
+        set {
+            if newValue != _isOpaque {
+                needsDisplay = true
+            }
+            _isOpaque = newValue
+        }
+    }
+    #endif
+    
     @objc internal init(
         controller: SpineController = SpineController(),
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear
+        backgroundColor: PlatformColor = .clear
     ) {
         self.controller = controller
         self.mode = mode
@@ -37,7 +51,7 @@ public final class SpineUIView: MTKView {
         isOpaque = backgroundColor != .clear
     }
     
-    /// An initializer that constructs a new ``SpineUIView`` from a ``SpineViewSource``.
+    /// An initializer that constructs a new ``SpineMetalView`` from a ``SpineViewSource``.
     ///
     /// After initialization is complete, the provided `controller` is invoked as per the ``SpineController`` semantics, to allow
     /// modifying how the skeleton inside the widget is animated and rendered.
@@ -45,22 +59,22 @@ public final class SpineUIView: MTKView {
     /// - Parameters:
     ///     - from: Specifies the ``SpineViewSource`` from which to load `atlas` and `skeleton` data.
     ///     - controller: The ``SpineController`` used to modify how the skeleton inside the view is animated and rendered.
-    ///     - mode: How the skeleton is fitted inside ``SpineUIView``. Per default, it is `.fit`
-    ///     - alignment: How the skeleton is alignment inside ``SpineUIView``. Per default, it is `.center`
+    ///     - mode: How the skeleton is fitted inside ``SpineMetalView``. Per default, it is `.fit`
+    ///     - alignment: How the skeleton is alignment inside ``SpineMetalView``. Per default, it is `.center`
     ///     - boundsProvider: The skeleton bounds must be computed via a ``BoundsProvider``. Per default, ``SetupPoseBounds`` is used.
     ///     - backgroundColor: The background color of the view. Per defaut, `UIColor.clear` is used
     ///
-    /// - Returns: A new instance of ``SpineUIView``.
+    /// - Returns: A new instance of ``SpineMetalView``.
     public convenience init(
         from source: SpineViewSource,
         controller: SpineController = SpineController(),
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear
+        backgroundColor: PlatformColor = .clear
     ) {
         self.init(controller: controller, mode: mode, alignment: alignment, boundsProvider: boundsProvider, backgroundColor: backgroundColor)
-        Task(priority: .high) {
+        Task(priority: .high) { @MainActor in
             do {
                 let drawable = try await source.loadDrawable()
                 try await self.load(drawable: drawable)
@@ -70,7 +84,7 @@ public final class SpineUIView: MTKView {
         }
     }
     
-    /// A convenience initializer that constructs a new ``SpineUIView`` from bundled files.
+    /// A convenience initializer that constructs a new ``SpineMetalView`` from bundled files.
     ///
     /// After initialization is complete, the provided `controller` is invoked as per the ``SpineController`` semantics, to allow
     /// modifying how the skeleton inside the widget is animated and rendered.
@@ -80,12 +94,12 @@ public final class SpineUIView: MTKView {
     ///     - skeletonFileName: Specifies either a Skeleton `.json` or `.skel` file containing the skeleton data
     ///     - bundle: Specifies from which bundle to load the files. Per default, it is `Bundle.main`
     ///     - controller: The ``SpineController`` used to modify how the skeleton inside the view is animated and rendered.
-    ///     - mode: How the skeleton is fitted inside ``SpineUIView``. Per default, it is `.fit`
-    ///     - alignment: How the skeleton is alignment inside ``SpineUIView``. Per default, it is `.center`
+    ///     - mode: How the skeleton is fitted inside ``SpineMetalView``. Per default, it is `.fit`
+    ///     - alignment: How the skeleton is alignment inside ``SpineMetalView``. Per default, it is `.center`
     ///     - boundsProvider: The skeleton bounds must be computed via a ``BoundsProvider``. Per default, ``SetupPoseBounds`` is used.
     ///     - backgroundColor: The background color of the view. Per defaut, `UIColor.clear` is used
     ///
-    /// - Returns: A new instance of ``SpineUIView``.
+    /// - Returns: A new instance of ``SpineMetalView``.
     @objc public convenience init(
         atlasFileName: String,
         skeletonFileName: String,
@@ -94,12 +108,12 @@ public final class SpineUIView: MTKView {
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear
+        backgroundColor: PlatformColor = .clear
     ) {
         self.init(from: .bundle(atlasFileName: atlasFileName, skeletonFileName: skeletonFileName, bundle: bundle), controller: controller, mode: mode, alignment: alignment, boundsProvider: boundsProvider, backgroundColor: backgroundColor)
     }
     
-    /// A convenience initializer that constructs a new ``SpineUIView`` from file URLs.
+    /// A convenience initializer that constructs a new ``SpineMetalView`` from file URLs.
     ///
     /// After initialization is complete, the provided `controller` is invoked as per the ``SpineController`` semantics, to allow
     /// modifying how the skeleton inside the widget is animated and rendered.
@@ -108,12 +122,12 @@ public final class SpineUIView: MTKView {
     ///     - atlasFile: Specifies the `.atlas` file to be loaded for the images used to render the skeleton
     ///     - skeletonFile: Specifies either a Skeleton `.json` or `.skel` file containing the skeleton data
     ///     - controller: The ``SpineController`` used to modify how the skeleton inside the view is animated and rendered.
-    ///     - mode: How the skeleton is fitted inside ``SpineUIView``. Per default, it is `.fit`
-    ///     - alignment: How the skeleton is alignment inside ``SpineUIView``. Per default, it is `.center`
+    ///     - mode: How the skeleton is fitted inside ``SpineMetalView``. Per default, it is `.fit`
+    ///     - alignment: How the skeleton is alignment inside ``SpineMetalView``. Per default, it is `.center`
     ///     - boundsProvider: The skeleton bounds must be computed via a ``BoundsProvider``. Per default, ``SetupPoseBounds`` is used.
     ///     - backgroundColor: The background color of the view. Per defaut, `UIColor.clear` is used
     ///
-    /// - Returns: A new instance of ``SpineUIView``.
+    /// - Returns: A new instance of ``SpineMetalView``.
     @objc public convenience init(
         atlasFile: URL,
         skeletonFile: URL,
@@ -121,12 +135,12 @@ public final class SpineUIView: MTKView {
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear
+        backgroundColor: PlatformColor = .clear
     ) {
         self.init(from: .file(atlasFile: atlasFile, skeletonFile: skeletonFile), controller: controller, mode: mode, alignment: alignment, boundsProvider: boundsProvider, backgroundColor: backgroundColor)
     }
     
-    /// A convenience initializer that constructs a new ``SpineUIView`` from HTTP.
+    /// A convenience initializer that constructs a new ``SpineMetalView`` from HTTP.
     ///
     /// After initialization is complete, the provided `controller` is invoked as per the ``SpineController`` semantics, to allow
     /// modifying how the skeleton inside the widget is animated and rendered.
@@ -135,12 +149,12 @@ public final class SpineUIView: MTKView {
     ///     - atlasURL: Specifies the `.atlas` file http URL to be loaded for the images used to render the skeleton
     ///     - skeletonURL: Specifies either a Skeleton `.json` or `.skel` file http URL containing the skeleton data
     ///     - controller: The ``SpineController`` used to modify how the skeleton inside the view is animated and rendered.
-    ///     - mode: How the skeleton is fitted inside ``SpineUIView``. Per default, it is `.fit`
-    ///     - alignment: How the skeleton is alignment inside ``SpineUIView``. Per default, it is `.center`
+    ///     - mode: How the skeleton is fitted inside ``SpineMetalView``. Per default, it is `.fit`
+    ///     - alignment: How the skeleton is alignment inside ``SpineMetalView``. Per default, it is `.center`
     ///     - boundsProvider: The skeleton bounds must be computed via a ``BoundsProvider``. Per default, ``SetupPoseBounds`` is used.
     ///     - backgroundColor: The background color of the view. Per defaut, `UIColor.clear` is used
     ///
-    /// - Returns: A new instance of ``SpineUIView``.
+    /// - Returns: A new instance of ``SpineMetalView``.
     @objc public convenience init(
         atlasURL: URL,
         skeletonURL: URL,
@@ -148,12 +162,12 @@ public final class SpineUIView: MTKView {
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear
+        backgroundColor: PlatformColor = .clear
     ) {
         self.init(from: .http(atlasURL: atlasURL, skeletonURL: skeletonURL), controller: controller, mode: mode, alignment: alignment, boundsProvider: boundsProvider, backgroundColor: backgroundColor)
     }
     
-    /// A convenience initializer that constructs a new ``SpineUIView`` with a ``SkeletonDrawableWrapper``.
+    /// A convenience initializer that constructs a new ``SpineMetalView`` with a ``SkeletonDrawableWrapper``.
     ///
     /// After initialization is complete, the provided `controller` is invoked as per the ``SpineController`` semantics, to allow
     /// modifying how the skeleton inside the widget is animated and rendered.
@@ -161,18 +175,18 @@ public final class SpineUIView: MTKView {
     /// - Parameters:
     ///     - drawable: The ``SkeletonDrawableWrapper`` provided directly to the ``SpineController``
     ///     - controller: The ``SpineController`` used to modify how the skeleton inside the view is animated and rendered.
-    ///     - mode: How the skeleton is fitted inside ``SpineUIView``. Per default, it is `.fit`
-    ///     - alignment: How the skeleton is alignment inside ``SpineUIView``. Per default, it is `.center`
+    ///     - mode: How the skeleton is fitted inside ``SpineMetalView``. Per default, it is `.fit`
+    ///     - alignment: How the skeleton is alignment inside ``SpineMetalView``. Per default, it is `.center`
     ///     - boundsProvider: The skeleton bounds must be computed via a ``BoundsProvider``. Per default, ``SetupPoseBounds`` is used.
     ///
-    /// - Returns: A new instance of ``SpineUIView``.
+    /// - Returns: A new instance of ``SpineMetalView``.
     @objc public convenience init(
         drawable: SkeletonDrawableWrapper,
         controller: SpineController = SpineController(),
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear
+        backgroundColor: PlatformColor = .clear
     ) {
         self.init(from: .drawable(drawable), controller: controller, mode: mode, alignment: alignment, boundsProvider: boundsProvider, backgroundColor: backgroundColor)
     }
@@ -197,7 +211,7 @@ public final class SpineUIView: MTKView {
     }
 }
 
-extension SpineUIView {
+extension SpineMetalView {
     
     internal func load(drawable: SkeletonDrawableWrapper) throws {
         controller.drawable = drawable
@@ -208,7 +222,7 @@ extension SpineUIView {
         controller.initialize()
     }
     
-    private func initRenderer(atlasPages: [UIImage]) throws {
+    private func initRenderer(atlasPages: [PlatformImage]) throws {
         renderer = try SpineRenderer(
             device: SpineObjects.shared.device,
             commandQueue: SpineObjects.shared.commandQueue,

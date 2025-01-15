@@ -6,7 +6,6 @@ private import SpineCppLite
 @_implementationOnly import SpineCppLite
 #endif
 import CoreGraphics
-import UIKit
 
 /// A ``SkeletonDrawableWrapper`` with ``SkeletonDrawable`` bundle loading, updating, and rendering an ``Atlas``, ``Skeleton``, and ``AnimationState``
 /// into a single easy to use class.
@@ -31,7 +30,7 @@ import UIKit
 public final class SkeletonDrawableWrapper: NSObject {
     
     public let atlas: Atlas
-    public let atlasPages: [UIImage]
+    public let atlasPages: [PlatformImage]
     public let skeletonData: SkeletonData
     
     public let skeletonDrawable: SkeletonDrawable
@@ -92,7 +91,7 @@ public final class SkeletonDrawableWrapper: NSObject {
         )
     }
     
-    public init(atlas: Atlas, atlasPages: [UIImage], skeletonData: SkeletonData) throws {
+    public init(atlas: Atlas, atlasPages: [PlatformImage], skeletonData: SkeletonData) throws {
         self.atlas = atlas
         self.atlasPages = atlasPages
         self.skeletonData = skeletonData

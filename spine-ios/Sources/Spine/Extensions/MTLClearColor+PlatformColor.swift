@@ -1,8 +1,7 @@
-import UIKit
 import MetalKit
 
 extension MTLClearColor {
-    init(_ color: UIColor) {
+    init(_ color: PlatformColor) {
         var red: CGFloat = 0
         var green: CGFloat = 0
         var blue: CGFloat = 0

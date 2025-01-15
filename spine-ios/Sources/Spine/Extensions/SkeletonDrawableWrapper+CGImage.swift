@@ -1,5 +1,5 @@
 import Foundation
-import UIKit
+import MetalKit
 import CoreGraphics
 
 public extension SkeletonDrawableWrapper {
@@ -11,8 +11,8 @@ public extension SkeletonDrawableWrapper {
     ///     - backgroundColor: the background color of the image
     ///     - scaleFactor: The scale factor. Set this to `UIScreen.main.scale` if you want to show the image in a view
     @MainActor
-    func renderToImage(size: CGSize, backgroundColor: UIColor, scaleFactor: CGFloat = 1) throws -> CGImage? {
-        let spineView = SpineUIView(
+    func renderToImage(size: CGSize, backgroundColor: PlatformColor, scaleFactor: CGFloat = 1) throws -> CGImage? {
+        let spineView = SpineMetalView(
             controller: SpineController(disposeDrawableOnDeInit: false), // Doesn't own the drawable
             backgroundColor: backgroundColor
         )
@@ -20,8 +20,9 @@ public extension SkeletonDrawableWrapper {
         spineView.isPaused = false
         spineView.enableSetNeedsDisplay = false
         spineView.framebufferOnly = false
+#if canImport(UIKit)
         spineView.contentScaleFactor = scaleFactor
-        
+#endif
         try spineView.load(drawable: self)
         spineView.renderer?.waitUntilCompleted = true
         
