@@ -56,7 +56,7 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
         device: MTLDevice,
         commandQueue: MTLCommandQueue,
         pixelFormat: MTLPixelFormat,
-        atlasPages: [UIImage],
+        atlasPages: [PlatformImage],
         pma: Bool
     ) throws {
         self.device = device
@@ -73,7 +73,13 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
         let defaultLibrary = try device.makeDefaultLibrary(bundle: bundle)
         let textureLoader = MTKTextureLoader(device: device)
         textures = try atlasPages
-            .compactMap { $0.cgImage }
+            .compactMap {
+                #if canImport(UIKit)
+                $0.cgImage
+                #else
+                $0.cgImage(forProposedRect: nil, context: nil, hints: nil)
+                #endif
+            }
             .map {
                 try textureLoader.newTexture(
                     cgImage: $0,
@@ -99,7 +105,7 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
                 blendMode: blendMode,
                 with: pma
             )
-            pipelineStatesByBlendMode[Int(blendMode.rawValue)] = try device.makeRenderPipelineState(descriptor: descriptor)
+            pipelineStatesByBlendMode[.init(blendMode.rawValue)] = try device.makeRenderPipelineState(descriptor: descriptor)
         }
         
         super.init()
@@ -108,14 +114,29 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-        guard let spineView = view as? SpineUIView else { return }
+        guard let spineView = view as? SpineMetalView else { return }
+//        view.window?.screen.scale
+        var scale:CGFloat = 1
+#if canImport(UIKit)
+        scale = view.traitCollection.displayScale
+#elseif canImport(Cocoa)
+        // Start with a unit size
+        let unitSize = NSSize(width: 1.0, height: 1.0)
         
-        sizeInPoints = CGSize(width: size.width / UIScreen.main.scale, height: size.height / UIScreen.main.scale)
+        // Convert from backing to view coordinates
+        let convertedSize = view.convertFromBacking(unitSize)
+        
+        // Calculate the scale factor
+        scale = unitSize.width / convertedSize.width
+#endif
+//        view.traitCollection.displayScale
+        sizeInPoints = CGSize(width: size.width / scale, height: size.height / scale)
         viewPortSize = vector_uint2(UInt32(size.width), UInt32(size.height))
         setTransform(
             bounds: spineView.computedBounds,
             mode: spineView.mode,
-            alignment: spineView.alignment
+            alignment: spineView.alignment,
+            view: view
         )
     }
     
@@ -155,8 +176,9 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
             commandBuffer.waitUntilCompleted()
         }
     }
+    
     @MainActor
-    private func setTransform(bounds: CGRect, mode: Spine.ContentMode, alignment: Spine.Alignment) {
+    private func setTransform(bounds: CGRect, mode: Spine.ContentMode, alignment: Spine.Alignment, view: MTKView) {
         let x = -bounds.minX - bounds.width / 2.0
         let y = -bounds.minY - bounds.height / 2.0
         
@@ -174,11 +196,24 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
         
         let offsetX = abs(sizeInPoints.width - bounds.width * scaleX) / 2 * alignment.x
         let offsetY = abs(sizeInPoints.height - bounds.height * scaleY) / 2 * alignment.y
+        var scale:CGFloat = 1
+        #if canImport(UIKit)
+        scale = view.traitCollection.displayScale
+        #elseif canImport(Cocoa)
+        // Start with a unit size
+        let unitSize = NSSize(width: 1.0, height: 1.0)
+        
+        // Convert from backing to view coordinates
+        let convertedSize = view.convertFromBacking(unitSize)
+        
+        // Calculate the scale factor
+        scale = unitSize.width / convertedSize.width
+        #endif
         
         transform = SpineTransform(
             translation: vector_float2(Float(x), Float(y)),
-            scale: vector_float2(Float(scaleX * UIScreen.main.scale), Float(scaleY * UIScreen.main.scale)),
-            offset: vector_float2(Float(offsetX * UIScreen.main.scale), Float(offsetY * UIScreen.main.scale))
+            scale: vector_float2(Float(scaleX * scale), Float(scaleY * scale)),
+            offset: vector_float2(Float(offsetX * scale), Float(offsetY * scale))
         )
         
         delegate?.spineRendererDidUpdate(

@@ -29,7 +29,7 @@ public extension Atlas {
     /// Loads an ``Atlas`` from the file with name `atlasFileName` in the `main` bundle or the optionally provided [bundle].
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromBundle(_ atlasFileName: String, bundle: Bundle = .main) async throws -> sending (Atlas, [UIImage]) {
+    static func fromBundle(_ atlasFileName: String, bundle: Bundle = .main) async throws -> sending (Atlas, [PlatformImage]) {
         let data = try await FileSource.bundle(fileName: atlasFileName, bundle: bundle).load()
         return try await Self.fromData(data: data) { name in
             return try await FileSource.bundle(fileName: name, bundle: bundle).load()
@@ -39,7 +39,7 @@ public extension Atlas {
     /// Loads an ``Atlas`` from the file URL `atlasFile`.
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromFile(_ atlasFile: URL) async throws -> sending (Atlas, [UIImage]) {
+    static func fromFile(_ atlasFile: URL) async throws -> sending (Atlas, [PlatformImage]) {
         let data = try await FileSource.file(atlasFile).load()
         return try await Self.fromData(data: data) { name in
             let dir = atlasFile.deletingLastPathComponent()
@@ -51,7 +51,7 @@ public extension Atlas {
     /// Loads an ``Atlas`` from the http URL `atlasURL`.
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromHttp(_ atlasURL: URL) async throws -> sending (Atlas, [UIImage]) {
+    static func fromHttp(_ atlasURL: URL) async throws -> sending (Atlas, [PlatformImage]) {
         let data = try await FileSource.http(atlasURL).load()
         return try await Self.fromData(data: data) { name in
             let dir = atlasURL.deletingLastPathComponent()
@@ -60,7 +60,7 @@ public extension Atlas {
         }
     }
     
-    private static func fromData(data: Data, loadFile: (_ name: String) async throws -> Data) async throws -> sending (Atlas, [UIImage]) {
+    private static func fromData(data: Data, loadFile: (_ name: String) async throws -> Data) async throws -> sending (Atlas, [PlatformImage]) {
         guard let atlasData = String(data: data, encoding: .utf8) else {
             throw "Couldn't read atlas bytes as utf8 string" as SpineError
         }
@@ -76,7 +76,7 @@ public extension Atlas {
             throw "Couldn't load atlas: \(message)" as SpineError
         }
         
-        var atlasPages = [UIImage]()
+        var atlasPages = [PlatformImage]()
         let numImagePaths = spine_atlas_get_num_image_paths(atlas);
         
         for i in 0..<numImagePaths {
@@ -85,7 +85,7 @@ public extension Atlas {
             }
             let atlasPageFile = String(cString: atlasPageFilePointer)
             let imageData = try await loadFile(atlasPageFile)
-            guard let image = UIImage(data: imageData) else {
+            guard let image = PlatformImage(data: imageData) else {
                 continue
             }
             atlasPages.append(image)
@@ -303,7 +303,7 @@ internal enum FileSource {
         case .file(let fileUrl):
             return try Data(contentsOf: fileUrl, options: [])
         case .http(let url):
-            if #available(iOS 15.0, *) {
+            if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
                 let (temp, response) = try await URLSession.shared.download(from: url)
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                     throw URLError(.badServerResponse)

@@ -2,22 +2,24 @@ import SwiftUI
 
 /// A `SwiftUI` `View` to display a Spine skeleton. The skeleton can be loaded from a bundle, local files, http, or a pre-loaded ``SkeletonDrawableWrapper``.
 ///
-/// The skeleton displayed by a ``SpineUIView`` can be controlled via a ``SpineController``.
+/// The skeleton displayed by a ``SpineMetalView`` can be controlled via a ``SpineController``.
 ///
 /// The size of the widget can be derived from the bounds provided by a ``BoundsProvider``. If the view is not sized by the bounds
 /// computed by the ``BoundsProvider``, the widget will use the computed bounds to fit the skeleton inside the view's dimensions.
 ///
-/// This is a ``UIViewRepresentable`` of `SpineUIView`.
-public struct SpineView: UIViewRepresentable {
-    
-    public typealias UIViewType = SpineUIView
-
+/// This is a ``UIViewRepresentable`` of `SpineMetalView`.
+public struct SpineView: PlatformViewRepresentable {
+#if canImport(UIKit)
+    public typealias UIViewType = SpineMetalView
+#elseif os(macOS)
+    public typealias NSViewType = SpineMetalView
+#endif
     private let source: SpineViewSource
     private let controller: SpineController
     private let mode: Spine.ContentMode
     private let alignment: Spine.Alignment
     private let boundsProvider: BoundsProvider
-    private let backgroundColor: UIColor // Not using `SwiftUI.Color`, as briging to `UIColor` prior iOS 14 might not always work.
+    private let backgroundColor: PlatformColor // Not using `SwiftUI.Color`, as briging to `UIColor` prior iOS 14 might not always work.
     
     @Binding
     private var isRendering: Bool?
@@ -32,8 +34,8 @@ public struct SpineView: UIViewRepresentable {
     ///     - controller: The ``SpineController`` used to modify how the skeleton inside the view is animated and rendered.
     ///     - skeletonFileName: Specifies either a Skeleton `.json` or `.skel` file containing the skeleton data
     ///     - bundle: Specifies from which bundle to load the files. Per default, it is `Bundle.main`
-    ///     - mode: How the skeleton is fitted inside ``SpineUIView``. Per default, it is `.fit`
-    ///     - alignment: How the skeleton is alignment inside ``SpineUIView``. Per default, it is `.center`
+    ///     - mode: How the skeleton is fitted inside ``SpineMetalView``. Per default, it is `.fit`
+    ///     - alignment: How the skeleton is alignment inside ``SpineMetalView``. Per default, it is `.center`
     ///     - boundsProvider: The skeleton bounds must be computed via a ``BoundsProvider``. Per default, ``SetupPoseBounds`` is used.
     ///     - backgroundColor: The background color of the view. Per defaut, `UIColor.clear` is used
     ///     - isRendering: Bindgin to disable or enable rendering. Disable it when the spine view is out of bounds and you want to preserve CPU/GPU resources.
@@ -45,7 +47,7 @@ public struct SpineView: UIViewRepresentable {
         mode: Spine.ContentMode = .fit,
         alignment: Spine.Alignment = .center,
         boundsProvider: BoundsProvider = SetupPoseBounds(),
-        backgroundColor: UIColor = .clear,
+        backgroundColor: PlatformColor = .clear,
         isRendering: Binding<Bool?> = .constant(nil)
     ) {
         self.source = source
@@ -56,9 +58,31 @@ public struct SpineView: UIViewRepresentable {
         self.backgroundColor = backgroundColor
         _isRendering = isRendering
     }
+#if canImport(UIKit)
+    public func makeUIView(context: Context) -> UIViewType {
+        makeView(context: context)
+    }
+#endif
     
-    public func makeUIView(context: Context) -> SpineUIView {
-        return SpineUIView(
+#if os(macOS)
+    public func makeNSView(context: Context) -> NSViewType {
+        makeView(context: context)
+    }
+#endif
+
+#if canImport(UIKit)
+    public func updateUIView(_ uiView: UIViewType, context: Context) {
+        updateView(uiView, context: context)
+    }
+#endif
+#if os(macOS)
+    public func updateNSView(_ nsView: NSViewType, context: Context) {
+        updateView(nsView, context: context)
+    }
+    #endif
+    
+    internal func makeView(context:Context) -> SpineMetalView {
+        return SpineMetalView(
             from: source,
             controller: controller,
             mode: mode,
@@ -68,9 +92,9 @@ public struct SpineView: UIViewRepresentable {
         )
     }
     
-    public func updateUIView(_ uiView: SpineUIView, context: Context) {
+    internal func updateView(_ view:SpineMetalView, context:Context) {
         if let isRendering {
-            uiView.isRendering = isRendering
+            view.isRendering = isRendering
         }
     }
 }

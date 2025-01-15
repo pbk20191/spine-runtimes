@@ -1,7 +1,6 @@
 import Foundation
 import CoreGraphics
 import QuartzCore
-import UIKit
 import Combine
 
 public typealias SpineControllerCallback = (_ controller: SpineController) -> Void
