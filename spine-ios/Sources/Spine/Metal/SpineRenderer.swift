@@ -136,6 +136,7 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
               let commandBuffer = commandQueue.makeCommandBuffer(),
               let renderPassDescriptor = view.currentRenderPassDescriptor,
               let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+            bufferingSemaphore.signal()
             return
         }
         
@@ -147,14 +148,19 @@ internal final class SpineRenderer: NSObject, MTKViewDelegate {
         view.currentDrawable.flatMap {
             commandBuffer.present($0)
         }
-        commandBuffer.addCompletedHandler { [bufferingSemaphore] _ in
-            bufferingSemaphore.signal()
-        }
+        signalBlock(commandBuffer, self.bufferingSemaphore)
         commandBuffer.commit()
         if waitUntilCompleted {
             commandBuffer.waitUntilCompleted()
         }
     }
+    
+    nonisolated func signalBlock(_ buffer:MTLCommandBuffer, _ sema:DispatchSemaphore) {
+        buffer.addCompletedHandler{ _ in
+            sema.signal()
+        }
+    }
+    
     @MainActor
     private func setTransform(bounds: CGRect, mode: Spine.ContentMode, alignment: Spine.Alignment) {
         let x = -bounds.minX - bounds.width / 2.0

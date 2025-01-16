@@ -29,7 +29,7 @@ public extension Atlas {
     /// Loads an ``Atlas`` from the file with name `atlasFileName` in the `main` bundle or the optionally provided [bundle].
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromBundle(_ atlasFileName: String, bundle: Bundle = .main) async throws -> (Atlas, [UIImage]) {
+    static func fromBundle(_ atlasFileName: String, bundle: Bundle = .main) async throws -> sending (Atlas, [UIImage]) {
         let data = try await FileSource.bundle(fileName: atlasFileName, bundle: bundle).load()
         return try await Self.fromData(data: data) { name in
             return try await FileSource.bundle(fileName: name, bundle: bundle).load()
@@ -39,7 +39,7 @@ public extension Atlas {
     /// Loads an ``Atlas`` from the file URL `atlasFile`.
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromFile(_ atlasFile: URL) async throws -> (Atlas, [UIImage]) {
+    static func fromFile(_ atlasFile: URL) async throws -> sending (Atlas, [UIImage]) {
         let data = try await FileSource.file(atlasFile).load()
         return try await Self.fromData(data: data) { name in
             let dir = atlasFile.deletingLastPathComponent()
@@ -51,7 +51,7 @@ public extension Atlas {
     /// Loads an ``Atlas`` from the http URL `atlasURL`.
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromHttp(_ atlasURL: URL) async throws -> (Atlas, [UIImage]) {
+    static func fromHttp(_ atlasURL: URL) async throws -> sending (Atlas, [UIImage]) {
         let data = try await FileSource.http(atlasURL).load()
         return try await Self.fromData(data: data) { name in
             let dir = atlasURL.deletingLastPathComponent()
@@ -60,7 +60,7 @@ public extension Atlas {
         }
     }
     
-    private static func fromData(data: Data, loadFile: (_ name: String) async throws -> Data) async throws -> (Atlas, [UIImage]) {
+    private static func fromData(data: Data, loadFile: (_ name: String) async throws -> Data) async throws -> sending (Atlas, [UIImage]) {
         guard let atlasData = String(data: data, encoding: .utf8) else {
             throw "Couldn't read atlas bytes as utf8 string" as SpineError
         }
@@ -101,7 +101,8 @@ public extension SkeletonData {
     /// Uses the provided ``Atlas`` to resolve attachment images.
     ///
     /// Throws an `Error` in case the skeleton data could not be loaded.
-    static func fromBundle(atlas: Atlas, skeletonFileName: String, bundle: Bundle = .main) async throws -> SkeletonData {
+    @preconcurrency
+    static func fromBundle(atlas: Atlas, skeletonFileName: String, bundle: Bundle = .main) async throws -> sending SkeletonData {
         return try fromData(
             atlas: atlas,
             data: try await FileSource.bundle(fileName: skeletonFileName, bundle: bundle).load(),
@@ -112,7 +113,8 @@ public extension SkeletonData {
     /// Loads a ``SkeletonData`` from the file URL `skeletonFile`. Uses the provided ``Atlas`` to resolve attachment images.
     ///
     /// Throws an `Error` in case the skeleton data could not be loaded.
-    static func fromFile(atlas: Atlas, skeletonFile: URL) async throws -> SkeletonData {
+    @preconcurrency
+    static func fromFile(atlas: Atlas, skeletonFile: URL) async throws -> sending SkeletonData {
         return try fromData(
             atlas: atlas,
             data: try await FileSource.file(skeletonFile).load(),
@@ -123,7 +125,7 @@ public extension SkeletonData {
     /// Loads a ``SkeletonData`` from the http URL `skeletonFile`. Uses the provided ``Atlas`` to resolve attachment images.
     ///
     /// Throws an `Error` in case the skeleton data could not be loaded.
-    static func fromHttp(atlas: Atlas, skeletonURL: URL) async throws -> SkeletonData {
+    static func fromHttp(atlas: Atlas, skeletonURL: URL) async throws -> sending SkeletonData {
         return try fromData(
             atlas: atlas,
             data: try await FileSource.http(skeletonURL).load(),
@@ -134,7 +136,7 @@ public extension SkeletonData {
     /// Loads a ``SkeletonData`` from the ``binary`` skeleton `Data`, using the provided ``Atlas`` to resolve attachment images.
     ///
     /// Throws an `Error` in case the skeleton data could not be loaded.
-    static func fromData(atlas: Atlas, data: Data) throws -> SkeletonData {
+    static func fromData(atlas: Atlas, data: Data) throws -> sending SkeletonData {
         let result = try data.withUnsafeBytes{
             try $0.withMemoryRebound(to: UInt8.self) { buffer in
                 guard let ptr = buffer.baseAddress else {
@@ -160,14 +162,18 @@ public extension SkeletonData {
         guard let data = spine_skeleton_data_result_get_data(result) else {
             throw "Couldn't load skeleton data from result" as SpineError
         }
-        return SkeletonData(data)
+        return Suppress(value: SkeletonData(data)).value
+    }
+    
+    internal struct Suppress<T>: @unchecked Sendable {
+        let value: T
     }
     
     /// Loads a ``SkeletonData`` from the `json` string, using the provided ``Atlas`` to resolve attachment
     /// images.
     ///
     /// Throws an `Error` in case the atlas could not be loaded.
-    static func fromJson(atlas: Atlas, json: String) throws -> SkeletonData {
+    static func fromJson(atlas: Atlas, json: String) throws -> sending SkeletonData {
         let result = try json.utf8CString.withUnsafeBufferPointer { buffer in
             guard
                 let basePtr = buffer.baseAddress,
@@ -186,10 +192,10 @@ public extension SkeletonData {
         guard let data = spine_skeleton_data_result_get_data(result) else {
             throw "Couldn't load skeleton data from result" as SpineError
         }
-        return SkeletonData(data)
+        return Suppress(value: SkeletonData(data)).value
     }
     
-    private static func fromData(atlas: Atlas, data: Data, isJson: Bool) throws -> SkeletonData {
+    private static func fromData(atlas: Atlas, data: Data, isJson: Bool) throws -> sending SkeletonData {
         if isJson {
             guard let json = String(data: data, encoding: .utf8) else {
                 throw "Couldn't read skeleton data json string" as SpineError

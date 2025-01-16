@@ -10,6 +10,7 @@ public extension SkeletonDrawableWrapper {
     ///     - size: The size of the `CGImage` that should be rendered.
     ///     - backgroundColor: the background color of the image
     ///     - scaleFactor: The scale factor. Set this to `UIScreen.main.scale` if you want to show the image in a view
+    @MainActor
     func renderToImage(size: CGSize, backgroundColor: UIColor, scaleFactor: CGFloat = 1) throws -> CGImage? {
         let spineView = SpineUIView(
             controller: SpineController(disposeDrawableOnDeInit: false), // Doesn't own the drawable
