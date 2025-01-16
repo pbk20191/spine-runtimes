@@ -470,8 +470,8 @@ class SwiftFunctionWriter:
       if spine_params and spine_params[0].type == self.spine_object.name:
         spine_params_without_ivar = spine_params[1:] 
       else:
+        function_string = function_string.replace("public func ", "public static func ")
         spine_params_without_ivar = spine_params
-
       swift_params = [
           SwiftParamWriter(param = spine_param).write()
           for spine_param in spine_params_without_ivar

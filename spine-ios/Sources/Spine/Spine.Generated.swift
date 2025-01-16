@@ -4184,7 +4184,7 @@ public final class Atlas: NSObject {
     }
 
     @discardableResult
-    public func load(atlasData: String?) -> Atlas {
+    public static func load(atlasData: String?) -> Atlas {
         return .init(spine_atlas_load(atlasData))
     }
 
@@ -4263,7 +4263,7 @@ public final class Bone: NSObject {
         return hasher.finalize()
     }
 
-    public func setIsYDown(yDown: Bool) {
+    public static func setIsYDown(yDown: Bool) {
         spine_bone_set_is_y_down(yDown ? -1 : 0)
     }
 
