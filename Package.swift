@@ -27,7 +27,6 @@ let package = Package(
             ],
             path: "spine-ios/Sources/Spine",
             swiftSettings: [
-                .interoperabilityMode(.C),
                 .swiftLanguageMode(.v6)
             ],
             linkerSettings: [
