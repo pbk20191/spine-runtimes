@@ -28,14 +28,14 @@ let package = Package(
             path: "spine-ios/Sources/Spine",
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ],
-            linkerSettings: [
-                .linkedLibrary("c++"),
             ]
         ),
         .target(
             name: "SpineCppLite",
-            path: "spine-ios/Sources/SpineCppLite"
+            path: "spine-ios/Sources/SpineCppLite",
+            linkerSettings: [
+                .linkedLibrary("c++"),
+            ]
         ),
         .target(
             name: "SpineShadersStructs",
