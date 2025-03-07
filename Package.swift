@@ -29,6 +29,9 @@ let package = Package(
             swiftSettings: [
                 .interoperabilityMode(.C),
                 .swiftLanguageMode(.v6)
+            ],
+            linkerSettings: [
+                .linkedLibrary("c++"),
             ]
         ),
         .target(
