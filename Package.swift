@@ -11,19 +11,32 @@ let package = Package(
         .macCatalyst(.v13),
         .tvOS(.v13),
         .visionOS(.v1),
+        .watchOS(.v6)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "Spine",
-            targets: ["Spine"]
-        )
+            targets: [
+                "SpineModule"
+            ]
+        ),
+        
     ],
     targets: [
         .target(
+            name: "SpineModule",
+            dependencies: [
+                .byNameItem(name: "Spine", condition: .when(platforms: [.iOS, .tvOS, .visionOS, .macOS, .macCatalyst])),
+                "SpineCppLite",
+                "SpineShadersStructs"
+            ],
+            path:  "spine-ios/Sources/SpineModule"
+        ),
+        .target(
             name: "Spine",
             dependencies: [
-                "SpineCppLite", "SpineShadersStructs"
+                "SpineCppLite", "SpineShadersStructs",
             ],
             path: "spine-ios/Sources/Spine",
             swiftSettings: [
