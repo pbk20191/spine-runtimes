@@ -37,7 +37,7 @@ let package = Package(
                 .linkedLibrary("c++"),
             ]
         ),
-        .target(
+        .systemLibrary(
             name: "SpineShadersStructs",
             path: "spine-ios/Sources/SpineShadersStructs"
         )
