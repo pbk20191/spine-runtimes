@@ -18,7 +18,8 @@ let package = Package(
         .library(
             name: "Spine",
             targets: ["SpineModule"]
-        )
+        ),
+        .library(name: "SpineSwift", targets: ["SpineSwift"])
     ],
     targets: [
         .target(
@@ -34,6 +35,20 @@ let package = Package(
                 "SpineShadersStructs",
             ],
             path: "spine-ios/Sources/SpineModule"
+        ),
+        .target(
+            name: "spine-c",
+            
+            path: "spine-ios/Sources/spine-c"
+            
+        ),
+        .target(
+            name: "SpineSwift",
+            dependencies: [
+                "spine-c"
+            ],
+            path: "spine-ios/Sources/SpineSwift"
+            
         ),
         .target(
             name: "Spine",

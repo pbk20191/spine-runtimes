@@ -1,0 +1,5 @@
+module spine_c {
+    header "spine/spine.h"
+    header "spine_public.h"
+    export *
+}
