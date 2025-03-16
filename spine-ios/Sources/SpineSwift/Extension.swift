@@ -45,3 +45,11 @@ public extension UnsafeMutablePointer where Pointee == spAtlasPage {
     }
     
 }
+
+public extension UnsafePointer where Pointee == spAtlasPage {
+    
+    var rendererObject: NSMutableDictionary {
+        Unmanaged<NSMutableDictionary>.fromOpaque(pointee.rendererObject).takeUnretainedValue()
+    }
+    
+}

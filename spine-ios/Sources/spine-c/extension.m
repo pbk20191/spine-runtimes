@@ -9,14 +9,16 @@
 #import <spine/extension.h>
 #import <OSLog/OSLog.h>
 
+void spin_c_extension_cf_setup() __attribute__((constructor(200)));
+
 float randomFloat();
 void* cf_malloc(size_t size);
 void* cf_realloc(void* ptr, size_t size);
 void cf_free(void* ptr);
 void* cf_debug_malloc(size_t size, const char* file, int line);
 
-__attribute__((constructor(200)))
-void beforeMain() {
+
+void spin_c_extension_cf_setup() {
     _spSetMalloc(cf_malloc);
     _spSetRealloc(cf_realloc);
     _spSetFree(cf_free);
@@ -25,15 +27,27 @@ void beforeMain() {
 #if DEBUG
     _spSetDebugMalloc(cf_debug_malloc);
 #endif
+    spBone_setYDown(1);
 }
 
 
 void _spAtlasPage_createTexture(spAtlasPage *self, const char *path) {
     NSString* pathString = [NSString stringWithUTF8String:path];
+    spAtlas * parent = self->atlas;
+    spAtlasPage* cursor = parent->pages;
+    int index = 0;
+    while (cursor != nil) {
+        if (cursor == self) {
+            break;
+        }
+        cursor = cursor->next;
+        index++;
+    }
     NSMutableDictionary<NSString*, id>* dictionary = NSMutableDictionary.dictionary;
-    dictionary[@"spPath"] = pathString;
+    dictionary[@"kSPPath"] = pathString;
     NSString* nameString = [NSString stringWithUTF8String:self->name];
-    dictionary[@"spName"] = nameString;
+    dictionary[@"kSPName"] = nameString;
+    dictionary[@"kSPIndex"] = @(index);
     self->rendererObject = (__bridge_retained CFMutableDictionaryRef)(dictionary);
 }
 

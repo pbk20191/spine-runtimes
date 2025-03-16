@@ -10,22 +10,52 @@ import Foundation
 public struct RenderCommand : Hashable  {
     
     
-    var vertices: [Float] = .init(repeating: 0, count: 32)
-    var uvs: [Float] = .init(repeating: 0, count: 32)
-    var colors: [Int] = .init(repeating: 0, count: 32)
-    var indices: [Int] = .init(repeating: 0, count: 32)
-    var blendMode: spBlendMode = SP_BLEND_MODE_NORMAL
-    var textureCache: [String:AnyHashable] = [:]
-    
-
+    public var vertices: [Float] = []
+    public var uvs: [Float] = []
+    public var colors: [Int32] = []
+    public var indices: [UInt16] = []
+    public var blendMode: spBlendMode! = nil
+    public var textureId: TextureIdentifier?
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(vertices)
         hasher.combine(uvs)
         hasher.combine(colors)
         hasher.combine(indices)
-        hasher.combine(blendMode.rawValue)
-        hasher.combine(textureCache)
+        hasher.combine(blendMode?.rawValue)
+        hasher.combine(textureId)
+        
+    }
+    
+    public init(vertices: [Float] = [], uvs: [Float] = [], colors: [Int32] = [], indices: [UInt16] = [], blendMode: spBlendMode! = nil, textureId: TextureIdentifier? = nil) {
+        self.vertices = vertices
+        self.uvs = uvs
+        self.colors = colors
+        self.indices = indices
+        self.blendMode = blendMode
+        self.textureId = textureId
+    }
+    
+    internal init(default:()) {
+        self.init()
+        colors.reserveCapacity(32)
+        uvs.reserveCapacity(32)
+        indices.reserveCapacity(32)
+        vertices.reserveCapacity(32)
     }
 
+}
+
+public struct TextureIdentifier: Hashable {
+    
+    public var name:String
+    public var index:Int
+    public var pma:Bool
+    
+    public init(name: String, index: Int, pma: Bool) {
+        self.name = name
+        self.index = index
+        self.pma = pma
+    }
+    
 }
