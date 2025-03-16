@@ -45,7 +45,7 @@ let package = Package(
         .target(
             name: "SpineSwift",
             dependencies: [
-                "spine-c"
+                "spine-c", "SpineShadersStructs"
             ],
             path: "spine-ios/Sources/SpineSwift"
             
