@@ -34,10 +34,10 @@ open class SpineSwiftDrawable: NSObject {
     }
     
     deinit {
-        spSkeletonClipping_dispose(pClipping)
         spSkeletonBounds_dispose(pBoundingBox)
         spSkeleton_dispose(pSkeleton)
         spAnimationState_dispose(pAnimationState)
+        spSkeletonClipping_dispose(pClipping)
     }
     
     func update(delta: Float) {

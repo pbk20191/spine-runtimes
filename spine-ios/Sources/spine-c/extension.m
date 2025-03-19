@@ -9,20 +9,20 @@
 #import <spine/extension.h>
 #import <OSLog/OSLog.h>
 
-void spin_c_extension_cf_setup() __attribute__((constructor(200)));
+NS_INLINE void spin_c_extension_cf_setup() __attribute__((constructor(200)));
 
-float randomFloat();
-void* cf_malloc(size_t size);
-void* cf_realloc(void* ptr, size_t size);
-void cf_free(void* ptr);
-void* cf_debug_malloc(size_t size, const char* file, int line);
+NS_INLINE float cf_sp_randomFloat();
+NS_INLINE void* cf_malloc(size_t size);
+NS_INLINE void* cf_realloc(void* ptr, size_t size);
+NS_INLINE void cf_free(void* ptr);
+NS_INLINE void* cf_debug_malloc(size_t size, const char* file, int line);
 
 
-void spin_c_extension_cf_setup() {
+NS_INLINE void spin_c_extension_cf_setup() {
     _spSetMalloc(cf_malloc);
     _spSetRealloc(cf_realloc);
     _spSetFree(cf_free);
-    _spSetRandom(randomFloat);
+    _spSetRandom(cf_sp_randomFloat);
     
 #if DEBUG
     _spSetDebugMalloc(cf_debug_malloc);
@@ -75,23 +75,23 @@ char* _spUtil_readFile(const char *path, int *length) {
 
 
 
-float randomFloat() {
+NS_INLINE float cf_sp_randomFloat() {
     return (float)arc4random() / (float)UINT32_MAX;
 }
 
-void* cf_malloc(size_t size) {
+NS_INLINE void* cf_malloc(size_t size) {
     return CFAllocatorAllocate(kCFAllocatorDefault, size, 0);
 }
 
-void* cf_realloc(void* ptr, size_t size) {
+NS_INLINE void* cf_realloc(void* ptr, size_t size) {
     return CFAllocatorReallocate(kCFAllocatorDefault, ptr, size, 0);
 }
 
-void cf_free(void* ptr) {
+NS_INLINE void cf_free(void* ptr) {
     CFAllocatorDeallocate(kCFAllocatorDefault, ptr);
 }
 
-void* cf_debug_malloc(size_t size, const char* file, int line) {
+NS_INLINE void* cf_debug_malloc(size_t size, const char* file, int line) {
     os_signpost_event_emit(OS_LOG_DEFAULT, 1, "_spMalloc", "file=%s line=%d size=%zu", file, line, size);
     return cf_malloc(size);
 }
