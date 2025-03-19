@@ -44,6 +44,51 @@ open class SpineRenderer: NSObject {
             offset: .zero
         )
     )
+    
+    // spine native coordination to platform coordination
+    public func toPlatformAffineTransfrom() -> CGAffineTransform {
+        
+        let snapShot = pLastSizingOutput
+        let displayScaleX = CGFloat(snapShot.viewPort.x) / snapShot.size.width
+        let displayScaleY = CGFloat(snapShot.viewPort.y) / snapShot.size.height
+        let offsetX = CGFloat(snapShot.transform.offset.x) / displayScaleX
+        let offsetY = CGFloat(snapShot.transform.offset.y) / displayScaleY
+        let scaleX = CGFloat(snapShot.transform.scale.x) / displayScaleX
+        let scaleY = CGFloat(snapShot.transform.scale.y) / displayScaleY
+        let xValue = CGFloat(snapShot.transform.translation.x)
+        let yValue = CGFloat(snapShot.transform.translation.y)
+
+        
+        return CGAffineTransform(translationX: xValue + offsetX / scaleX, y: yValue + offsetY / scaleY)
+            .concatenating(
+                CGAffineTransform(scaleX: scaleX, y: scaleY)
+            )
+    }
+    
+    
+    
+    public func toSkeletonAffineTransform() -> CGAffineTransform {
+        let snapShot = pLastSizingOutput
+
+        let displayScaleX = CGFloat(snapShot.viewPort.x) / snapShot.size.width
+        let displayScaleY = CGFloat(snapShot.viewPort.y) / snapShot.size.height
+        let offsetX = CGFloat(snapShot.transform.offset.x) / displayScaleX
+        let offsetY = CGFloat(snapShot.transform.offset.y) / displayScaleY
+        let scaleX = CGFloat(snapShot.transform.scale.x) / displayScaleX
+        let scaleY = CGFloat(snapShot.transform.scale.y) / displayScaleY
+
+        // 1. 중심을 원점으로 이동 (-width/2, -height/2)
+        let centerTranslation = CGAffineTransform(translationX: -snapShot.size.width / 2, y: -snapShot.size.height / 2)
+        
+        // 2. Scale 적용 (Spine 좌표 변환)
+        let scaleTransform = CGAffineTransform(scaleX: 1 / scaleX, y: 1 / scaleY)
+        
+        // 3. Offset 적용
+        let offsetTransform = CGAffineTransform(translationX: -offsetX, y: -offsetY)
+
+        // 최종 변환 적용 (Offset → Scale → Center 이동 순서)
+        return centerTranslation.concatenating(scaleTransform).concatenating(offsetTransform)
+    }
 
     public var boundsProvider: any SkeletonBoundsProvider {
         get { pSpineBoundComputer }
