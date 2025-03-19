@@ -20,7 +20,7 @@
 }
 
 - (NSInteger)colorCount {
-    return (int)self->_colors.length / sizeof(int);
+    return self->_colors.length / sizeof(int);
 }
 
 -(NSInteger) uvCount {
