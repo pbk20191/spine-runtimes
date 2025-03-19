@@ -32,9 +32,9 @@ NS_INLINE spAtlasRegion* spRegionAttachment_getRegion(const spRegionAttachment* 
 NS_INLINE spAtlasRegion* spMeshAttachment_getRegion(const spMeshAttachment* self);
 NS_INLINE CFIndex spAtlasRegion_getPageIndex(const spAtlasRegion* self, NSMutableDictionary<NSValue*, NSMutableArray<NSValue*>*>* cache);
 NS_INLINE NSString* spAtlasPage_getName(const spAtlasPage* self, NSMutableDictionary<NSValue*, NSString*>* cache);
-static SpineCSwiftRenderCommand2Imp* createRenderCommand2(int numVertices, int numIndices, spBlendMode blendMode, int textureIndex, bool pma, NSString* pageName);
-static SpineCSwiftRenderCommand2Imp* batchSubCommands(SpineRenderCommandBlock** commands, int first, int last, int numVertices, int numIndices);
-static NSMutableArray<SpineCSwiftRenderCommand2Imp*>* batchCommands(CFArrayRef commands);
+NS_INLINE SpineCSwiftRenderCommand2Imp* createRenderCommand2(int numVertices, int numIndices, spBlendMode blendMode, int textureIndex, bool pma, NSString* pageName);
+NS_INLINE SpineCSwiftRenderCommand2Imp* batchSubCommands(SpineRenderCommandBlock** commands, int first, int last, int numVertices, int numIndices);
+NS_INLINE NSMutableArray<SpineCSwiftRenderCommand2Imp*>* batchCommands(CFArrayRef commands);
 
 
 NSArray<id<SpineCRenderCommand>>* spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper) {
@@ -169,7 +169,7 @@ NSArray<id<SpineCRenderCommand>>* spSkeleton_render(spSkeleton *skeleton, spSkel
 
 
 // Function to create a new RenderCommandBlock
-SpineRenderCommandBlock sp_render_command_block_create(int numVertices, int numIndices, spBlendMode blendMode, int textureIndex, bool pma, CFStringRef pageName) {
+NS_INLINE SpineRenderCommandBlock sp_render_command_block_create(int numVertices, int numIndices, spBlendMode blendMode, int textureIndex, bool pma, CFStringRef pageName) {
     spFloatArray* positions = spFloatArray_create(numVertices << 1);
     spFloatArray* uvs = spFloatArray_create(numVertices << 1);
     spIntArray* colors = spIntArray_create(numVertices);
@@ -215,23 +215,23 @@ NS_INLINE CFTypeRef retainRenderCommandBlock2(CFAllocatorRef allocator, const vo
 
 
 
-CFMutableArrayRef sp_render_command_block_create_Array() {
+NS_INLINE CFMutableArrayRef sp_render_command_block_create_Array() {
     CFArrayCallBacks callbacks = kCFTypeArrayCallBacks;
     callbacks.retain = retainRenderCommandBlock2;
     callbacks.release = releaseRenderCommandBlock2;
     return CFArrayCreateMutable(kCFAllocatorDefault, 0, &callbacks);
 }
 
-spAtlasRegion* spRegionAttachment_getRegion(const spRegionAttachment* self) {
+NS_INLINE spAtlasRegion* spRegionAttachment_getRegion(const spRegionAttachment* self) {
     return self->rendererObject;
 }
 
-spAtlasRegion* spMeshAttachment_getRegion(const spMeshAttachment* self) {
+NS_INLINE spAtlasRegion* spMeshAttachment_getRegion(const spMeshAttachment* self) {
     return self->rendererObject;
 }
 
 
-CFIndex spAtlasRegion_getPageIndex(const spAtlasRegion* self, NSMutableDictionary<NSValue*, NSMutableArray<NSValue*>*>* cache) {
+NS_INLINE CFIndex spAtlasRegion_getPageIndex(const spAtlasRegion* self, NSMutableDictionary<NSValue*, NSMutableArray<NSValue*>*>* cache) {
     NSValue* keyedValue = [NSValue valueWithPointer:self->page->atlas];
     NSMutableArray<NSValue*>* existing = cache[keyedValue];
     if (!existing) {
@@ -247,7 +247,7 @@ CFIndex spAtlasRegion_getPageIndex(const spAtlasRegion* self, NSMutableDictionar
 
 }
 
-NSString* spAtlasPage_getName(const spAtlasPage* self, NSMutableDictionary<NSValue*, NSString*>* cache) {
+NS_INLINE NSString* spAtlasPage_getName(const spAtlasPage* self, NSMutableDictionary<NSValue*, NSString*>* cache) {
     NSValue* keyedValue = [NSValue valueWithPointer:self];
     NSString* existing = cache[keyedValue];
     if (!existing) {
@@ -260,7 +260,7 @@ NSString* spAtlasPage_getName(const spAtlasPage* self, NSMutableDictionary<NSVal
 
 
 
-SpineCSwiftRenderCommand2Imp* createRenderCommand2(int numVertices, int numIndices, spBlendMode blendMode, int textureIndex, bool pma, NSString* pageName) {
+NS_INLINE SpineCSwiftRenderCommand2Imp* createRenderCommand2(int numVertices, int numIndices, spBlendMode blendMode, int textureIndex, bool pma, NSString* pageName) {
     SpineCSwiftRenderCommand2Imp* cmd = SpineCSwiftRenderCommand2Imp.new;
     if (!cmd) {
         NSCAssert(NO, @"Failed to create RenderCommandBlock");
@@ -277,7 +277,7 @@ SpineCSwiftRenderCommand2Imp* createRenderCommand2(int numVertices, int numIndic
 }
 
 // Function to batch a range of RenderCommandBlocks
-SpineCSwiftRenderCommand2Imp* batchSubCommands(SpineRenderCommandBlock** commands, int first, int last, int numVertices, int numIndices) {
+NS_INLINE SpineCSwiftRenderCommand2Imp* batchSubCommands(SpineRenderCommandBlock** commands, int first, int last, int numVertices, int numIndices) {
     if (!commands || first > last) return NULL;
 
     SpineCSwiftRenderCommand2Imp* batched = createRenderCommand2(numVertices, numIndices, commands[first]->blendMode, commands[first]->textureIndex, commands[first]->pma, (__bridge NSString*)commands[first]->pageName);
@@ -312,7 +312,7 @@ SpineCSwiftRenderCommand2Imp* batchSubCommands(SpineRenderCommandBlock** command
 }
 
 // Function to batch all RenderCommandBlocks
-NSMutableArray<SpineCSwiftRenderCommand2Imp*>* batchCommands(CFArrayRef commands) {
+NS_INLINE NSMutableArray<SpineCSwiftRenderCommand2Imp*>* batchCommands(CFArrayRef commands) {
     NSMutableArray<SpineCSwiftRenderCommand2Imp*>* buffer = NSMutableArray.array;
     const NSInteger commandCount = CFArrayGetCount(commands);
     if (!commands || commandCount == 0) return buffer;
