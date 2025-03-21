@@ -5,11 +5,8 @@
 //  Created by 박병관 on 3/17/25.
 //
 
-#include <CoreFoundation/CoreFoundation.h>
-#include <spine/Skeleton.h>
-#include <spine/SkeletonClipping.h>
+#include <spine/spine.h>
 #include <spine/extension.h>
-#include <CoreGraphics/CGGeometry.h>
 #include "spine_public.h"
 
 
