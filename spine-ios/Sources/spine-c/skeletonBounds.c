@@ -4,24 +4,21 @@
 //
 //  Created by 박병관 on 3/17/25.
 //
-#include <spine/Skeleton.h>
-#include <spine/SkeletonClipping.h>
-#include <CoreFoundation/CoreFoundation.h>
+#include <spine/spine.h>
 #include <spine/extension.h>
-#include <CoreGraphics/CGGeometry.h>
 #include "spine_public.h"
+#include <simd/simd.h>
 
-CGRect spSkeleton_computeBounds(spSkeleton *self, spSkeletonClipping * _Nullable clipper, CFMutableDataRef outVertex) {
+SpineMinMaxRect spSkeleton_computeMinMaxRect(spSkeleton *self, spSkeletonClipping * _Nullable clipper, CFMutableDataRef outVertex) {
     unsigned short quadIndices[] = {0, 1, 2, 2, 3, 0};
-	float minX = FLT_MAX;
-	float minY = FLT_MAX;
-	float maxX = -FLT_MAX;
-	float maxY = -FLT_MAX;
+    simd_float2 minValue = simd_make_float2(FLT_MAX, FLT_MAX);
+    
+    simd_float2 maxValue = -minValue;
+
     const bool releaseData = outVertex == nil;
-    #define ELEMENTBYTE sizeof(float)
-//    CF_RETURNS_NOT_RETAINED
-//    CF_RETURNS_RETAINED
-    // CF_RELEASES_ARGUMENT
+    
+#define ELEMENTBYTE sizeof(float)
+
     if (!outVertex) {
         outVertex = CFDataCreateMutable(kCFAllocatorDefault, 0);
     }
@@ -80,26 +77,29 @@ CGRect spSkeleton_computeBounds(spSkeleton *self, spSkeletonClipping * _Nullable
 				verticesLength = clipper->clippedVertices->size;
 			}
 			for (size_t ii = 0; ii < verticesLength; ii += 2) {
-				float vx = vertices[ii];
-				float vy = vertices[ii + 1];
-               
-                minX = MIN(minX, vx);
-				minY = MIN(minY, vy);
-				maxX = MAX(maxX, vx);
-				maxY = MAX(maxY, vy);
+                simd_float2 v = simd_make_float2(vertices[ii], vertices[ii + 1]);
+                minValue = simd_min(minValue, v);
+                maxValue = simd_max(maxValue, v);
 			}
 		}
         if (clipper != NULL) {
             spSkeletonClipping_clipEnd(clipper, slot);
         }
-	}
+    }
     if (clipper != NULL) {
         spSkeletonClipping_clipEnd2(clipper);
     }
     if (releaseData) {
         CFRelease(outVertex);
     }
-    return CGRectMake(minX, minY, maxX - minX, maxY - minY);
+    SpineMinMaxRect rect = {
+        minValue.x,
+        minValue.y,
+        maxValue.x,
+        maxValue.y
+    };
+    return rect;
+
 }
 
 

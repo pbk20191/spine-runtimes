@@ -6,7 +6,6 @@
 //
 
 #include <spine/extension.h>
-
 #include <CoreFoundation/CoreFoundation.h>
 #include <os/signpost.h>
 
@@ -84,6 +83,10 @@ char* _spUtil_readFile(const char *path, int *length) {
         url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, pathString, kCFURLPOSIXPathStyle, false);
         CFRelease(pathString);
     }
+    if (!url) {
+        os_log_error(OS_LOG_DEFAULT, "Failed to create URL from %s", path);
+        return NULL;
+    }
     CFErrorRef cfError = NULL;
     CFNumberRef fileSize = NULL;
     {
@@ -91,12 +94,8 @@ char* _spUtil_readFile(const char *path, int *length) {
         CFArrayRef keyArray = CFArrayCreate(kCFAllocatorDefault, (CFTypeRef[]){ kCFURLFileSizeKey, kCFURLFileAllocatedSizeKey, kCFURLTotalFileSizeKey}, 3, &kCFTypeArrayCallBacks);
         dictionary = CFURLCopyResourcePropertiesForKeys(url, keyArray, &cfError);
         CFRelease(keyArray);
-        
-        if (dictionary) {
-        }
         if (dictionary) {
             fileSize = CFRetain(CFDictionaryGetValue(dictionary, kCFURLFileSizeKey));
-
             CFRelease(dictionary);
             dictionary = NULL;
         }
@@ -114,12 +113,14 @@ char* _spUtil_readFile(const char *path, int *length) {
         return NULL;
     }
     CFNumberGetValue(fileSize, kCFNumberIntType, length);
+    CFRelease(fileSize);
+    fileSize = NULL;
     char* block = MALLOC(char, *length);
     CFReadStreamRef stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url);
     CFRelease(url);
     url = NULL;
     CFReadStreamOpen(stream);
-    CFReadStreamRead(stream, (UInt8*) block, *length);
+    const CFIndex readCount = CFReadStreamRead(stream, (UInt8*) block, *length);
     cfError = CFReadStreamCopyError(stream);
     CFReadStreamClose(stream);
     CFRelease(stream);
@@ -135,7 +136,7 @@ char* _spUtil_readFile(const char *path, int *length) {
         *length = 0;
         return NULL;
     }
-    
+    assert(readCount == 0 || readCount == *length);
     return block;
 }
 

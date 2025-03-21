@@ -7,6 +7,7 @@
 import spine_c
 import Foundation
 import CoreGraphics
+import simd
 
 @objc
 public protocol SkeletonBoundsProvider {
@@ -21,11 +22,26 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider {
     }
 
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        return drawable.accessSkeleton {
+        let region = drawable.accessSkeleton {
             let clipper = spSkeletonClipping_create()!
             defer { spSkeletonClipping_dispose(clipper) }
-            return spSkeleton_computeBounds(&$0, clipper, nil)
+            return spSkeleton_computeMinMaxRect(&$0, clipper, nil)
         }
+        let double_region:SIMD4<Double> = .init(
+            SIMD4<Float>(
+                region.minX,
+                region.minY,
+                region.maxX,
+                region.maxY
+            )
+        )
+        // 0, 1
+        // 2 3
+        let origin = double_region.lowHalf
+        //0, 2 1 3
+        let size = double_region.highHalf - double_region.lowHalf
+        
+        return CGRect(x: origin.x, y: origin.y, width: size.x, height: size.y)
     }
 }
 
@@ -96,27 +112,42 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         let animation = animation.flatMap {
             spSkeletonData_findAnimation(data, $0)
         }
-        var minX = CGFloat.Magnitude.greatestFiniteMagnitude
-        var minY = CGFloat.Magnitude.greatestFiniteMagnitude
-        var maxX = -CGFloat.Magnitude.greatestFiniteMagnitude
-        var maxY = -CGFloat.Magnitude.greatestFiniteMagnitude
+        var min_simd: SIMD2<Float> = [
+            .greatestFiniteMagnitude,
+            .greatestFiniteMagnitude
+        ]
+        var max_simd:SIMD2<Float> = [
+            -.greatestFiniteMagnitude,
+             -.greatestFiniteMagnitude
+        ]
+
         if let animation {
             spAnimationState_setAnimation(drawable.pAnimationState, 0, animation, 0)
             let steps = Int(max(Double(animation.pointee.duration) / stepTime, 1.0))
             for i in 0..<steps {
                 drawable.update(delta: i > 0 ? Float(stepTime) : 0.0)
-                let bounds = spSkeleton_computeBounds(drawable.pSkeleton, clipper, nil)
-                minX = min(minX, bounds.minX)
-                minY = min(minY, bounds.minY)
-                maxX = max(maxX, minX + bounds.width)
-                maxY = max(maxY, minY + bounds.height)
+                let rect = spSkeleton_computeMinMaxRect(drawable.pSkeleton, clipper, nil)
+                let bounds:SIMD4<Float> = [
+                    rect.minX,
+                    rect.minY,
+                    rect.maxX,
+                    rect.maxY
+                    
+                ]
+                min_simd = min(min_simd, bounds.lowHalf)
+                max_simd = max(max_simd, bounds.highHalf)
             }
         } else {
-            let bounds = spSkeleton_computeBounds(drawable.pSkeleton, clipper, nil)
-            minX = bounds.minX
-            minY = bounds.minY
-            maxX = minX + bounds.width
-            maxY = minY + bounds.height
+            let rect = spSkeleton_computeMinMaxRect(drawable.pSkeleton, clipper, nil)
+            let bounds:SIMD4<Float> = [
+                rect.minX,
+                rect.minY,
+                rect.maxX,
+                rect.maxY
+                
+            ]
+            min_simd = bounds.lowHalf
+            max_simd = bounds.highHalf
         }
         spSkeleton_setSkinByName(drawable.pSkeleton, "default")
         spAnimationState_clearTracks(drawable.pAnimationState)
@@ -126,7 +157,10 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         }
         spSkeleton_setToSetupPose(drawable.pSkeleton)
         drawable.update(delta: 0)
-        return CGRectMake(CGFloat(minX), CGFloat(minY), CGFloat(maxX - minX), CGFloat(maxY - minY))
+        let double_simd = SIMD4<Double>(lowHalf: .init(min_simd), highHalf: .init(max_simd))
+        let origin = SIMD2<Double>(min_simd)
+        let size = SIMD2<Double>(max_simd) - origin
+        return CGRect(x: origin.x, y: origin.y, width: size.x, height: size.y)
       }
 }
 
