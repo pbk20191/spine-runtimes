@@ -12,9 +12,9 @@ public struct CommandEntry {
     public typealias VertexBuffer =  ContiguousArray<SpineVertex>
 
     
-    public let verteArray:VertexBuffer
+    public var verteArray:VertexBuffer
 
-    public let metaInfo:Array<CommandMeta>
+    public var metaInfo:Array<CommandMeta>
 
 //    let sizeInfo:SizeInfo
     
@@ -25,15 +25,23 @@ public struct CommandEntry {
         public let slice:VertexBuffer.Indices
     }
     
-    public init(_ list: [SpineCRenderCommand]) {
-        
+    public init() {
+        self.verteArray = []
+        self.metaInfo = []
+    }
+    
+    
+    public mutating func fillCommand(_ renderCommand: some RandomAccessCollection<SpineRenderBatchCommand>) {
+        self.verteArray.removeAll()
+        self.metaInfo.removeAll()
         let vertexBuffer:VertexBuffer
         
         do {
             var mutableBuffer = VertexBuffer()
             var commandMeta = Array<CommandMeta>()
-            for spineCommand in list {
-                let atlasPage = TextureIdentifier(name: spineCommand.pageName, index: Int(spineCommand.textureIndex), pma: spineCommand.pma)
+            for spineCommand in renderCommand {
+                let pageName = String(cString: spineCommand.pageName)
+                let atlasPage = TextureIdentifier(name: pageName, index: Int(spineCommand.pageIndex), pma: spineCommand.pma)
 
                 let indices = UnsafeBufferPointer(start: spineCommand.indices, count: Int(spineCommand.indexCount))
                 
@@ -103,6 +111,8 @@ public struct CommandEntry {
         }
         self.verteArray = vertexBuffer
     }
+    
+
     
     public init(_ list: some RandomAccessCollection<RenderCommand>) {
 //        self.sizeInfo = sizeInfo

@@ -5,6 +5,7 @@
 //  Created by 박병관 on 3/16/25.
 //
 import spine_c
+import Foundation
 
 @objc
 public protocol SpineAnimationListener: NSObjectProtocol {

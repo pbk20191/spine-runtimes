@@ -6,7 +6,7 @@
 //
 
 import spine_c
-
+import Foundation
 
 
 @objcMembers
