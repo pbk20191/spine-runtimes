@@ -11,44 +11,48 @@
 struct spSkeleton;
 struct CGRect;
 struct spSkeletonClipping;
-@class NSNumber;
-@class NSMutableArray;
 struct spFloatArray;
 struct spUnsignedShortArray;
 struct spShortArray;
 //struct RenderCommandBlock;
-#include <Foundation/Foundation.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include <spine/Array.h>
 #include <spine/SlotData.h>
-NS_ASSUME_NONNULL_BEGIN
 
+
+
+CF_ASSUME_NONNULL_BEGIN
+
+
+CF_EXTERN_C_BEGIN
 
 void spSkeletonClipping_clipTriangles2(struct spSkeletonClipping *self, float *vertices, int verticesLength,
                                       unsigned short *triangles, int trianglesLength);
 
-CGRect spSkeleton_computeBounds(struct spSkeleton *self,struct spSkeletonClipping * _Nullable clipper, NSMutableData* _Nullable outVertex);
+CGRect spSkeleton_computeBounds(struct spSkeleton *self,struct spSkeletonClipping * _Nullable clipper, CFMutableDataRef _Nullable outVertex);
 
 
-@protocol SpineCRenderCommand <NSObject>
+typedef struct {
+    float* positions;
+    CFIndex positionCount;
+    float* uvs;
+    CFIndex uvCount;
+    int* colors;
+    CFIndex colorCount;
+    unsigned short* indices;
+    CFIndex indexCount;
+    CFIndex pageIndex;
+    spBlendMode blendMode;
+    bool pma;
+    const char* pageName;
+} SpineRenderBatchCommand;
 
-@property (readonly) const float *positions;
-@property (readonly) const NSInteger positionCount;
-@property (readonly) const float *uvs;
-@property (readonly) const NSInteger uvCount;
-@property (readonly) const int *colors;
-@property (readonly) const NSInteger colorCount;
-@property (readonly) const unsigned short *indices;
-@property (readonly) const NSInteger indexCount;
-@property (readonly) spBlendMode blendMode;
-@property (readonly) int textureIndex;
-@property (readonly) bool pma;
-@property (readonly) NSString* pageName;
-
-@end
+typedef void (*SpineRenderBatchCommandHandler)(const SpineRenderBatchCommand* _Nullable buffer, CFIndex count, void* _Nullable context);
 
 
-NSArray<id<SpineCRenderCommand>>* spSkeleton_render(struct spSkeleton * self, struct spSkeletonClipping * clipping);
+void spSkeleton_render(struct spSkeleton * self, struct spSkeletonClipping * clipping, SpineRenderBatchCommandHandler function, void * _Nullable context);
 
-NS_ASSUME_NONNULL_END
+CF_EXTERN_C_END
+CF_ASSUME_NONNULL_END
 
 #endif /* spine_public_h */

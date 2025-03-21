@@ -40,7 +40,7 @@ open class SpineSwiftDrawable: NSObject {
         spSkeletonClipping_dispose(pClipping)
     }
     
-    func update(delta: Float) {
+    public func update(delta: Float) {
         spAnimationState_update(pAnimationState, delta)
         spAnimationState_apply(pAnimationState, pSkeleton)
 
@@ -49,7 +49,7 @@ open class SpineSwiftDrawable: NSObject {
         spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_UPDATE)
     }
     
-    func updateBoundingBox(updateAabb: Bool) {
+    public func updateBoundingBox(updateAabb: Bool) {
         spSkeletonBounds_update(pBoundingBox, pSkeleton, updateAabb ? 1 : 0)
     }
     
@@ -90,7 +90,7 @@ open class SpineSwiftDrawable: NSObject {
 }
 
 public extension SpineSwiftDrawable {
-    
+    /// access variable outside of the scope can be undefined behavior
     func accessSkeleton<R:~Copyable, Failure:Error>(
         _ body: (inout spSkeleton) throws(Failure) -> R
     ) throws(Failure) -> R {
@@ -102,13 +102,17 @@ public extension SpineSwiftDrawable {
     ) throws(Failure) -> R {
         try body(&pAnimationState.pointee)
     }
-    
+    /// access variable outside of the scope can be undefined behavior
     func accessBoundingBox<R:~Copyable, Failure:Error>(
         _ body: (inout spSkeletonBounds) throws(Failure) -> R
     ) throws(Failure) -> R {
         try body(&pBoundingBox.pointee)
     }
-    
+    /// access variable outside of the scope can be undefined behavior
+    ///
+    /// clipping is used by the render command internally so using this is higly discouraged
+    ///
+    /// prefer creating your own clipping object
     func accessClipping<R:~Copyable, Failure:Error>(
         _ body: (inout spSkeletonClipping) throws(Failure) -> R
     ) throws(Failure) -> R {

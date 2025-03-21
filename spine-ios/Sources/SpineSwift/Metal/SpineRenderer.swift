@@ -181,8 +181,11 @@ open class SpineRenderer: NSObject {
             return false
         }
         let displayTransform = self.pLastSizingOutput
+        var commandEntry = CommandEntry()
+        withUnsafeMutablePointer(to: &commandEntry) {
+            spSkeleton_render(model.pSkeleton,  model.pClipping, fill_render_command_to_entry, $0)
+        }
         
-        let commandEntry = CommandEntry(spSkeleton_render(model.pSkeleton, model.pClipping))
         guard commandEntry.verteArray.count > 0 else {
             return true
         }
@@ -193,6 +196,10 @@ open class SpineRenderer: NSObject {
         let vertexBuffer = vertexBufferRef.buffer
         guard vertexBuffer.length >= bufferCount else {
             return false
+        }
+        renderEncoder.pushDebugGroup("spine_render")
+        defer {
+            renderEncoder.popDebugGroup()
         }
         commandEntry.verteArray.withUnsafeBytes {
             memcpy(vertexBuffer.contents(), $0.baseAddress!, $0.count)
@@ -378,3 +385,15 @@ fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
 }
 
 #endif
+
+
+
+fileprivate func fill_render_command_to_entry(
+    _ head: UnsafePointer<SpineRenderBatchCommand>?,
+    _ size:Int,
+    _ context:UnsafeMutableRawPointer?
+) {
+    let contextBuffer = UnsafeMutablePointer<CommandEntry>.init(.init(context!))
+    let buffer = UnsafeBufferPointer(start: head, count: size)
+    contextBuffer.pointee.fillCommand(buffer)
+}
