@@ -34,8 +34,8 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
     CFMutableDictionaryRef cache = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     CFMutableArrayRef blockPool = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
     const unsigned short quadIndices[] = {0, 1, 2, 2, 3, 0};
+    float region_vertices[] = {0,0,0,0,0,0,0,0};
     const char emptyCString[] = "";
-    
     spFloatArray uvsHolder = {0,0,0};
     spUnsignedShortArray indicesHolder = {0,0,0};
     CFMutableArrayRef _renderCommands = sp_render_command_block_create_Array();
@@ -72,6 +72,7 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
                 spSkeletonClipping_clipEnd(clipper, slot);
                 continue;
             }
+            
             spFloatArray_setSize(worldVertices, 8);
             spRegionAttachment_computeWorldVertices(regionAttachment, slot, worldVertices->items, 0, 2);
             verticesCount = 4;
@@ -153,13 +154,16 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
     spSkeletonClipping_clipEnd2(clipper);
     CFMutableArrayRef batchPool = CFArrayCreateMutable(kCFAllocatorMalloc, 0, &kCFTypeArrayCallBacks);
     SpineCommandArray result = batchCommands( _renderCommands, batchPool);
-    CFRelease(cache);
-    // release block backed memory
-    CFRelease(blockPool);
-    CFRelease(_renderCommands);
+    do {
+        CFRelease(cache);
+        cache = NULL;
+        // release block backed memory
+        CFRelease(blockPool);
+        blockPool = NULL;
+        CFRelease(_renderCommands);
+        _renderCommands = NULL;
+    } while(0);
     spFloatArray_dispose(_worldVertices);
-    blockPool = nil;
-    _renderCommands = nil;
     _worldVertices = nil;
     
     const CFOptionFlags batchCount = result.size;

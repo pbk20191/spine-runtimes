@@ -8,14 +8,18 @@
 import Foundation
 import spine_c
 
-
+@objcMembers
 open class SpineSwiftDrawable: NSObject {
     
     
     public let resource: SpineSharedData
+    @nonobjc
     internal let pSkeleton: UnsafeMutablePointer<spSkeleton>
+    @nonobjc
     internal let pAnimationState:UnsafeMutablePointer<spAnimationState>
+    @nonobjc
     internal let pClipping = spSkeletonClipping_create()!
+    @nonobjc
     private let pBoundingBox = spSkeletonBounds_create()!
     
     @objc

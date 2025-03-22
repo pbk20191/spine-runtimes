@@ -157,7 +157,6 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         }
         spSkeleton_setToSetupPose(drawable.pSkeleton)
         drawable.update(delta: 0)
-        let double_simd = SIMD4<Double>(lowHalf: .init(min_simd), highHalf: .init(max_simd))
         let origin = SIMD2<Double>(min_simd)
         let size = SIMD2<Double>(max_simd) - origin
         return CGRect(x: origin.x, y: origin.y, width: size.x, height: size.y)

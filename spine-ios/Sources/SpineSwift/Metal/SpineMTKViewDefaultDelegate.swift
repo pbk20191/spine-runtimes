@@ -10,6 +10,7 @@ import Foundation
 import MetalKit
 import spine_c
 
+@objcMembers
 open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate, SpineAnimationListener {
     
     private static let defaultBufferSize = 32 * 1024 // 32KB
@@ -67,7 +68,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         
     }
     
-    open func fetchTexture(_ renderer: SpineSwift.SpineRenderer, _ item: TextureIdentifier, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
+    open func fetchTexture(_ renderer: SpineSwift.SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
         if let texture = page.rendererObject["kSPTexture"] as? MTLTexture {
             return texture
         }
@@ -75,7 +76,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         let imageName = String(cString: page.pointee.name)
         do {
             let url = (bundle ?? .main).url(forResource: imageName, withExtension: nil)!
-            let texture = try! textureLoader.newTexture(URL: url, options: [
+            let texture = try textureLoader.newTexture(URL: url, options: [
                 .textureUsage  : MTLTextureUsage.shaderRead.rawValue as NSNumber,
                 .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
                 .textureCPUCacheMode: MTLCPUCacheMode.writeCombined.rawValue as NSNumber,
@@ -91,33 +92,51 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     }
     
     
-    public override init(
+    public init(
         drawable: SpineSwiftDrawable,
-        device: any MTLDevice,
+        commandQueue: any MTLCommandQueue,
         pixelFormat: MTLPixelFormat
     ) throws {
-        self.commandQueue = device.makeCommandQueue()!
+        self.commandQueue = commandQueue
 
-        self.textureLoader = MTKTextureLoader(device: device)
-        try super.init(drawable: drawable, device: device, pixelFormat: pixelFormat)
+        self.textureLoader = MTKTextureLoader(device: commandQueue.device)
+        try super.init(drawable: drawable, device: commandQueue.device, pixelFormat: pixelFormat)
         drawable.animationListner = self
         delegate = self
         self.boundsProvider = self.boundsProvider
     }
     
-    public override init(
+    public init(
         drawable: SpineSwiftDrawable,
-        device: any MTLDevice,
+        commandQueue: any MTLCommandQueue,
         pipelineStatesByBlendMode: [ColorBlendPipeLineKey : any MTLRenderPipelineState]
     ) throws {
-        self.commandQueue = device.makeCommandQueue()!
+        self.commandQueue = commandQueue
 
-        self.textureLoader = MTKTextureLoader(device: device)
-        try super.init(drawable: drawable, device: device, pipelineStatesByBlendMode: pipelineStatesByBlendMode)
+        self.textureLoader = MTKTextureLoader(device: commandQueue.device)
+        try super.init(drawable: drawable, device: commandQueue.device, pipelineStatesByBlendMode: pipelineStatesByBlendMode)
         drawable.animationListner = self
         delegate = self
         self.boundsProvider = self.boundsProvider
 
+    }
+    
+    @available(swift, obsoleted: 1.0)
+    public init(
+        drawable: SpineSwiftDrawable,
+        commandQueue: any MTLCommandQueue,
+        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState]
+    ) throws {
+        self.commandQueue = commandQueue
+
+        self.textureLoader = MTKTextureLoader(device: commandQueue.device)
+        let swiftState = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey : any MTLRenderPipelineState]()) { partialResult, pair in
+            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
+        }
+        try super.init(drawable: drawable, device: commandQueue.device, pipelineStatesByBlendMode: swiftState)
+        drawable.animationListner = self
+        delegate = self
+        self.boundsProvider = self.boundsProvider
     }
     
     

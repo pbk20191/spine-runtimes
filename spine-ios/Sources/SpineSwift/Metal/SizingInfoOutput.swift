@@ -26,7 +26,7 @@ struct SizingInfoOutput: Hashable, BitwiseCopyable {
     
     
     func hash(into hasher: inout Hasher) {
-        if #available(macOS 15.0, *) {
+        if #available(macOS 15.0, iOS 18.0, tvOS 18.0, visionOS 2.0, watchOS 11.0, *) {
             hasher.combine(size)
         } else {
             hasher.combine(size.width)
