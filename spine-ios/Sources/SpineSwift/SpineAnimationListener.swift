@@ -8,7 +8,7 @@ import spine_c
 import Foundation
 
 @objc
-public protocol SpineAnimationListener: NSObjectProtocol {
+public protocol SpineAnimationListener {
     
     
     func eventDispatched(

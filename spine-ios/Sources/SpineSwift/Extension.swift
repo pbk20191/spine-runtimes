@@ -5,7 +5,7 @@
 //  Created by 박병관 on 3/14/25.
 //
 
-import Foundation
+import class Foundation.NSMutableDictionary
 import spine_c
 
 extension UnsafeMutablePointer where Pointee == spRegionAttachment {
@@ -24,14 +24,14 @@ extension UnsafePointer where Pointee == spRegionAttachment {
 
 }
 
-public extension UnsafeMutablePointer where Pointee == spMeshAttachment {
+extension UnsafeMutablePointer where Pointee == spMeshAttachment {
     @inlinable
     var rendererObject: UnsafeMutablePointer<spAtlasRegion> {
         pointee.rendererObject.assumingMemoryBound(to: spAtlasRegion.self)
     }
 }
 
-public extension UnsafePointer where Pointee == spMeshAttachment {
+extension UnsafePointer where Pointee == spMeshAttachment {
     @inlinable
     var rendererObject: UnsafeMutablePointer<spAtlasRegion> {
         pointee.rendererObject.assumingMemoryBound(to: spAtlasRegion.self)

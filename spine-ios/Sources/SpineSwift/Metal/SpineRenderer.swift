@@ -11,21 +11,29 @@ import SpineShadersStructs
 #if canImport(Metal)
 import Metal
 
-
+@objcMembers
 open class SpineRenderer: NSObject {
     
-    
+    @nonobjc
     private var model:SpineSwiftDrawable
     
     
     public let device:any MTLDevice
+    
+    @nonobjc
     public let pipelineStatesByBlendMode: [ColorBlendPipeLineKey: MTLRenderPipelineState]
-
+    
+    
+    
     public weak var delegate: SpineRendererDelegate?
+    
+    @nonobjc
     internal var lastDraw: CFTimeInterval = 0
     
+    @nonobjc
     private var pSpineBoundComputer: any SkeletonBoundsProvider = SetupPoseBounds()
     
+    @nonobjc
     private var pSizingInput = SizingInfoInput(
         spineNativeBound: .null,
         contentMode: .fit,
@@ -34,7 +42,7 @@ open class SpineRenderer: NSObject {
         displayScale: 1
     )
 
-    
+    @nonobjc
     private var pLastSizingOutput = SizingInfoOutput(
         size: .zero,
         viewPort: .zero,
@@ -107,6 +115,18 @@ open class SpineRenderer: NSObject {
         }
     }
     
+    @available(swift, obsoleted: 1.0)
+    public var contentMode: ContentMode {
+        get { self.sizingInfo.contentMode }
+        set { self.sizingInfo.contentMode = newValue }
+    }
+    
+    @available(swift, obsoleted: 1.0)
+    public var contentAlignment: Alignment {
+        get { self.sizingInfo.alignment }
+        set { self.sizingInfo.alignment = newValue }
+    }
+    
     public var drawable:SpineSwiftDrawable {
         get { model }
         set {
@@ -133,6 +153,20 @@ open class SpineRenderer: NSObject {
         super.init()
     }
     
+    @available(swift, obsoleted: 1.0)
+    public init(
+        drawable: SpineSwiftDrawable,
+        device: any MTLDevice,
+        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState]
+    ) throws {
+        self.model = drawable
+        self.device = device
+        let stateDict = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey: MTLRenderPipelineState]()) { partialResult, pair in
+            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
+        }
+        self.pipelineStatesByBlendMode = stateDict
+        super.init()
+    }
     
     public init(
         drawable: SpineSwiftDrawable,
@@ -169,6 +203,7 @@ open class SpineRenderer: NSObject {
         self.pLastSizingOutput = pSizingInput.generateOutput()
     }
 
+    @nonobjc
     nonisolated
     private static func signalBuffer(buffer: any MTLCommandBuffer, ref: AnyObject) {
         buffer.addCompletedHandler { _ in
@@ -176,7 +211,7 @@ open class SpineRenderer: NSObject {
         }
     }
     
-    func render(using commandBuffer: any MTLCommandBuffer, renderEncoder: any MTLRenderCommandEncoder) -> Bool {
+    public func render(using commandBuffer: any MTLCommandBuffer, renderEncoder: any MTLRenderCommandEncoder) -> Bool {
         guard let delegate else {
             return false
         }
@@ -202,14 +237,16 @@ open class SpineRenderer: NSObject {
             renderEncoder.popDebugGroup()
         }
         commandEntry.verteArray.withUnsafeBytes {
-            memcpy(vertexBuffer.contents(), $0.baseAddress!, $0.count)
+            let _ = memcpy(vertexBuffer.contents(), $0.baseAddress!, $0.count)
         }
         Self.signalBuffer(buffer: commandBuffer, ref: vertexBufferRef)
         
 #if os(macOS) || targetEnvironment(macCatalyst)
-        vertexBuffer.didModifyRange(0..<bufferCount)
+        if vertexBuffer.storageMode == .managed {
+            vertexBuffer.didModifyRange(0..<bufferCount)
+        }
 #endif
-        let atlaPageArray = sequence(first: self.model.resource.atlas.pointee.pages, next: \.pointee.next).compactMap(\.self)
+        let atlaPageArray = sequence(first: self.model.resource.atlas.pointee.pages, next: \.pointee.next).map(\.self)
         renderEncoder.setViewport(
             MTLViewport(originX: 0, originY: 0, width: Double(displayTransform.viewPort.x), height: Double(displayTransform.viewPort.y), znear: 0, zfar: 1)
         )
@@ -238,9 +275,12 @@ open class SpineRenderer: NSObject {
             
             let vertices = commandEntry.verteArray[fragment.slice]
             let page = atlaPageArray[fragment.textureId.index]
-            if let texture = self.delegate?.fetchTexture(self, fragment.textureId, page), !texture.isEqual(currentTexture) {
+            if let texture = self.delegate?.fetchTexture(self, fragment.textureId.index, page), !texture.isEqual(currentTexture) {
                 currentTexture = texture
+                
                 renderEncoder.setFragmentTexture(texture, index: Int(SpineTextureIndexBaseColor.rawValue))
+            } else {
+                continue
             }
             
             renderEncoder.drawPrimitives(
@@ -292,6 +332,13 @@ open class SpineRenderer: NSObject {
 
         }
         return pipelineStates
+    }
+    
+    @available(swift, obsoleted: 1.0)
+    public func currentPipeLineDictionary() -> [SpineColorBlendBridgedKey: any MTLRenderPipelineState] {
+        self.pipelineStatesByBlendMode.reduce(into: [SpineColorBlendBridgedKey: any MTLRenderPipelineState]()) { partialResult, pair in
+            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
+        }
     }
 
 
