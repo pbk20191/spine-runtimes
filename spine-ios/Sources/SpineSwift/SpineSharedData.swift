@@ -11,6 +11,7 @@ import spine_c
 import MetalKit
 #endif
 
+@objcMembers
 open class SpineSharedData: NSObject {
     
     @nonobjc
@@ -21,7 +22,6 @@ open class SpineSharedData: NSObject {
     internal let atlas: UnsafeMutablePointer<spAtlas>
     
     // takes the ownership of the skeletonData and atlas
-    @nonobjc
     public init(
         skeletonData: UnsafeMutablePointer<spSkeletonData>,
         atlas: UnsafeMutablePointer<spAtlas>
@@ -34,9 +34,9 @@ open class SpineSharedData: NSObject {
     }
     
     deinit {
+        spAnimationStateData_dispose(animationStateData)
         spSkeletonData_dispose(skeletonData)
         spAtlas_dispose(atlas)
-        spAnimationStateData_dispose(animationStateData)
     }
     
     @available(swift ,obsoleted: 1.0)

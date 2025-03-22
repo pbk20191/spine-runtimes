@@ -7,7 +7,7 @@
 import spine_c
 import SpineShadersStructs
 
-public struct CommandEntry {
+internal struct CommandEntry {
     
     public typealias VertexBuffer =  ContiguousArray<SpineVertex>
 
@@ -126,15 +126,7 @@ public struct CommandEntry {
                     continue
                 }
                 let indices = spineCommand.indices
-                
-                spineCommand.indices.count
-//                assert(spineCommand.vertices.count == spineCommand.uvs.count)
-//                assert(spineCommand.colors.count == spineCommand.uvs.count * 2)
-//                assert(spineCommand.uvs.count - 1 == )
-                if spineCommand.colors.count != spineCommand.uvs.count * 2 {
-                    
-                }
-//                let numVertices = spineCommand.vertices.count
+
                 let positions = spineCommand.vertices
 
 //                mutableTextureIndex.append(Int(atlasPage))

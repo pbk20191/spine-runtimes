@@ -7,7 +7,7 @@
 import spine_c
 import Foundation
 
-public struct RenderCommand : Hashable  {
+internal struct RenderCommand : Hashable  {
     
     
     public var vertices: [Float] = []
@@ -46,7 +46,7 @@ public struct RenderCommand : Hashable  {
 
 }
 
-public struct TextureIdentifier: Hashable {
+internal struct TextureIdentifier: Hashable {
     
     public var name:String
     public var index:Int
