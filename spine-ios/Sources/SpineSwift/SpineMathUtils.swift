@@ -11,60 +11,13 @@ import CoreGraphics
 import simd
 import Foundation
 
-@objcMembers
+
 public final class SpineMathUtils: NSObject {
     
     
     @nonobjc
     private override init() {
         super.init()
-    }
-    
-    
-    private struct InternalSizing {
-        var scaleX: CGFloat
-        var scaleY: CGFloat
-        var offsetX: CGFloat
-        var offsetY: CGFloat
-        var translation: CGPoint
-        var sizeInPoints: CGSize
-    }
-    
-    private static func computeInternalSizing(
-        textureSize: CGSize,
-        contentScale: CGFloat,
-        bound: CGRect,
-        alignment: Alignment,
-        contentMode: ContentMode
-    ) -> InternalSizing {
-        let sizeInPoints = CGSize(width: textureSize.width / contentScale, height: textureSize.height / contentScale)
-
-        let x = -bound.minX - bound.width / 2
-        let y = -bound.minY - bound.height / 2
-
-        var scaleX: CGFloat = 1.0
-        var scaleY: CGFloat = 1.0
-
-        switch contentMode {
-        case .fit:
-            scaleX = min(sizeInPoints.width / bound.width, sizeInPoints.height / bound.height)
-            scaleY = scaleX
-        case .fill:
-            scaleX = max(sizeInPoints.width / bound.width, sizeInPoints.height / bound.height)
-            scaleY = scaleX
-        }
-
-        let offsetX = abs(sizeInPoints.width - bound.width * scaleX) / 2 * alignment.x
-        let offsetY = abs(sizeInPoints.height - bound.height * scaleY) / 2 * alignment.y
-
-        return InternalSizing(
-            scaleX: scaleX * contentScale,
-            scaleY: scaleY * contentScale,
-            offsetX: offsetX * contentScale,
-            offsetY: offsetY * contentScale,
-            translation: CGPoint(x: x, y: y),
-            sizeInPoints: sizeInPoints
-        )
     }
 
     
@@ -75,25 +28,34 @@ public final class SpineMathUtils: NSObject {
         alignment: Alignment,
         contentMode: ContentMode
     ) -> SizingInfoOutput {
-        let sizing = computeInternalSizing(
-            textureSize: textureSize,
-            contentScale: contentScale,
-            bound: boundOfDrawable,
-            alignment: alignment,
-            contentMode: contentMode
-        )
-
+        let sizeInPoints = CGSize(width: textureSize.width / contentScale, height: textureSize.height / contentScale)
+        let viewPortSize = SIMD2<UInt32>(UInt32(textureSize.width), UInt32(textureSize.height))
+        
+        let x = -boundOfDrawable.minX - boundOfDrawable.width / 2.0
+        let y = -boundOfDrawable.minY - boundOfDrawable.height / 2.0
+        
+        var scaleX: CGFloat = 1.0
+        var scaleY: CGFloat = 1.0
+        var vector = CGVector(dx: alignment.x, dy: alignment.y)
+        switch contentMode {
+        case .fit:
+            scaleX = min(sizeInPoints.width / boundOfDrawable.width, sizeInPoints.height / boundOfDrawable.height)
+            scaleY = scaleX
+        case .fill:
+            scaleX = max(sizeInPoints.width / boundOfDrawable.width, sizeInPoints.height / boundOfDrawable.height)
+            scaleY = scaleX
+            vector.dy.negate()
+            vector.dx.negate()
+        }
+        let offsetX = abs(sizeInPoints.width - boundOfDrawable.width * scaleX) * vector.dx / 2
+        let offsetY = abs(sizeInPoints.height - boundOfDrawable.height * scaleY) * vector.dy / 2
         let transform = SpineTransform(
-            translation: SIMD2<Float>(Float(sizing.translation.x), Float(sizing.translation.y)),
-            scale: SIMD2<Float>(Float(sizing.scaleX), Float(sizing.scaleY)),
-            offset: SIMD2<Float>(Float(sizing.offsetX), Float(sizing.offsetY))
+            translation: SIMD2<Float>(.init(x), .init(y)),
+            scale: SIMD2<Float>(.init(scaleX * contentScale), .init(scaleY * contentScale)),
+            offset: SIMD2<Float>(.init(offsetX * contentScale), .init(offsetY * contentScale))
         )
-
-        return SizingInfoOutput(
-            size: sizing.sizeInPoints,
-            viewPort: SIMD2<UInt32>(UInt32(textureSize.width), UInt32(textureSize.height)),
-            transform: transform
-        )
+        
+        return .init(size: sizeInPoints, viewPort: viewPortSize, transform: transform)
     }
 
 
@@ -101,28 +63,70 @@ public final class SpineMathUtils: NSObject {
         sourceRect: CGRect,
         alignment: Alignment,
         contentMode: ContentMode,
-        destinationRect: CGRect
+        destinationRect: CGRect,
+        biasRect:CGRect? = nil
     ) -> CGAffineTransform {
-        guard !sourceRect.isNull else {
+        if sourceRect.isNull {
             return .identity
         }
+        // 1. sourceRect의 크기와 origin 고려
+        let sourceSize = biasRect?.size ?? sourceRect.size
+        let sourceOrigin = biasRect?.origin ?? sourceRect.origin
 
-        let textureSize = destinationRect.size.applying(.init(scaleX: 1, y: 1))
-        let contentScale: CGFloat = 1.0 // 또는 필요한 경우 외부 인자로 받기
+        // 2. 스케일 계산
+        let scaleX = destinationRect.width / sourceSize.width
+        let scaleY = destinationRect.height / sourceSize.height
 
-        let sizing = computeInternalSizing(
-            textureSize: textureSize,
-            contentScale: contentScale,
-            bound: sourceRect,
-            alignment: alignment,
-            contentMode: contentMode
+        let scale: CGFloat
+        switch contentMode {
+        case .fit:
+            scale = min(scaleX, scaleY)
+        case .fill:
+            scale = max(scaleX, scaleY)
+        }
+
+        let scaledSize = CGSize(width: sourceSize.width * scale,
+                                height: sourceSize.height * scale)
+
+        // 3. 정렬 anchor 계산 (-1 ~ 1 → 0 ~ 1 보간)
+        let anchorX = (alignment.x + 1) / 2
+        let anchorY = (alignment.y + 1) / 2
+
+        // 4. source의 anchor 기준점 위치 (스케일 전 기준)
+        let sourceAnchor = CGPoint(
+            x: sourceOrigin.x + sourceSize.width * anchorX,
+            y: sourceOrigin.y + sourceSize.height * anchorY
         )
 
-        // CGAffineTransform(translation) → scale → translation
-        return CGAffineTransform(translationX: -sourceRect.origin.x, y: -sourceRect.origin.y)
-            .scaledBy(x: sizing.scaleX, y: sizing.scaleY)
-            .translatedBy(x: destinationRect.origin.x + sizing.offsetX,
-                          y: destinationRect.origin.y + sizing.offsetY)
+        // 5. destination의 anchor 기준 위치
+        let destinationAnchor = CGPoint(
+            x: destinationRect.origin.x + destinationRect.width * anchorX,
+            y: destinationRect.origin.y + destinationRect.height * anchorY
+        )
+
+        // 6. 변환 계산
+        // 6-1. 기준점 → 원점
+        let moveAnchorToOrigin = CGAffineTransform(translationX: -sourceAnchor.x, y: -sourceAnchor.y)
+
+        // 6-2. 스케일
+        let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
+
+        // 6-3. 원점 → destination의 anchor 위치로
+        let moveToTarget = CGAffineTransform(translationX: destinationAnchor.x, y: destinationAnchor.y)
+
+        let final = [
+            moveAnchorToOrigin,
+            CGAffineTransform(scaleX: 1, y: 1),
+            scaleTransform,
+            moveToTarget,
+            
+        ].reduce(into: CGAffineTransform.identity) { partialResult, next in
+            // 5. 최종 Transform = scale → translation → offset
+
+            partialResult = partialResult.concatenating(next)
+        }
+
+        return final
     }
     
     
