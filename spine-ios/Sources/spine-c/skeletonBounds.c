@@ -7,23 +7,18 @@
 #include <spine/spine.h>
 #include <spine/extension.h>
 #include "spine_public.h"
-#include <simd/simd.h>
 
-SpineMinMaxRect spSkeleton_computeMinMaxRect(spSkeleton *self, spSkeletonClipping * _Nullable clipper, CFMutableDataRef outVertex) {
+CF_INLINE void spSkeletonClipping_clipTriangles2( spSkeletonClipping *self, float *vertices, int verticesLength,
+                                      unsigned short *triangles, int trianglesLength,spFloatArray* uv);
+
+CF_RETURNS_RETAINED
+CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _Nullable clipper) {
     unsigned short quadIndices[] = {0, 1, 2, 2, 3, 0};
-    simd_float2 minValue = simd_make_float2(FLT_MAX, FLT_MAX);
-    
-    simd_float2 maxValue = -minValue;
 
-    const bool releaseData = outVertex == nil;
-    
-#define ELEMENTBYTE sizeof(float)
 
-    if (!outVertex) {
-        outVertex = CFDataCreateMutable(kCFAllocatorDefault, 0);
-    }
-    CFDataSetLength(outVertex, 8 * ELEMENTBYTE);
-    
+    spFloatArray* vertexBuffer = spFloatArray_create(8);
+    spFloatArray* uvBuffer = spFloatArray_create(32);
+    CGMutablePathRef path = CGPathCreateMutable();
 	for (size_t i = 0; i < self->slotsCount; ++i) {
         spSlot *slot = self->drawOrder[i];
         if (!slot->bone->active)
@@ -38,11 +33,11 @@ SpineMinMaxRect spSkeleton_computeMinMaxRect(spSkeleton *self, spSkeletonClippin
             spRegionAttachment *regionAttachment = SUB_CAST(spRegionAttachment, attachment);
 			verticesLength = 8;
             
-            if (CFDataGetLength(outVertex) < 8 * ELEMENTBYTE) {
-                CFDataSetLength(outVertex, 8 * ELEMENTBYTE);
+            if (vertexBuffer->size < verticesLength) {
+                spFloatArray_setSize(vertexBuffer, verticesLength);
 			}
             
-            spRegionAttachment_computeWorldVertices(regionAttachment, slot, (float *)CFDataGetMutableBytePtr(outVertex), 0, 2);
+            spRegionAttachment_computeWorldVertices(regionAttachment, slot, vertexBuffer->items, 0, 2);
 			triangles = quadIndices;
 			trianglesLength = 6;
 		} else if (attachment != NULL &&
@@ -51,12 +46,11 @@ SpineMinMaxRect spSkeleton_computeMinMaxRect(spSkeleton *self, spSkeletonClippin
 
             
             verticesLength = mesh->super.worldVerticesLength;
-            if (CFDataGetLength(outVertex) < verticesLength*ELEMENTBYTE) {
-                CFDataSetLength(outVertex, verticesLength*ELEMENTBYTE);
-
+            if (vertexBuffer->size < verticesLength) {
+                spFloatArray_setSize(vertexBuffer, verticesLength);
 			}
 
-            spVertexAttachment_computeWorldVertices(&mesh->super, slot, 0, verticesLength, (float *)CFDataGetMutableBytePtr(outVertex), 0, 2);
+            spVertexAttachment_computeWorldVertices(&mesh->super, slot, 0, verticesLength, vertexBuffer->items, 0, 2);
 			triangles = mesh->triangles;
             
 			trianglesLength = mesh->trianglesCount;
@@ -67,20 +61,30 @@ SpineMinMaxRect spSkeleton_computeMinMaxRect(spSkeleton *self, spSkeletonClippin
 
 		if (verticesLength > 0) {
             
-            float *vertices = (float *) CFDataGetBytePtr(outVertex);
+            float *vertices = vertexBuffer->items;
 			if (clipper != NULL && spSkeletonClipping_isClipping(clipper)) {
                 
-                spSkeletonClipping_clipTriangles2(clipper, vertices, CFDataGetLength(outVertex)/ELEMENTBYTE, triangles, trianglesLength);
+                spSkeletonClipping_clipTriangles2(clipper, vertices, vertexBuffer->size, triangles, trianglesLength, uvBuffer);
                 
 				vertices = clipper->clippedVertices->items;
                 
 				verticesLength = clipper->clippedVertices->size;
 			}
-			for (size_t ii = 0; ii < verticesLength; ii += 2) {
-                simd_float2 v = simd_make_float2(vertices[ii], vertices[ii + 1]);
-                minValue = simd_min(minValue, v);
-                maxValue = simd_max(maxValue, v);
-			}
+            // 삼각형을 CGPath에 추가
+            for (int t = 0; t < trianglesLength; t += 3) {
+                int i0 = triangles[t] * 2;
+                int i1 = triangles[t + 1] * 2;
+                int i2 = triangles[t + 2] * 2;
+
+                CGPoint p0 = CGPointMake(vertices[i0], vertices[i0 + 1]);
+                CGPoint p1 = CGPointMake(vertices[i1], vertices[i1 + 1]);
+                CGPoint p2 = CGPointMake(vertices[i2], vertices[i2 + 1]);
+
+                CGPathMoveToPoint(path, NULL, p0.x, p0.y);
+                CGPathAddLineToPoint(path, NULL, p1.x, p1.y);
+                CGPathAddLineToPoint(path, NULL, p2.x, p2.y);
+                CGPathCloseSubpath(path);
+            }
 		}
         if (clipper != NULL) {
             spSkeletonClipping_clipEnd(clipper, slot);
@@ -89,26 +93,20 @@ SpineMinMaxRect spSkeleton_computeMinMaxRect(spSkeleton *self, spSkeletonClippin
     if (clipper != NULL) {
         spSkeletonClipping_clipEnd2(clipper);
     }
-    if (releaseData) {
-        CFRelease(outVertex);
-    }
-    SpineMinMaxRect rect = {
-        minValue.x,
-        minValue.y,
-        maxValue.x,
-        maxValue.y
-    };
-    return rect;
+    spFloatArray_dispose(vertexBuffer);
+    spFloatArray_dispose(uvBuffer);
+    CGPathRef final = CGPathCreateCopy(path);
+    CFRelease(path);
+    path = NULL;
+    return final;
 
 }
 
-
+CF_INLINE
 void spSkeletonClipping_clipTriangles2(spSkeletonClipping *self, float *vertices, int verticesLength,
-                                       unsigned short *triangles, int trianglesLength) {
+                                       unsigned short *triangles, int trianglesLength, spFloatArray* uvDummy) {
     
-    spFloatArray* uvDummy = spFloatArray_create(verticesLength);
     spFloatArray_setSize(uvDummy, verticesLength);
     spSkeletonClipping_clipTriangles(self, vertices, verticesLength, triangles, trianglesLength, uvDummy->items, 2);
-    spFloatArray_dispose(uvDummy);
-    uvDummy = NULL;
+
 }

@@ -25,23 +25,12 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider {
         let region = drawable.accessSkeleton {
             let clipper = spSkeletonClipping_create()!
             defer { spSkeletonClipping_dispose(clipper) }
-            return spSkeleton_computeMinMaxRect(&$0, clipper, nil)
+            return spSkeleton_createBoundingPath(&$0, clipper)
         }
-        let double_region:SIMD4<Double> = .init(
-            SIMD4<Float>(
-                region.minX,
-                region.minY,
-                region.maxX,
-                region.maxY
-            )
-        )
-        // 0, 1
-        // 2 3
-        let origin = double_region.lowHalf
-        //0, 2 1 3
-        let size = double_region.highHalf - double_region.lowHalf
-        
-        return CGRect(x: origin.x, y: origin.y, width: size.x, height: size.y)
+        if region.isEmpty {
+            return .zero
+        }
+        return region.boundingBox
     }
 }
 
@@ -112,42 +101,33 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         let animation = animation.flatMap {
             spSkeletonData_findAnimation(data, $0)
         }
-        var min_simd: SIMD2<Float> = [
-            .greatestFiniteMagnitude,
-            .greatestFiniteMagnitude
-        ]
-        var max_simd:SIMD2<Float> = [
-            -.greatestFiniteMagnitude,
-             -.greatestFiniteMagnitude
-        ]
+        var bounding = CGRect.null
 
         if let animation {
             spAnimationState_setAnimation(drawable.pAnimationState, 0, animation, 0)
             let steps = Int(max(Double(animation.pointee.duration) / stepTime, 1.0))
             for i in 0..<steps {
                 drawable.update(delta: i > 0 ? Float(stepTime) : 0.0)
-                let rect = spSkeleton_computeMinMaxRect(drawable.pSkeleton, clipper, nil)
-                let bounds:SIMD4<Float> = [
-                    rect.minX,
-                    rect.minY,
-                    rect.maxX,
-                    rect.maxY
-                    
-                ]
-                min_simd = min(min_simd, bounds.lowHalf)
-                max_simd = max(max_simd, bounds.highHalf)
+                let path = spSkeleton_createBoundingPath(drawable.pSkeleton, clipper)
+                if path.isEmpty {
+                    continue
+                }
+                if bounding.isNull {
+                    bounding = path.boundingBox
+                } else {
+                    bounding = bounding.union(path.boundingBox)
+                }
             }
         } else {
-            let rect = spSkeleton_computeMinMaxRect(drawable.pSkeleton, clipper, nil)
-            let bounds:SIMD4<Float> = [
-                rect.minX,
-                rect.minY,
-                rect.maxX,
-                rect.maxY
-                
-            ]
-            min_simd = bounds.lowHalf
-            max_simd = bounds.highHalf
+            let path = spSkeleton_createBoundingPath(drawable.pSkeleton, clipper)
+            if !path.isEmpty {
+                if bounding.isNull {
+                    bounding = path.boundingBox
+                } else {
+                    bounding = bounding.union(path.boundingBox)
+                }
+            }
+
         }
         spSkeleton_setSkinByName(drawable.pSkeleton, "default")
         spAnimationState_clearTracks(drawable.pAnimationState)
@@ -157,9 +137,10 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         }
         spSkeleton_setToSetupPose(drawable.pSkeleton)
         drawable.update(delta: 0)
-        let origin = SIMD2<Double>(min_simd)
-        let size = SIMD2<Double>(max_simd) - origin
-        return CGRect(x: origin.x, y: origin.y, width: size.x, height: size.y)
+        if bounding.isNull {
+            return .zero
+        }
+        return bounding
       }
 }
 
