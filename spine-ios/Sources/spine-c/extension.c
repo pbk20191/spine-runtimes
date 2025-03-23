@@ -36,7 +36,7 @@ void _spAtlasPage_createTexture(spAtlasPage *self, const char *path) {
     spAtlas * parent = self->atlas;
     spAtlasPage* cursor = parent->pages;
     CFIndex index = 0;
-    while (cursor != nil) {
+    while (cursor != NULL) {
         if (cursor == self) {
             break;
         }

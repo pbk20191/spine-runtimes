@@ -37,6 +37,14 @@ open class SpineSwiftDrawable: NSObject {
         spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_NONE)
     }
     
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithResource:)
+    public convenience init(
+        invalidForSwift spineData:SpineSharedData
+    ) {
+        self.init(resource: spineData)
+    }
+    
     deinit {
         spSkeletonBounds_dispose(pBoundingBox)
         spSkeleton_dispose(pSkeleton)

@@ -17,13 +17,10 @@ open class SpineRenderer: NSObject {
     @nonobjc
     private var model:SpineSwiftDrawable
     
-    
     public let device:any MTLDevice
     
     @nonobjc
     public let pipelineStatesByBlendMode: [ColorBlendPipeLineKey: MTLRenderPipelineState]
-    
-    
     
     public weak var delegate: SpineRendererDelegate?
     
@@ -53,49 +50,8 @@ open class SpineRenderer: NSObject {
         )
     )
     
-    // spine native coordination to platform coordination
-    public func toPlatformAffineTransfrom() -> CGAffineTransform {
-        
-        let snapShot = pLastSizingOutput
-        let displayScaleX = CGFloat(snapShot.viewPort.x) / snapShot.size.width
-        let displayScaleY = CGFloat(snapShot.viewPort.y) / snapShot.size.height
-        let offsetX = CGFloat(snapShot.transform.offset.x) / displayScaleX
-        let offsetY = CGFloat(snapShot.transform.offset.y) / displayScaleY
-        let scaleX = CGFloat(snapShot.transform.scale.x) / displayScaleX
-        let scaleY = CGFloat(snapShot.transform.scale.y) / displayScaleY
-        let xValue = CGFloat(snapShot.transform.translation.x)
-        let yValue = CGFloat(snapShot.transform.translation.y)
-
-        
-        return CGAffineTransform(translationX: xValue + offsetX / scaleX, y: yValue + offsetY / scaleY)
-            .concatenating(
-                CGAffineTransform(scaleX: scaleX, y: scaleY)
-            )
-    }
-    
-    
-    
-    public func toSkeletonAffineTransform() -> CGAffineTransform {
-        let snapShot = pLastSizingOutput
-
-        let displayScaleX = CGFloat(snapShot.viewPort.x) / snapShot.size.width
-        let displayScaleY = CGFloat(snapShot.viewPort.y) / snapShot.size.height
-        let offsetX = CGFloat(snapShot.transform.offset.x) / displayScaleX
-        let offsetY = CGFloat(snapShot.transform.offset.y) / displayScaleY
-        let scaleX = CGFloat(snapShot.transform.scale.x) / displayScaleX
-        let scaleY = CGFloat(snapShot.transform.scale.y) / displayScaleY
-
-        // 1. 중심을 원점으로 이동 (-width/2, -height/2)
-        let centerTranslation = CGAffineTransform(translationX: -snapShot.size.width / 2, y: -snapShot.size.height / 2)
-        
-        // 2. Scale 적용 (Spine 좌표 변환)
-        let scaleTransform = CGAffineTransform(scaleX: 1 / scaleX, y: 1 / scaleY)
-        
-        // 3. Offset 적용
-        let offsetTransform = CGAffineTransform(translationX: -offsetX, y: -offsetY)
-
-        // 최종 변환 적용 (Offset → Scale → Center 이동 순서)
-        return centerTranslation.concatenating(scaleTransform).concatenating(offsetTransform)
+    public var currentSizingOutput: SizingInfoOutput {
+        pLastSizingOutput
     }
 
     public var boundsProvider: any SkeletonBoundsProvider {
@@ -141,7 +97,7 @@ open class SpineRenderer: NSObject {
         }
     }
 
-    
+    @nonobjc
     public init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
@@ -154,30 +110,24 @@ open class SpineRenderer: NSObject {
     }
     
     @available(swift, obsoleted: 1.0)
-    public init(
+    public convenience init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
         pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState]
     ) throws {
-        self.model = drawable
-        self.device = device
         let stateDict = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey: MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }
-        self.pipelineStatesByBlendMode = stateDict
-        super.init()
+        try self.init(drawable: drawable, device: device, pipelineStatesByBlendMode: stateDict)
     }
     
-    public init(
+    public convenience init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
         pixelFormat: MTLPixelFormat
     ) throws {
-        self.model = drawable
-        self.device = device
-
-        self.pipelineStatesByBlendMode = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
-        super.init()
+        let stateDict = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
+        try self.init(drawable: drawable, device: device, pipelineStatesByBlendMode: stateDict)
     }
     
     
@@ -186,13 +136,10 @@ open class SpineRenderer: NSObject {
             lastDraw = time
         }
         let delta = time - lastDraw
-//         delegate?.spineRendererWillUpdate(self)
-//        delegate?.spineRenderer(self, needsUpdate: delta)
         delegate?.spineRenderer(self, willUpdate: time)
         self.model.update(delta: Float(delta))
         lastDraw = time
         delegate?.spineRenderer(self, didUpdate: time)
-//        delegate?.spineRendererDidUpdate(self)
     }
     
 
@@ -293,7 +240,7 @@ open class SpineRenderer: NSObject {
         return true
     }
     
-    
+    @nonobjc
     public static func createDefaultPipeLineState(device: MTLDevice, pixelFormat:MTLPixelFormat) throws -> [ColorBlendPipeLineKey: MTLRenderPipelineState] {
         let bundle: Bundle
         #if SWIFT_PACKAGE // SPM
@@ -334,8 +281,18 @@ open class SpineRenderer: NSObject {
         return pipelineStates
     }
     
+    @objc(createDefaultPipeLineState:device:pixelFormat:)
     @available(swift, obsoleted: 1.0)
-    public func currentPipeLineDictionary() -> [SpineColorBlendBridgedKey: any MTLRenderPipelineState] {
+    public static func __createDefaultPipeLineState(device: MTLDevice, pixelFormat:MTLPixelFormat) throws -> [SpineColorBlendBridgedKey: MTLRenderPipelineState] {
+        let swiftState = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
+        return swiftState.reduce(into: [SpineColorBlendBridgedKey:MTLRenderPipelineState]()) { partialResult, pair in
+            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
+        }
+    }
+    
+    @objc(currentPipeLineDictionary)
+    @available(swift, obsoleted: 1.0)
+    public func __currentPipeLineDictionary() -> [SpineColorBlendBridgedKey: any MTLRenderPipelineState] {
         self.pipelineStatesByBlendMode.reduce(into: [SpineColorBlendBridgedKey: any MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }

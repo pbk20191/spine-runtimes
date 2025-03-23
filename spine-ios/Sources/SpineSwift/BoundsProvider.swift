@@ -15,7 +15,7 @@ public protocol SkeletonBoundsProvider {
 }
 
 @objcMembers
-public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider {
+public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
     
     public override init() {
         super.init()
@@ -32,32 +32,67 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider {
         }
         return region.boundingBox
     }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        object is SetupPoseBounds
+    }
+    
+    public override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(ObjectIdentifier(SetupPoseBounds.self))
+        hasher.combine(100)
+        return hasher.finalize()
+    }
+    
 }
 
 /// A ``BoundsProvider`` that returns fixed bounds.
-public final class SpineRawBounds: NSObject, SkeletonBoundsProvider {
-    public let x: Double
-    public let y: Double
-    public let width: Double
-    public let height: Double
+@objcMembers
+public final class SpineRawBounds: NSObject, SkeletonBoundsProvider, Sendable {
+    public var x: Double { imp.x }
+    public var y: Double { imp.y }
+    public var width: Double { imp.z }
+    public var height: Double { imp.w }
+    
+    @nonobjc
+    private let imp:SIMD4<Double>
 
-    @objc
+    @nonobjc
     public init(x: Double, y: Double, width: Double, height: Double) {
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        super.init()
+        self.imp = [x, y, width, height]
+    }
+    
+    @objc(initWithX: y: width: height:)
+    @available(swift ,obsoleted: 1.0)
+    public convenience init(notForSwift x: Double, y: Double, width: Double, height: Double) {
+        self.init(x: x, y: y, width: width, height: height)
     }
 
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
         return CGRectMake(CGFloat(x), CGFloat(y), CGFloat(width), CGFloat(height))
     }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        if let a = object as? SpineRawBounds {
+            return a.imp == imp
+        }
+        return false
+    }
+    
+    public override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(ObjectIdentifier(SpineRawBounds.self))
+        hasher.combine(imp)
+        return hasher.finalize()
+    }
+    
+    
 }
 
 /// A ``BoundsProvider`` that calculates the bounding box needed for a combination of skins
 /// and an animation.
-public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
+@objc
+public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sendable {
     
     private let animation: String?
     private let skins: [String]
@@ -67,7 +102,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
     /// the bounding box of the skeleton. If no skins are given, the default skin is used.
     /// The `stepTime`, given in seconds, defines at what interval the bounds should be sampled
     /// across the entire animation.
-    @objc
+    @nonobjc
     public init(animation: String? = nil, skins: [String]? = nil, stepTime: TimeInterval = 0.1) {
         self.animation = animation
         if let skins, !skins.isEmpty {
@@ -78,6 +113,15 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         self.stepTime = stepTime
         super.init()
     }
+    
+    @available(swift ,obsoleted: 1.0)
+    @objc(initWithAnimation:skins:stepTime:)
+    public convenience init(
+        notForSwift animation: String? = nil, skins: [String]? = nil, stepTime: TimeInterval
+    ) {
+        self.init(animation: animation, skins: skins, stepTime: stepTime)
+    }
+
     
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
         let data = drawable.resource.skeletonData
@@ -142,18 +186,37 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider {
         }
         return bounding
       }
+    
+    public override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(ObjectIdentifier(SkinAndAnimationBounds.self))
+        hasher.combine(animation)
+        hasher.combine(skins)
+        hasher.combine(stepTime)
+        return hasher.finalize()
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard
+            let other = object as? SkinAndAnimationBounds,
+            animation == other.animation,
+            skins == other.skins,
+            stepTime == other.stepTime
+        else { return false }
+        return true
+    }
 }
 
 /// How a view should be inscribed into another view.
 @objc
-public enum ContentMode: Int, BitwiseCopyable {
+public enum ContentMode: Int, BitwiseCopyable, Sendable {
     case fit /// As large as possible while still containing the source view entirely within the target view.
     case fill /// Fill the target view by distorting the source's aspect ratio.
 }
 
 /// How a view should aligned withing another view.
 @objc
-public enum Alignment: Int, BitwiseCopyable {
+public enum Alignment: Int, BitwiseCopyable, Sendable {
     case topLeft
     case topCenter
     case topRight

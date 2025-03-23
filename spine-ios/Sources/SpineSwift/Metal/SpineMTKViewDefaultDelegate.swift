@@ -92,20 +92,16 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     }
     
     
-    public init(
+    public convenience init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
         pixelFormat: MTLPixelFormat
     ) throws {
-        self.commandQueue = commandQueue
-
-        self.textureLoader = MTKTextureLoader(device: commandQueue.device)
-        try super.init(drawable: drawable, device: commandQueue.device, pixelFormat: pixelFormat)
-        drawable.animationListner = self
-        delegate = self
-        self.boundsProvider = self.boundsProvider
+        let stateDict = try Self.createDefaultPipeLineState(device: commandQueue.device, pixelFormat: pixelFormat)
+        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: stateDict)
     }
     
+    @nonobjc
     public init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
@@ -122,21 +118,17 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     }
     
     @available(swift, obsoleted: 1.0)
-    public init(
+    public convenience init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
         pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState]
     ) throws {
-        self.commandQueue = commandQueue
 
-        self.textureLoader = MTKTextureLoader(device: commandQueue.device)
         let swiftState = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey : any MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }
-        try super.init(drawable: drawable, device: commandQueue.device, pipelineStatesByBlendMode: swiftState)
-        drawable.animationListner = self
-        delegate = self
-        self.boundsProvider = self.boundsProvider
+
+        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState)
     }
     
     

@@ -6,7 +6,7 @@
 //
 import CoreGraphics
 
-public struct SizingInfoInput: Hashable, BitwiseCopyable {
+public struct SizingInfoInput: Hashable, BitwiseCopyable, Sendable {
     
     public var spineNativeBound:CGRect
     public var contentMode:ContentMode
@@ -27,7 +27,7 @@ public struct SizingInfoInput: Hashable, BitwiseCopyable {
     }
     
     func generateOutput() -> SizingInfoOutput {
-        SizingInfoOutput.translateSize(textureSize: displayPixelSize, contentScale: displayScale, boundOfDrawable: spineNativeBound, alignment: alignment, contentMode: contentMode)
+        SpineMathUtils.translateSize(textureSize: displaySize, contentScale: displayScale, boundOfDrawable: spineNativeBound, alignment: alignment, contentMode: contentMode)
     }
 }
 

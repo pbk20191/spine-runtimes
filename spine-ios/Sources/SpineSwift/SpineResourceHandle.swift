@@ -1,5 +1,5 @@
 //
-//  SkeletonData.swift
+//  SpineResourceHandle.swift
 //  spine-ios
 //
 //  Created by 박병관 on 3/17/25.
@@ -12,7 +12,7 @@ import Foundation
 @objcMembers
 public final class SpineResourceHandle: NSObject {
     
-    
+    @nonobjc
     private override init() {
         super.init()
     }

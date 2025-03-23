@@ -11,6 +11,7 @@
 
 
 typedef struct {
+    // owned by the external object pool
     CFMutableDataRef head;
     CFOptionFlags size;
 } SpineCommandArray;
@@ -164,15 +165,11 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
         _renderCommands = NULL;
     } while(0);
     spFloatArray_dispose(_worldVertices);
-    _worldVertices = nil;
-    
+    _worldVertices = NULL;
     const CFOptionFlags batchCount = result.size;
     const SpineRenderBatchCommand* head = result.head ? CFDataGetBytePtr(result.head) : NULL;
     function(head, batchCount, context);
     CFRelease(batchPool);
-    if (result.head) {
-        CFRelease(result.head);
-    }
 }
 
 
@@ -231,7 +228,7 @@ CF_INLINE CFIndex spAtlasRegion_getPageIndex(const spAtlasRegion* self, CFMutabl
 //    CFDictionary
 
     if (!existing) {
-        existing = CFArrayCreateMutable(kCFAllocatorDefault, 0, nil);
+        existing = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
         CFDictionarySetValue(cache, keyedValue, existing);
         CFRelease(existing);
         spAtlasPage* cursor = self->page->atlas->pages;
@@ -294,6 +291,8 @@ CF_INLINE SpineCommandArray batchCommands(CFArrayRef commands, CFMutableArrayRef
         return arrayRef;
     }
     arrayRef.head = CFDataCreateMutable(kCFAllocatorDefault, 0);
+    CFArrayAppendValue(batchPool, arrayRef.head);
+    CFRelease(arrayRef.head);
     arrayRef.size = 0;
     SpineRenderBatchCommand** commandBuffers = MALLOC(SpineRenderBatchCommand*, commandCount);
 //
