@@ -54,15 +54,15 @@ public extension UnsafePointer where Pointee == spAtlasPage {
     
 }
 
-extension UnsafePointer where Pointee == spSkeletonBounds {
+extension spSkeletonBounds {
     
-    func asdf() -> CGPath {
+    public func computePolygonsPath() -> CGPath {
         let path = CGMutablePath()
 
-        let polygonCount = Int(self.pointee.count)
+        let polygonCount = Int(self.count)
         guard polygonCount > 0 else { return path }
 
-        let polygons = UnsafeBufferPointer(start: self.pointee.polygons, count: polygonCount)
+        let polygons = UnsafeBufferPointer(start: self.polygons, count: polygonCount)
 
         for polygon in polygons {
             guard let polygon else { continue }
@@ -88,7 +88,7 @@ extension UnsafePointer where Pointee == spSkeletonBounds {
             path.closeSubpath()
         }
 
-        return path
+        return path.copy()!
     }
     
 }
