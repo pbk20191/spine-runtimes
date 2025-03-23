@@ -13,7 +13,7 @@
 #include <spine/SlotData.h>
 #include <spine/SkeletonClipping.h>
 #include <spine/Skeleton.h>
-
+#include <CoreGraphics/CoreGraphics.h>
 CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
@@ -41,10 +41,9 @@ typedef struct {
     float maxY;
 } SpineMinMaxRect;
 
-void spSkeletonClipping_clipTriangles2( spSkeletonClipping *self, float *vertices, int verticesLength,
-                                      unsigned short *triangles, int trianglesLength);
 
-SpineMinMaxRect spSkeleton_computeMinMaxRect( spSkeleton *self, spSkeletonClipping * _Nullable clipper, CFMutableDataRef _Nullable outVertex);
+CF_RETURNS_RETAINED
+CGPathRef spSkeleton_createBoundingPath( spSkeleton *self, spSkeletonClipping * _Nullable clipper);
 
 
 typedef void (*SpineRenderBatchCommandHandler)(const SpineRenderBatchCommand* _Nullable buffer, CFIndex count, void* _Nullable context);
