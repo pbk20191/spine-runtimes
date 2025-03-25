@@ -70,7 +70,7 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
                 
 				verticesLength = clipper->clippedVertices->size;
 			}
-            // 삼각형을 CGPath에 추가
+            // add triagles to CGPath
             for (int t = 0; t < trianglesLength; t += 3) {
                 int i0 = triangles[t] * 2;
                 int i1 = triangles[t + 1] * 2;
