@@ -195,13 +195,24 @@ open class SpineRenderer: NSObject {
 #endif
         let atlaPageArray = sequence(first: self.model.resource.atlas.pointee.pages, next: \.pointee.next).map(\.self)
         renderEncoder.setViewport(
-            MTLViewport(originX: 0, originY: 0, width: Double(displayTransform.viewPort.x), height: Double(displayTransform.viewPort.y), znear: 0, zfar: 1)
+            MTLViewport(
+                originX: displayTransform.viewPort.origin.x,
+                originY: displayTransform.viewPort.origin.y,
+                width: displayTransform.viewPort.width,
+                height: displayTransform.viewPort.height,
+                znear: 0,
+                zfar: 1
+            )
         )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(SpineVertexInputIndexVertices.rawValue))
         withUnsafeBytes(of: displayTransform.transform) {
             renderEncoder.setVertexBytes($0.baseAddress!, length: $0.count, index: Int(SpineVertexInputIndexTransform.rawValue))
         }
-        withUnsafeBytes(of: displayTransform.viewPort) {
+        let viewPortSize:SIMD2<UInt32> = [
+            .init(displayTransform.viewPort.size.width),
+            .init(displayTransform.viewPort.size.height)
+        ]
+        withUnsafeBytes(of: viewPortSize) {
             renderEncoder.setVertexBytes($0.baseAddress!, length: $0.count, index: Int(SpineVertexInputIndexViewportSize.rawValue))
         }
         var vertexStart = 0
@@ -222,10 +233,11 @@ open class SpineRenderer: NSObject {
             
             let vertices = commandEntry.verteArray[fragment.slice]
             let page = atlaPageArray[fragment.textureId.index]
-            if let texture = self.delegate?.fetchTexture(self, fragment.textureId.index, page), !texture.isEqual(currentTexture) {
-                currentTexture = texture
-                
-                renderEncoder.setFragmentTexture(texture, index: Int(SpineTextureIndexBaseColor.rawValue))
+            if let texture = self.delegate?.fetchTexture(self, fragment.textureId.index, page) {
+                if !texture.isEqual(currentTexture) {
+                    currentTexture = texture
+                    renderEncoder.setFragmentTexture(texture, index: Int(SpineTextureIndexBaseColor.rawValue))
+                }
             } else {
                 continue
             }

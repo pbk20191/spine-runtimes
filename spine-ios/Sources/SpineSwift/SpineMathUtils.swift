@@ -22,14 +22,14 @@ public final class SpineMathUtils: NSObject {
 
     
     public static func translateSize(
-        textureSize: CGSize,
+        textureBoundInPoint: CGRect,
         contentScale: CGFloat,
         boundOfDrawable: CGRect,
         alignment: Alignment,
         contentMode: ContentMode
     ) -> SizingInfoOutput {
-        let sizeInPoints = CGSize(width: textureSize.width / contentScale, height: textureSize.height / contentScale)
-        let viewPortSize = SIMD2<UInt32>(UInt32(textureSize.width), UInt32(textureSize.height))
+        let sizeInPoints = textureBoundInPoint.size
+        let viewPort = textureBoundInPoint.applying(.init(scaleX: contentScale, y: contentScale))
         
         let x = -boundOfDrawable.minX - boundOfDrawable.width / 2.0
         let y = -boundOfDrawable.minY - boundOfDrawable.height / 2.0
@@ -55,7 +55,7 @@ public final class SpineMathUtils: NSObject {
             offset: SIMD2<Float>(.init(offsetX * contentScale), .init(offsetY * contentScale))
         )
         
-        return .init(size: sizeInPoints, viewPort: viewPortSize, transform: transform)
+        return .init(size: sizeInPoints, viewPort: viewPort, transform: transform)
     }
 
 
@@ -64,19 +64,24 @@ public final class SpineMathUtils: NSObject {
         alignment: Alignment,
         contentMode: ContentMode,
         destinationRect: CGRect,
-        biasRect:CGRect? = nil
+        biasRect: CGRect? = nil
     ) -> CGAffineTransform {
+        
+        // Return identity if sourceRect is invalid
         if sourceRect.isNull {
             return .identity
         }
-        // 1. sourceRect의 크기와 origin 고려
+
+        // 1. Determine the size and origin of the source rectangle
+        // If biasRect is provided, use its values instead
         let sourceSize = biasRect?.size ?? sourceRect.size
         let sourceOrigin = biasRect?.origin ?? sourceRect.origin
 
-        // 2. 스케일 계산
+        // 2. Compute scale factors based on destination size
         let scaleX = destinationRect.width / sourceSize.width
         let scaleY = destinationRect.height / sourceSize.height
 
+        // Choose scale factor based on contentMode (.fit or .fill)
         let scale: CGFloat
         switch contentMode {
         case .fit:
@@ -85,49 +90,46 @@ public final class SpineMathUtils: NSObject {
             scale = max(scaleX, scaleY)
         }
 
-        let scaledSize = CGSize(width: sourceSize.width * scale,
-                                height: sourceSize.height * scale)
-
-        // 3. 정렬 anchor 계산 (-1 ~ 1 → 0 ~ 1 보간)
+        // 3. Calculate normalized anchor point (alignment range: -1 to 1 → convert to 0 to 1)
         let anchorX = (alignment.x + 1) / 2
         let anchorY = (alignment.y + 1) / 2
 
-        // 4. source의 anchor 기준점 위치 (스케일 전 기준)
+        // 4. Compute anchor point in sourceRect (before scaling)
         let sourceAnchor = CGPoint(
             x: sourceOrigin.x + sourceSize.width * anchorX,
             y: sourceOrigin.y + sourceSize.height * anchorY
         )
 
-        // 5. destination의 anchor 기준 위치
+        // 5. Compute anchor point in destinationRect
         let destinationAnchor = CGPoint(
             x: destinationRect.origin.x + destinationRect.width * anchorX,
             y: destinationRect.origin.y + destinationRect.height * anchorY
         )
 
-        // 6. 변환 계산
-        // 6-1. 기준점 → 원점
+        // 6. Construct final transform
+
+        // 6-1. Move source anchor point to origin
         let moveAnchorToOrigin = CGAffineTransform(translationX: -sourceAnchor.x, y: -sourceAnchor.y)
 
-        // 6-2. 스케일
+        // 6-2. Apply scaling
         let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
 
-        // 6-3. 원점 → destination의 anchor 위치로
+        // 6-3. Move to destination anchor point
         let moveToTarget = CGAffineTransform(translationX: destinationAnchor.x, y: destinationAnchor.y)
 
+        // 7. Combine transforms in order: move to origin → scale → move to destination
         let final = [
             moveAnchorToOrigin,
-            CGAffineTransform(scaleX: 1, y: 1),
+            CGAffineTransform(scaleX: 1, y: 1), // This line seems redundant; no-op scaling
             scaleTransform,
             moveToTarget,
-            
         ].reduce(into: CGAffineTransform.identity) { partialResult, next in
-            // 5. 최종 Transform = scale → translation → offset
-
             partialResult = partialResult.concatenating(next)
         }
 
         return final
     }
+
     
     
 }

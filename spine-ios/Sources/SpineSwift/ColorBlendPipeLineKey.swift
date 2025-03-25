@@ -7,7 +7,7 @@
 import spine_c
 import Foundation
 
-public struct ColorBlendPipeLineKey: Hashable, BitwiseCopyable {
+public struct ColorBlendPipeLineKey: Hashable, BitwiseCopyable, Sendable {
     
     public var pma:Bool
     public var blendMode:spBlendMode
@@ -26,11 +26,13 @@ public struct ColorBlendPipeLineKey: Hashable, BitwiseCopyable {
 @objcMembers
 public final class SpineColorBlendBridgedKey: NSObject, Sendable, NSCopying {
 
+    @nonobjc
     internal let imp:ColorBlendPipeLineKey
     
     public var pma:Bool { imp.pma }
     public var blendMode:spBlendMode { imp.blendMode }
     
+    @nonobjc
     public init(state: ColorBlendPipeLineKey) {
         self.imp = state
     }

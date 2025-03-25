@@ -13,6 +13,9 @@ public struct SizingInfoInput: Hashable, BitwiseCopyable, Sendable {
     public var alignment:Alignment
     public var displaySize:CGSize
     public var displayScale:CGFloat
+    // this will be passed to MTLViewPort with scaled version
+    // use it when you only want to render the portion of Texture
+    public var offSet:CGPoint = .zero
 
     public var displayPixelSize:CGSize {
         displaySize.applying(.init(scaleX: displayScale, y: displayScale))
@@ -27,7 +30,7 @@ public struct SizingInfoInput: Hashable, BitwiseCopyable, Sendable {
     }
     
     func generateOutput() -> SizingInfoOutput {
-        SpineMathUtils.translateSize(textureSize: displaySize, contentScale: displayScale, boundOfDrawable: spineNativeBound, alignment: alignment, contentMode: contentMode)
+        SpineMathUtils.translateSize(textureBoundInPoint: .init(origin: offSet, size: displaySize), contentScale: displayScale, boundOfDrawable: spineNativeBound, alignment: alignment, contentMode: contentMode)
     }
 }
 
