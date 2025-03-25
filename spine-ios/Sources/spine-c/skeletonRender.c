@@ -271,7 +271,7 @@ CF_INLINE bool batchSubCommands(SpineRenderBatchCommand** commands, CFIndex firs
         for (CFIndex j = 0; j < cmd->indexCount; j++) {
             indices[indicesCount + j] = cmd->indices[j] + indicesOffset;
         }
-        // 크기 업데이트
+        // update offset
         positionsOffset += cmd->positionCount;
         uvsOffset += cmd->uvCount;
         colorsOffset += cmd->colorCount;

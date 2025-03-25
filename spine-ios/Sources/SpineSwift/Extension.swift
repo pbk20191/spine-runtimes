@@ -55,7 +55,7 @@ public extension UnsafePointer where Pointee == spAtlasPage {
 }
 
 extension spSkeletonBounds {
-    
+
     public func computePolygonsPath() -> CGPath {
         let path = CGMutablePath()
 
@@ -68,27 +68,27 @@ extension spSkeletonBounds {
             guard let polygon else { continue }
 
             let vertexCount = Int(polygon.pointee.count)
-            guard vertexCount >= 4 else { continue } // 최소 2개 점 이상 필요 (x, y)
+            guard vertexCount >= 4 else { continue } // At least 2 points (4 floats for x and y)
 
             let vertices = UnsafeBufferPointer(start: polygon.pointee.vertices, count: vertexCount)
 
-            // 시작점
+            // Move to the starting point of the polygon
             let startX = CGFloat(vertices[0])
             let startY = CGFloat(vertices[1])
             path.move(to: CGPoint(x: startX, y: startY))
 
-            // 나머지 선들 추가
+            // Add lines for each vertex pair (x, y)
             for i in stride(from: 2, to: vertexCount, by: 2) {
                 let x = CGFloat(vertices[i])
                 let y = CGFloat(vertices[i + 1])
                 path.addLine(to: CGPoint(x: x, y: y))
             }
 
-            // 경로 닫기
+            // Close the current polygon path
             path.closeSubpath()
         }
 
         return path.copy()!
     }
-    
+
 }

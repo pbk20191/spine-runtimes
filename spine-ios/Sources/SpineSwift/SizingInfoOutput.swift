@@ -9,34 +9,45 @@ import SpineShadersStructs
 import CoreGraphics
 
 public struct SizingInfoOutput: Hashable, BitwiseCopyable, Sendable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        guard lhs.size == rhs.size else { return false }
-        guard lhs.viewPort == rhs.viewPort else { return false }
-        guard
-            lhs.transform.offset == rhs.transform.offset,
-            lhs.transform.scale == rhs.transform.scale,
-            lhs.transform.translation == rhs.transform.translation
-        else { return false }
-        return true
+    
+    
+    struct SpineTransformWrapper: Hashable, BitwiseCopyable, Sendable {
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard
+                lhs.transform.offset == rhs.transform.offset,
+                lhs.transform.scale == rhs.transform.scale,
+                lhs.transform.translation == rhs.transform.translation
+            else { return false }
+            return true
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(transform.offset)
+            hasher.combine(transform.scale)
+            hasher.combine(transform.translation)
+        }
+        
+        var transform:SpineTransform
     }
     
-    public var size:CGSize
-    public var viewPort:SIMD2<UInt32>
-    public var transform:SpineTransform
+    public var size: CGSize
+    public var viewPort: CGRect
+    internal var transformValue: SpineTransformWrapper
+    
+    public var transform:SpineTransform {
+        @storageRestrictions(initializes: transformValue)
+        init (newValue) {
+            transformValue = .init(transform: newValue)
+        }
+        get { transformValue.transform }
+        set { transformValue.transform = newValue }
+        _modify { yield &transformValue.transform }
+    }
 
-    public init(size: CGSize, viewPort: SIMD2<UInt32>, transform: SpineTransform) {
+    public init(size: CGSize, viewPort: CGRect, transform: SpineTransform) {
         self.size = size
         self.viewPort = viewPort
         self.transform = transform
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(size.width)
-        hasher.combine(size.height)
-        hasher.combine(viewPort)
-        hasher.combine(transform.offset)
-        hasher.combine(transform.scale)
-        hasher.combine(transform.translation)
     }
     
 }
@@ -47,8 +58,15 @@ extension SizingInfoOutput {
     /// Core building blocks for transformation
     private var platformScale: CGSize {
         CGSize(
-            width: CGFloat(viewPort.x) / size.width,
-            height: CGFloat(viewPort.y) / size.height
+            width: CGFloat(viewPort.width) / size.width,
+            height: CGFloat(viewPort.height) / size.height
+        )
+    }
+    
+    private var platformOffset: CGPoint {
+        CGPoint(
+            x: viewPort.origin.x,
+            y: viewPort.origin.y
         )
     }
 
@@ -78,8 +96,10 @@ extension SizingInfoOutput {
         let s = logicalScale
         let o = logicalOffset
         let t = logicalTranslation
+        let p = platformOffset
 
-        return CGAffineTransform(translationX: t.x + o.x / s.width, y: t.y + o.y / s.height)
+        return CGAffineTransform(translationX: p.x, y: p.y)
+            .concatenating(CGAffineTransform(translationX: t.x + o.x / s.width, y: t.y + o.y / s.height))
             .concatenating(CGAffineTransform(scaleX: s.width, y: s.height))
     }
 
@@ -87,6 +107,7 @@ extension SizingInfoOutput {
     public var toSkeletonTransform: CGAffineTransform {
         let s = logicalScale
         let o = logicalOffset
+        let p = platformOffset
 
         let centerTranslation = CGAffineTransform(
             translationX: -size.width / 2,
@@ -102,12 +123,15 @@ extension SizingInfoOutput {
             translationX: -o.x,
             y: -o.y
         )
+        
+        let platformOffsetInverse = CGAffineTransform(
+            translationX: -p.x,
+            y: -p.y
+        )
 
         return centerTranslation
             .concatenating(scaleInverse)
             .concatenating(offsetInverse)
+            .concatenating(platformOffsetInverse)
     }
-    
-    
-    
 }
