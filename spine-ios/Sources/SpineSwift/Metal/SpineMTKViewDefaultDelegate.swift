@@ -151,7 +151,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         #else
         contentScale = view.traitCollection.displayScale
         #endif
-        self.changeSize(size, contentScale)
+        self.changeSize(size.applying(.init(scaleX: 1.0/contentScale, y: 1.0/contentScale)), contentScale)
     }
     
     public func draw(in view: MTKView) {
