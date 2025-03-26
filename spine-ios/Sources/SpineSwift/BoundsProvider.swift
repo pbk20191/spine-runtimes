@@ -212,6 +212,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
 public enum ContentMode: Int, BitwiseCopyable, Sendable {
     case fit /// As large as possible while still containing the source view entirely within the target view.
     case fill /// Fill the target view by distorting the source's aspect ratio.
+    case aspectFill /// The option to scale the content to fill the size of the view. Some portion of the content may be clipped to fill the bounds
 }
 
 /// How a view should aligned withing another view.

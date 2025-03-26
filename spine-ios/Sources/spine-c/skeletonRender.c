@@ -117,19 +117,39 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
             continue;
         }
         
-        uint8_t r = (skeleton->color.r * slot->color.r * attachmentColor.r * 255);
-        uint8_t g = (skeleton->color.g * slot->color.g * attachmentColor.g * 255);
-        uint8_t b = (skeleton->color.b * slot->color.b * attachmentColor.b * 255);
-        uint8_t a = (skeleton->color.a * slot->color.a * attachmentColor.a * 255);
-        uint32_t color = (a << 24) | (r << 16) | (g << 8) | b;
-        uint32_t darkColor = 0xff000000;
-        
+        float f_a = skeleton->color.a * slot->color.a * attachmentColor.a;
+        uint32_t a = (uint8_t)(f_a * 255);
+        uint32_t color;
+        float f_r = skeleton->color.r * slot->color.r * attachmentColor.r;
+        float f_g = skeleton->color.g * slot->color.g * attachmentColor.g;
+        float f_b = skeleton->color.b * slot->color.b * attachmentColor.b;
+        if (pma) {
+            uint32_t r = (uint8_t)(f_r * f_a * 255);
+            uint32_t g = (uint8_t)(f_g * f_a * 255);
+            uint32_t b = (uint8_t)(f_b * f_a * 255);
+            color = (a << 24) | (r << 16) | (g << 8) | b;
+        } else {
+            uint32_t r = (uint8_t)(f_r * 255);
+            uint32_t g = (uint8_t)(f_g * 255);
+            uint32_t b = (uint8_t)(f_b * 255);
+            color = (a << 24) | (r << 16) | (g << 8) | b;
+        }
+        spRenderColor colorData;
+        colorData.color = color;
+        colorData.darkColor = 0xff000000;
         if (slot->darkColor) {
+            colorData.hasDark = true;
             spColor slotDarkColor = *slot->darkColor;
-            uint8_t dr = (slotDarkColor.r * 255);
-            uint8_t dg = (slotDarkColor.g * 255);
-            uint8_t db = (slotDarkColor.b * 255);
-            darkColor = 0xff000000 | (dr << 16) | (dg << 8) | db;
+            uint32_t dr = (uint8_t)(slotDarkColor.r * (pma ? f_a : 1) * 255);
+            uint32_t dg = (uint8_t)(slotDarkColor.g * (pma ? f_a : 1) * 255);
+            uint32_t db = (uint8_t)(slotDarkColor.b * (pma ? f_a : 1) * 255);
+            uint32_t da = (uint8_t)( (pma ? 1 : 0) * 255);
+            
+            uint32_t darkColor = (da << 24) | (dr << 16) | (dg << 8) | db;
+            colorData.darkColor = darkColor;
+        } else {
+            colorData.darkColor = 0xff000000;
+            colorData.hasDark = false;
         }
         
         if (spSkeletonClipping_isClipping(clipper)) {
@@ -146,8 +166,7 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
         memcpy(cmd.positions, vertices->items, (verticesCount << 1) * sizeof(float));
         memcpy(cmd.uvs, uvs->items, (verticesCount << 1) * sizeof(float));
         for (int ii = 0; ii < verticesCount; ii++) {
-            cmd.colors[ii] = color;
-//            cmd->darkColors[ii] = darkColor;
+            cmd.colors[ii] = colorData;
         }
         memcpy(cmd.indices, indices->items, indices->size * (sizeof(unsigned short)));
         spSkeletonClipping_clipEnd(clipper, slot);
@@ -198,8 +217,8 @@ CF_INLINE SpineRenderBatchCommand sp_render_command_block_create(CFIndex numVert
         block.uvs = (float*) CFDataGetMutableBytePtr(uvData);
     } while(0);
     do {
-        SPBufferCreate(colorData, int, block.colorCount)
-        block.colors = (int*) CFDataGetMutableBytePtr(colorData);
+        SPBufferCreate(colorData, spRenderColor, block.colorCount)
+        block.colors = (spRenderColor*) CFDataGetMutableBytePtr(colorData);
     } while(0);
     do {
         SPBufferCreate(indicesData, unsigned short, block.indexCount);
@@ -253,30 +272,25 @@ CF_INLINE bool batchSubCommands(SpineRenderBatchCommand** commands, CFIndex firs
     SpineRenderBatchCommand batched = sp_render_command_block_create(numVertices, numIndices, commands[first]->blendMode, commands[first]->pageIndex,  commands[first]->pma, commands[first]->pageName, batchPool);
     float *positions = batched.positions;
     float *uvs = batched.uvs;
-    int *colors = batched.colors;
+    spRenderColor *colors = batched.colors;
     unsigned short *indices = batched.indices;
     
-    CFIndex indicesOffset = 0;
     CFIndex positionsOffset = 0;
-    CFIndex uvsOffset = 0;
-    CFIndex colorsOffset = 0;
     CFIndex indicesCount = 0;
     
     for (CFIndex i = first; i <= last; i++) {
         SpineRenderBatchCommand* cmd = commands[i];
-        memcpy(positions + positionsOffset, cmd->positions, sizeof(float) * cmd->positionCount);
-        memcpy(uvs + uvsOffset, cmd->uvs, sizeof(float) * cmd->uvCount);
-        memcpy(colors + colorsOffset, cmd->colors, sizeof(int) * cmd->colorCount);
+        CFIndex vertexCount = cmd->positionCount / 2;
 
+        memcpy(positions + positionsOffset, cmd->positions, sizeof(float) * cmd->positionCount);
+        memcpy(uvs + positionsOffset, cmd->uvs, sizeof(float) * cmd->uvCount);
+        memcpy(colors + positionsOffset / 2, cmd->colors, sizeof(spRenderColor) * cmd->colorCount);
         for (CFIndex j = 0; j < cmd->indexCount; j++) {
-            indices[indicesCount + j] = cmd->indices[j] + indicesOffset;
+            indices[indicesCount + j] = cmd->indices[j] + positionsOffset / 2;
         }
-        // update offset
+
         positionsOffset += cmd->positionCount;
-        uvsOffset += cmd->uvCount;
-        colorsOffset += cmd->colorCount;
         indicesCount += cmd->indexCount;
-        indicesOffset += cmd->positionCount / 2;
     }
     *outptr = batched;
     return true;

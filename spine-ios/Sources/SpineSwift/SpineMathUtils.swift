@@ -42,6 +42,9 @@ public final class SpineMathUtils: NSObject {
             scaleX = min(sizeInPoints.width / boundOfDrawable.width, sizeInPoints.height / boundOfDrawable.height)
             scaleY = scaleX
         case .fill:
+            scaleX = sizeInPoints.width / boundOfDrawable.width
+            scaleY = sizeInPoints.height / boundOfDrawable.height
+        case .aspectFill:
             scaleX = max(sizeInPoints.width / boundOfDrawable.width, sizeInPoints.height / boundOfDrawable.height)
             scaleY = scaleX
             vector.dy.negate()
@@ -82,12 +85,16 @@ public final class SpineMathUtils: NSObject {
         let scaleY = destinationRect.height / sourceSize.height
 
         // Choose scale factor based on contentMode (.fit or .fill)
-        let scale: CGFloat
+        let scale: SIMD2<Double>
         switch contentMode {
         case .fit:
-            scale = min(scaleX, scaleY)
+            let scaleValue = min(scaleX, scaleY)
+            scale = [scaleValue, scaleValue]
+        case .aspectFill:
+            let scaleValue = max(scaleX, scaleY)
+            scale = [scaleValue, scaleValue]
         case .fill:
-            scale = max(scaleX, scaleY)
+            scale = [ scaleX, scaleY ]
         }
 
         // 3. Calculate normalized anchor point (alignment range: -1 to 1 → convert to 0 to 1)
@@ -112,7 +119,7 @@ public final class SpineMathUtils: NSObject {
         let moveAnchorToOrigin = CGAffineTransform(translationX: -sourceAnchor.x, y: -sourceAnchor.y)
 
         // 6-2. Apply scaling
-        let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
+        let scaleTransform = CGAffineTransform(scaleX: scale.x, y: scale.y)
 
         // 6-3. Move to destination anchor point
         let moveToTarget = CGAffineTransform(translationX: destinationAnchor.x, y: destinationAnchor.y)
@@ -120,7 +127,6 @@ public final class SpineMathUtils: NSObject {
         // 7. Combine transforms in order: move to origin → scale → move to destination
         let final = [
             moveAnchorToOrigin,
-            CGAffineTransform(scaleX: 1, y: 1), // This line seems redundant; no-op scaling
             scaleTransform,
             moveToTarget,
         ].reduce(into: CGAffineTransform.identity) { partialResult, next in

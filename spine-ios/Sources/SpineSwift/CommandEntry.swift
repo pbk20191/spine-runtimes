@@ -9,7 +9,7 @@ import SpineShadersStructs
 
 internal struct CommandEntry {
     
-    public typealias VertexBuffer =  ContiguousArray<SpineVertex>
+    public typealias VertexBuffer =  ContiguousArray<SpineAdvancedVertex>
 
     
     public var verteArray:VertexBuffer
@@ -63,33 +63,11 @@ internal struct CommandEntry {
                     uvs.withMemoryRebound(to: SIMD2<Float>.self) { uvBuffer in
                         indices.forEach{
                             let index = Int($0)
-
-
-                            let color:SIMD4<Float>
-                            
-                            do {
-                                let code = colors[index]
-                                if code != -1 {
-                                    let alpha = Float((code >> 24) & 0xFF)
-                                    let red = Float((code >> 16) & 0xFF)
-                                    let green = Float((code >> 8) & 0xFF)
-                                    let blue = Float(code & 0xFF)
-                                            
-                                    color = [
-                                        red / 255,
-                                        green / 255,
-                                        blue / 255,
-                                        alpha / 255
-                                    ]
-                                } else {
-                                    color = SIMD4<Float>(1.0, 1.0, 1.0, 1.0)
-                                }
-
-                            }
-                            let vertex = SpineVertex(
+                            let vertex = SpineAdvancedVertex(
                                 position: postionBuffer[index],
-                                color: color,
-                                uv: uvBuffer[index]
+                                uv: uvBuffer[index],
+                                color: colors[index].color,
+                                darkColor: colors[index].darkColor
                             )
                             mutableBuffer.append(vertex)
                         }
