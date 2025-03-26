@@ -19,11 +19,17 @@ CF_ASSUME_NONNULL_BEGIN
 CF_EXTERN_C_BEGIN
 
 typedef struct {
+    int color;
+    int darkColor;
+    bool hasDark;
+} spRenderColor;
+
+typedef struct {
     float* positions;
     CFIndex positionCount;
     float* uvs;
     CFIndex uvCount;
-    int* colors;
+    spRenderColor* colors;
     CFIndex colorCount;
     unsigned short* indices;
     CFIndex indexCount;

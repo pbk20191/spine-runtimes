@@ -101,33 +101,59 @@ open class SpineRenderer: NSObject {
     public init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
-        pipelineStatesByBlendMode: [ColorBlendPipeLineKey: MTLRenderPipelineState]
+        pipelineStatesByBlendMode: [ColorBlendPipeLineKey: MTLRenderPipelineState],
+        boundsProvider: any SkeletonBoundsProvider = SetupPoseBounds(),
+        contentMode: ContentMode = .fit,
+        alignment: Alignment = .center
     ) throws {
         self.model = drawable
         self.device = device
         self.pipelineStatesByBlendMode = pipelineStatesByBlendMode
+        self.pSizingInput.contentMode = contentMode
+        self.pSizingInput.alignment = alignment
         super.init()
+        self.boundsProvider = boundsProvider
     }
     
     @available(swift, obsoleted: 1.0)
     public convenience init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
-        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState]
+        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState],
+        boundsProvider: any SkeletonBoundsProvider,
+        contentMode: ContentMode,
+        alignment: Alignment
     ) throws {
         let stateDict = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey: MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }
-        try self.init(drawable: drawable, device: device, pipelineStatesByBlendMode: stateDict)
+        try self.init(
+            drawable: drawable,
+            device: device,
+            pipelineStatesByBlendMode: stateDict,
+            boundsProvider: boundsProvider,
+            contentMode: contentMode,
+            alignment: alignment
+        )
     }
     
     public convenience init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
-        pixelFormat: MTLPixelFormat
+        pixelFormat: MTLPixelFormat,
+        boundsProvider: any SkeletonBoundsProvider,
+        contentMode: ContentMode,
+        alignment: Alignment
     ) throws {
         let stateDict = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
-        try self.init(drawable: drawable, device: device, pipelineStatesByBlendMode: stateDict)
+        try self.init(
+            drawable: drawable,
+            device: device,
+            pipelineStatesByBlendMode: stateDict,
+            boundsProvider: boundsProvider,
+            contentMode: contentMode,
+            alignment: alignment
+        )
     }
     
     
@@ -219,6 +245,12 @@ open class SpineRenderer: NSObject {
         let pipeLineStates = self.pipelineStatesByBlendMode
         var currentPipeLine = (any MTLRenderPipelineState)?.none
         var currentTexture = (any MTLTexture)?.none
+        var premultiplyAlpha = false
+        
+        withUnsafeBytes(of: premultiplyAlpha) {
+            renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
+        }
+
         for fragment in commandEntry.metaInfo {
             
             guard let pipelineState = pipeLineStates[.init(pma: fragment.textureId.pma, blendMode: fragment.blendMode)] else {
@@ -230,7 +262,21 @@ open class SpineRenderer: NSObject {
                 currentPipeLine = pipelineState
                 renderEncoder.setRenderPipelineState(pipelineState)
             }
-            
+            if !fragment.textureId.pma, fragment.blendMode == SP_BLEND_MODE_SCREEN || fragment.blendMode == SP_BLEND_MODE_MULTIPLY {
+                if !premultiplyAlpha {
+                    premultiplyAlpha = true
+                    withUnsafeBytes(of: premultiplyAlpha) {
+                        renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
+                    }
+                }
+            } else {
+                if premultiplyAlpha {
+                    premultiplyAlpha = false
+                    withUnsafeBytes(of: premultiplyAlpha) {
+                        renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
+                    }
+                }
+            }
             let vertices = commandEntry.verteArray[fragment.slice]
             let page = atlaPageArray[fragment.textureId.index]
             if let texture = self.delegate?.fetchTexture(self, fragment.textureId.index, page) {
@@ -268,14 +314,36 @@ open class SpineRenderer: NSObject {
             SP_BLEND_MODE_MULTIPLY,
             SP_BLEND_MODE_SCREEN
         ]
+        let descriptor = MTLRenderPipelineDescriptor()
+        descriptor.vertexFunction = defaultLibrary.makeFunction(name: "spine_vertexShader")
+        descriptor.fragmentFunction = defaultLibrary.makeFunction(name: "spine_fragmentShader")
+        descriptor.colorAttachments[0].pixelFormat = pixelFormat
+        descriptor.vertexBuffers[0].mutability = .immutable
+        descriptor.vertexBuffers[1].mutability = .immutable
+        descriptor.vertexBuffers[2].mutability = .immutable
+        descriptor.fragmentBuffers[0].mutability = .immutable
         var pipelineStates = [ColorBlendPipeLineKey: MTLRenderPipelineState]()
         var pipeLinecache = [Int:MTLRenderPipelineState]()
         for blendMode in blendModes {
+            var label = ""
+            switch blendMode {
+            case SP_BLEND_MODE_NORMAL:
+                label = "SPINE_NORMAL"
+            case SP_BLEND_MODE_SCREEN:
+                label = "SPINE_SCREEN"
+            case SP_BLEND_MODE_MULTIPLY:
+                label = "SPINE_MULTIPLY"
+            case SP_BLEND_MODE_ADDITIVE:
+                label = "SPINE_ADDITIVE"
+            default:
+                continue
+            }
             for pma in [true, false] {
-                let descriptor = MTLRenderPipelineDescriptor()
-                descriptor.vertexFunction = defaultLibrary.makeFunction(name: "spine_vertexShader")
-                descriptor.fragmentFunction = defaultLibrary.makeFunction(name: "spine_fragmentShader")
-                descriptor.colorAttachments[0].pixelFormat = pixelFormat
+                if  blendMode == SP_BLEND_MODE_ADDITIVE || blendMode == SP_BLEND_MODE_NORMAL, pma {
+                    descriptor.label = label + "_PMA"
+                } else {
+                    descriptor.label = label
+                }
                 descriptor.colorAttachments[0].apply(
                     blendMode: blendMode,
                     with: pma
@@ -319,11 +387,13 @@ fileprivate extension spBlendMode {
         case SP_BLEND_MODE_NORMAL:
             return premultipliedAlpha ? .one : .sourceAlpha
         case SP_BLEND_MODE_ADDITIVE:
-            return .sourceAlpha
+            return premultipliedAlpha ? .one : .sourceAlpha
         case SP_BLEND_MODE_MULTIPLY:
-            return .destinationColor
+            // requires src rgb chnnel to be multiplied by 1 alpha src before blending in non pma
+            return  .destinationColor
         case SP_BLEND_MODE_SCREEN:
-            return .one
+            // requires src rgb chnnel to be multiplied by 1 alpha src before blending in non pma
+            return  .oneMinusDestinationColor
         default:
             return .one // Should never be called
         }
@@ -332,13 +402,13 @@ fileprivate extension spBlendMode {
     func sourceAlphaBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
         switch self {
         case SP_BLEND_MODE_NORMAL:
-            return premultipliedAlpha ? .one : .sourceAlpha
+            return .one
         case SP_BLEND_MODE_ADDITIVE:
-            return .sourceAlpha
+            return .one
         case SP_BLEND_MODE_MULTIPLY:
-            return .oneMinusSourceAlpha
+            return .one
         case SP_BLEND_MODE_SCREEN:
-            return .oneMinusSourceColor
+            return .oneMinusDestinationAlpha
         default:
             return .one // Should never be called
         }
@@ -353,7 +423,7 @@ fileprivate extension spBlendMode {
         case SP_BLEND_MODE_MULTIPLY:
             return .oneMinusSourceAlpha
         case SP_BLEND_MODE_SCREEN:
-            return .oneMinusSourceColor
+            return .one
         default:
             return .one // Should never be called
         }
@@ -368,7 +438,7 @@ fileprivate extension spBlendMode {
         case SP_BLEND_MODE_MULTIPLY:
             return .oneMinusSourceAlpha
         case SP_BLEND_MODE_SCREEN:
-            return .oneMinusSourceColor
+            return .one
         default:
             return .one // Should never be called
         }
