@@ -2,69 +2,83 @@
 #include <simd/simd.h> 
 using namespace metal;
 
-typedef enum SpineVertexInputIndex {
-    SpineVertexInputIndexVertices     = 0,
-    SpineVertexInputIndexTransform    = 1,
-    SpineVertexInputIndexViewportSize = 2,
-} SpineVertexInputIndex;
-
-typedef enum SpineTextureIndex {
-    SpineTextureIndexBaseColor = 0,
-} SpineTextureIndex;
-
-typedef struct {
-    simd_float2 position;
-    simd_float4 color;
-    simd_float2 uv;
-} SpineVertex;
-
-typedef struct {
-    simd_float2 translation;
-    simd_float2 scale;
-    simd_float2 offset;
-} SpineTransform;
+#import "../../SpineShadersStructs/SpineShadersStructs.h"
 
 struct RasterizerData {
     simd_float4 position [[position]];
-    simd_float4 color;
     simd_float2 textureCoordinate;
+    simd_float4 lightColor;
+    simd_float4 darkColor;
 };
 
+#if __METAL_VERSION__ >= 230
+    #define VERTEX_STAGE [[vertex]]
+    #define FRAGMENT_STAGE [[fragment]]
+#else
+    #define VERTEX_STAGE
+    #define FRAGMENT_STAGE
+#endif
+
+VERTEX_STAGE
 vertex RasterizerData
 spine_vertexShader(uint vertexID [[vertex_id]],
-             constant SpineVertex *vertices [[buffer(SpineVertexInputIndexVertices)]],
-             constant SpineTransform *transform [[buffer(SpineVertexInputIndexTransform)]],
-             constant vector_uint2 *viewportSizePointer [[buffer(SpineVertexInputIndexViewportSize)]])
+             constant SpineAdvancedVertex *vertices [[buffer(SpineVertexInputIndexVertices)]],
+             constant SpineTransform &transform [[buffer(SpineVertexInputIndexTransform)]],
+             constant vector_uint2 &viewportSizePointer [[buffer(SpineVertexInputIndexViewportSize)]])
 {
     RasterizerData out;
 
     simd_float2 pixelSpacePosition = vertices[vertexID].position.xy;
 
-    simd_float2 viewportSize = simd_float2(*viewportSizePointer);
+    simd_float2 viewportSize = simd_float2(viewportSizePointer);
 
     out.position = simd_float4(0.0, 0.0, 0.0, 1.0);
 
     out.position.xy = pixelSpacePosition;
-    out.position.xy *= transform->scale;
-    out.position.xy += transform->translation * transform->scale + transform->offset;
+    out.position.xy *= transform.scale;
+    out.position.xy += transform.translation * transform.scale + transform.offset;
     out.position.xy /= viewportSize / 2;
     out.position.y *= -1;
     
-    out.color = vertices[vertexID].color;
-    
+    //out.lightColor = vertices[vertexID].color;
+    uint light = as_type<uint>(vertices[vertexID].color);
+    uint dark  = as_type<uint>(vertices[vertexID].darkColor);
+
+    out.lightColor = float4(
+        float((light >> 16) & 0xFF) / 255.0,
+        float((light >> 8)  & 0xFF) / 255.0,
+        float((light >> 0)  & 0xFF) / 255.0,
+        float((light >> 24) & 0xFF) / 255.0
+    );
+
+    out.darkColor = float4(
+        float((dark >> 16) & 0xFF) / 255.0,
+        float((dark >> 8)  & 0xFF) / 255.0,
+        float((dark >> 0)  & 0xFF) / 255.0,
+        float((dark >> 24) & 0xFF) / 255.0
+    );
     out.textureCoordinate = vertices[vertexID].uv;
     
     return out;
 }
 
+FRAGMENT_STAGE
 fragment simd_float4
-spine_fragmentShader(RasterizerData in [[stage_in]],
-               texture2d<half> colorTexture [[ texture(SpineTextureIndexBaseColor) ]])
+spine_fragmentShader(
+                     RasterizerData in [[stage_in]],
+                     const texture2d<half> colorTexture [[ texture(SpineTextureIndexBaseColor) ]],
+                     constant bool &premultiplyAlpha [[buffer(0)]]
+                     )
 {
-    constexpr sampler textureSampler (mag_filter::nearest,
-                                      min_filter::nearest);
+    constexpr sampler textureSampler (mag_filter::nearest, min_filter::nearest);
+
+    const simd_float4 rawSample = simd_float4(colorTexture.sample(textureSampler, in.textureCoordinate));
+
+    const simd_float4 tex = simd_float4(rawSample.rgb * (premultiplyAlpha ? rawSample.a : 1.0), rawSample.a);
+
     
-    const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
-    
-    return simd_float4(colorSample) * in.color;
+    simd_float4 src;
+    src.a = tex.a * in.lightColor.a;
+    src.rgb = ((tex.a - 1.0)*in.darkColor.a + 1.0 - tex.rgb) * in.darkColor.rgb + tex.rgb * in.lightColor.rgb;
+    return src;
 }

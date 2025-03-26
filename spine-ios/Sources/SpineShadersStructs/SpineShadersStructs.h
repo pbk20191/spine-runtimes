@@ -49,6 +49,13 @@ typedef struct {
 } SpineVertex;
 
 typedef struct {
+    simd_float2 position;
+    simd_float2 uv;
+    int32_t color;
+    int32_t darkColor;
+} SpineAdvancedVertex;
+
+typedef struct {
     vector_float2 translation;
     vector_float2 scale;
     vector_float2 offset;
