@@ -8,6 +8,7 @@
 import Dispatch
 import Foundation
 import MetalKit
+import simd
 import spine_c
 
 @objcMembers
@@ -16,11 +17,13 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     private static let defaultBufferSize = 32 * 1024 // 32KB
     
     private var buffers = [MTLBuffer]()
-    private let bufferingSemaphore = DispatchSemaphore(value: 3)
+    private let bufferingSemaphore:DispatchSemaphore
     private var currentBufferIndex: Int = 0
     public let textureLoader:MTKTextureLoader
     public var bundle:Bundle?
     
+    public let maxBuffer:SpineMTKBufferingStrategy
+
     class BufferRef: NSObject, SpineVertexBuffer {
         
         let buffer: any MTLBuffer
@@ -39,7 +42,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     }
     
     private func increaseBuffersSize(to size: Int) {
-        buffers = (0 ..< 3).map { _ in
+        buffers = (0 ..< maxBuffer.rawValue).map { _ in
             device.makeBuffer(length: size, options: [.storageModeShared, .cpuCacheModeWriteCombined])!
         }
     }
@@ -52,7 +55,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
             increaseBuffersSize(to: minimumSize)
         }
         let buffer = buffers[currentBufferIndex]
-        currentBufferIndex = (currentBufferIndex + 1) % 3
+        currentBufferIndex = (currentBufferIndex + 1) % maxBuffer.rawValue
         return BufferRef(buffer: buffer, semaphore: bufferingSemaphore)
     }
     
@@ -95,46 +98,60 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     public convenience init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
-        pixelFormat: MTLPixelFormat
+        pixelFormat: MTLPixelFormat = .bgra8Unorm,
+        boundsProvider: any SkeletonBoundsProvider = SetupPoseBounds(),
+        contentMode: ContentMode = .fit,
+        alignment: Alignment = .center,
+        maxBuffer: SpineMTKBufferingStrategy = .double
     ) throws {
         let stateDict = try Self.createDefaultPipeLineState(device: commandQueue.device, pixelFormat: pixelFormat)
-        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: stateDict)
+        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: stateDict, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
     @nonobjc
     public init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
-        pipelineStatesByBlendMode: [ColorBlendPipeLineKey : any MTLRenderPipelineState]
+        pipelineStatesByBlendMode: [ColorBlendPipeLineKey : any MTLRenderPipelineState],
+        boundsProvider: any SkeletonBoundsProvider = SetupPoseBounds(),
+        contentMode: ContentMode = .fit,
+        alignment: Alignment = .center,
+        maxBuffer: SpineMTKBufferingStrategy = .double
     ) throws {
         self.commandQueue = commandQueue
-
+        self.maxBuffer = maxBuffer
+        self.bufferingSemaphore = .init(value: maxBuffer.rawValue)
         self.textureLoader = MTKTextureLoader(device: commandQueue.device)
-        try super.init(drawable: drawable, device: commandQueue.device, pipelineStatesByBlendMode: pipelineStatesByBlendMode)
+        try super.init(
+            drawable: drawable,
+            device: commandQueue.device,
+            pipelineStatesByBlendMode: pipelineStatesByBlendMode,
+            boundsProvider: boundsProvider,
+            contentMode: contentMode,
+            alignment: alignment
+        )
         drawable.animationListner = self
         delegate = self
-        self.boundsProvider = self.boundsProvider
-
     }
     
     @available(swift, obsoleted: 1.0)
     public convenience init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
-        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState]
+        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState],
+        boundsProvider: any SkeletonBoundsProvider,
+        contentMode: ContentMode,
+        alignment: Alignment,
+        maxBuffer: SpineMTKBufferingStrategy
     ) throws {
-
         let swiftState = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey : any MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }
-
-        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState)
+        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
     
     public let commandQueue:any MTLCommandQueue
-    
-
     
     
     public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -178,6 +195,13 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     }
     
     
+}
+
+@frozen
+@objc
+public enum SpineMTKBufferingStrategy: Int, Hashable, BitwiseCopyable, Sendable {
+    case double = 2
+    case triple = 3
 }
 
 #endif

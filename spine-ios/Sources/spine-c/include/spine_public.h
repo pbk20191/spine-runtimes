@@ -33,22 +33,14 @@ typedef struct {
     const char* pageName;
 } SpineRenderBatchCommand;
 
-
-typedef struct {
-    float minX;
-    float minY;
-    float maxX;
-    float maxY;
-} SpineMinMaxRect;
-
-
+SP_API
 CF_RETURNS_RETAINED
 CGPathRef spSkeleton_createBoundingPath( spSkeleton *self, spSkeletonClipping * _Nullable clipper);
 
 
 typedef void (*SpineRenderBatchCommandHandler)(const SpineRenderBatchCommand* _Nullable buffer, CFIndex count, void* _Nullable context);
 
-
+SP_API
 void spSkeleton_render( spSkeleton * self,  spSkeletonClipping * clipping, SpineRenderBatchCommandHandler function, void * _Nullable context);
 
 CF_EXTERN_C_END
