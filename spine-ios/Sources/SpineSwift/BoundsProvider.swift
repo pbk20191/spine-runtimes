@@ -124,7 +124,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
 
     
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        let data = drawable.resource.skeletonData
+        let data = drawable.resource.skeletonData.native
         let oldSkin = drawable.pSkeleton.pointee.skin
         
         let customSkin = spSkin_create("custom-skin")
