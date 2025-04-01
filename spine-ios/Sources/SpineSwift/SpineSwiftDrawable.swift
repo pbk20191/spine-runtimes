@@ -11,8 +11,8 @@ import spine_c
 @objcMembers
 open class SpineSwiftDrawable: NSObject {
     
-    
-    public let resource: SpineSharedData
+    @nonobjc
+    internal let pResource: SpineAnimationStateDataBox
     @nonobjc
     internal let pSkeleton: UnsafeMutablePointer<spSkeleton>
     @nonobjc
@@ -26,11 +26,11 @@ open class SpineSwiftDrawable: NSObject {
     public weak var animationListner: SpineAnimationListener?
     
     @nonobjc
-    public init(resource: SpineSharedData) {
-        self.resource = resource
+    public init(resource: SpineAnimationStateDataBox) {
+        self.pResource = resource
         
-        self.pSkeleton = spSkeleton_create(resource.skeletonData)
-        self.pAnimationState = spAnimationState_create(resource.animationStateData)
+        self.pSkeleton = spSkeleton_create(resource.pSkeletonData.native)
+        self.pAnimationState = spAnimationState_create(resource.native)
         super.init()
         self.pAnimationState.pointee.userData = Unmanaged.passUnretained(self).toOpaque()
         self.pAnimationState.pointee.listener = _animationEventDispatched
@@ -40,7 +40,7 @@ open class SpineSwiftDrawable: NSObject {
     @available(swift, obsoleted: 1.0)
     @objc(initWithResource:)
     public convenience init(
-        invalidForSwift spineData:SpineSharedData
+        invalidForSwift spineData:SpineAnimationStateDataBox
     ) {
         self.init(resource: spineData)
     }
@@ -65,7 +65,9 @@ open class SpineSwiftDrawable: NSObject {
         spSkeletonBounds_update(pBoundingBox, pSkeleton, updateAabb ? 1 : 0)
     }
     
-    
+    @objc open var resource: SpineAnimationStateDataBox {
+        pResource
+    }
     
     @available(swift ,obsoleted: 1.0)
     @objc

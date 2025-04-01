@@ -219,7 +219,7 @@ open class SpineRenderer: NSObject {
             vertexBuffer.didModifyRange(0..<bufferCount)
         }
 #endif
-        let atlaPageArray = sequence(first: self.model.resource.atlas.pointee.pages, next: \.pointee.next).map(\.self)
+        let atlaPageArray = sequence(first: self.model.resource.pSkeletonData.pAtlas.native.pointee.pages, next: \.pointee.next).map(\.self)
         renderEncoder.setViewport(
             MTLViewport(
                 originX: displayTransform.viewPort.origin.x,

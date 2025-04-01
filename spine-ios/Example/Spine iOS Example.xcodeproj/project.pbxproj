@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		17B748402D9C228500CF2A2D /* SpineSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 925CB7E82C19BC5A00C8F47F /* SpineSwift */; };
 		76381FCE2C2EF4030087712B /* celestial-circus-pma.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 76381FCC2C2EF4030087712B /* celestial-circus-pma.atlas */; };
 		76381FCF2C2EF4030087712B /* celestial-circus-pma.png in Resources */ = {isa = PBXBuildFile; fileRef = 76381FCD2C2EF4030087712B /* celestial-circus-pma.png */; };
 		76381FD72C2EF4F10087712B /* spineboy-pma.png in Resources */ = {isa = PBXBuildFile; fileRef = 76381FD12C2EF4F00087712B /* spineboy-pma.png */; };
@@ -33,7 +34,6 @@
 		924C0C182BCFCF21004E63F7 /* SimpleAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924C0C172BCFCF21004E63F7 /* SimpleAnimation.swift */; };
 		924C0C1A2BCFCF22004E63F7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 924C0C192BCFCF22004E63F7 /* Assets.xcassets */; };
 		92579E772C1B0E9500FDC7D5 /* DisableRendering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92579E762C1B0E9500FDC7D5 /* DisableRendering.swift */; };
-		925CB7E92C19BC5A00C8F47F /* Spine in Frameworks */ = {isa = PBXBuildFile; productRef = 925CB7E82C19BC5A00C8F47F /* Spine */; };
 		9270C16E2BFE356000BD25BC /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270C16D2BFE356000BD25BC /* Physics.swift */; };
 		9270C1742BFE389600BD25BC /* celestial-circus-pro.skel in Resources */ = {isa = PBXBuildFile; fileRef = 9270C1712BFE389600BD25BC /* celestial-circus-pro.skel */; };
 		928A8CC22BCFE7DF00D9D35B /* Spine in Frameworks */ = {isa = PBXBuildFile; productRef = 928A8CC12BCFE7DF00D9D35B /* Spine */; };
@@ -42,6 +42,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		17B7482D2D9C1F9400CF2A2D /* Spine C Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Spine C Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		76381FCC2C2EF4030087712B /* celestial-circus-pma.atlas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "celestial-circus-pma.atlas"; sourceTree = "<group>"; };
 		76381FCD2C2EF4030087712B /* celestial-circus-pma.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "celestial-circus-pma.png"; sourceTree = "<group>"; };
 		76381FD12C2EF4F00087712B /* spineboy-pma.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "spineboy-pma.png"; sourceTree = "<group>"; };
@@ -78,12 +79,23 @@
 		92FE93282BF4AB9600CCDF48 /* IKFollowing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IKFollowing.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		17B7482E2D9C1F9500CF2A2D /* Spine C Example */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Spine C Example"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		17B7482A2D9C1F9400CF2A2D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				17B748402D9C228500CF2A2D /* SpineSwift in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		924C0C0F2BCFCF21004E63F7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				925CB7E92C19BC5A00C8F47F /* Spine in Frameworks */,
 				928A8CC22BCFE7DF00D9D35B /* Spine in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -130,6 +142,7 @@
 			isa = PBXGroup;
 			children = (
 				924C0C142BCFCF21004E63F7 /* Spine iOS Example */,
+				17B7482E2D9C1F9500CF2A2D /* Spine C Example */,
 				924C0C132BCFCF21004E63F7 /* Products */,
 				92CE2BE32BCFE57600E9B376 /* Frameworks */,
 			);
@@ -139,6 +152,7 @@
 			isa = PBXGroup;
 			children = (
 				924C0C122BCFCF21004E63F7 /* Spine iOS Example.app */,
+				17B7482D2D9C1F9400CF2A2D /* Spine C Example.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -198,6 +212,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		17B7482C2D9C1F9400CF2A2D /* Spine C Example */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17B748382D9C1F9700CF2A2D /* Build configuration list for PBXNativeTarget "Spine C Example" */;
+			buildPhases = (
+				17B748292D9C1F9400CF2A2D /* Sources */,
+				17B7482A2D9C1F9400CF2A2D /* Frameworks */,
+				17B7482B2D9C1F9400CF2A2D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				17B7482E2D9C1F9500CF2A2D /* Spine C Example */,
+			);
+			name = "Spine C Example";
+			packageProductDependencies = (
+				925CB7E82C19BC5A00C8F47F /* SpineSwift */,
+			);
+			productName = "Spine C Example";
+			productReference = 17B7482D2D9C1F9400CF2A2D /* Spine C Example.app */;
+			productType = "com.apple.product-type.application";
+		};
 		924C0C112BCFCF21004E63F7 /* Spine iOS Example */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 924C0C212BCFCF22004E63F7 /* Build configuration list for PBXNativeTarget "Spine iOS Example" */;
@@ -213,7 +250,6 @@
 			name = "Spine iOS Example";
 			packageProductDependencies = (
 				928A8CC12BCFE7DF00D9D35B /* Spine */,
-				925CB7E82C19BC5A00C8F47F /* Spine */,
 			);
 			productName = "Spine iOS Example";
 			productReference = 924C0C122BCFCF21004E63F7 /* Spine iOS Example.app */;
@@ -226,9 +262,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1520;
+				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1520;
 				TargetAttributes = {
+					17B7482C2D9C1F9400CF2A2D = {
+						CreatedOnToolsVersion = 16.3;
+					};
 					924C0C112BCFCF21004E63F7 = {
 						CreatedOnToolsVersion = 15.2;
 						LastSwiftMigration = 1520;
@@ -252,11 +291,19 @@
 			projectRoot = "";
 			targets = (
 				924C0C112BCFCF21004E63F7 /* Spine iOS Example */,
+				17B7482C2D9C1F9400CF2A2D /* Spine C Example */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		17B7482B2D9C1F9400CF2A2D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		924C0C102BCFCF21004E63F7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -285,6 +332,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		17B748292D9C1F9400CF2A2D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		924C0C0E2BCFCF21004E63F7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -307,6 +361,84 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		17B748362D9C1F9700CF2A2D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Spine C Example/Spine_C_Example.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LK6FRFG3P9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.stenerud.Spine-C-Example";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
+		17B748372D9C1F9700CF2A2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Spine C Example/Spine_C_Example.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LK6FRFG3P9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.stenerud.Spine-C-Example";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
 		924C0C1F2BCFCF22004E63F7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -515,6 +647,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		17B748382D9C1F9700CF2A2D /* Build configuration list for PBXNativeTarget "Spine C Example" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				17B748362D9C1F9700CF2A2D /* Debug */,
+				17B748372D9C1F9700CF2A2D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		924C0C0D2BCFCF21004E63F7 /* Build configuration list for PBXProject "Spine iOS Example" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -543,9 +684,9 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		925CB7E82C19BC5A00C8F47F /* Spine */ = {
+		925CB7E82C19BC5A00C8F47F /* SpineSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Spine;
+			productName = SpineSwift;
 		};
 		928A8CC12BCFE7DF00D9D35B /* Spine */ = {
 			isa = XCSwiftPackageProductDependency;

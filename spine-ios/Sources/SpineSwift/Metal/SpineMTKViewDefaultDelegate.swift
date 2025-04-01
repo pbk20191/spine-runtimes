@@ -20,7 +20,6 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     private let bufferingSemaphore:DispatchSemaphore
     private var currentBufferIndex: Int = 0
     public let textureLoader:MTKTextureLoader
-    public var bundle:Bundle?
     
     public let maxBuffer:SpineMTKBufferingStrategy
 
@@ -72,25 +71,27 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     }
     
     open func fetchTexture(_ renderer: SpineSwift.SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
-        if let texture = page.rendererObject["kSPTexture"] as? MTLTexture {
-            return texture
-        }
-   
-        let imageName = String(cString: page.pointee.name)
-        do {
-            let url = (bundle ?? .main).url(forResource: imageName, withExtension: nil)!
-            let texture = try textureLoader.newTexture(URL: url, options: [
-                .textureUsage  : MTLTextureUsage.shaderRead.rawValue as NSNumber,
-                .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
-                .textureCPUCacheMode: MTLCPUCacheMode.writeCombined.rawValue as NSNumber,
-                .SRGB: false as NSNumber
-            ])
-            page.rendererObject["kSPTexture"] = texture
-            return texture
-        } catch {
-            print(error)
-            return nil
-        }
+        assertionFailure("fetchTexture must be implemented")
+        return nil
+//        if let texture = page.rendererObject["kSPTexture"] as? MTLTexture {
+//            return texture
+//        }
+//   
+//        let imageName = String(cString: page.pointee.name)
+//        do {
+//            let url = (bundle ?? .main).url(forResource: imageName, withExtension: nil)!
+//            let texture = try textureLoader.newTexture(URL: url, options: [
+//                .textureUsage  : MTLTextureUsage.shaderRead.rawValue as NSNumber,
+//                .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
+//                .textureCPUCacheMode: MTLCPUCacheMode.writeCombined.rawValue as NSNumber,
+//                .SRGB: false as NSNumber
+//            ])
+//            page.rendererObject["kSPTexture"] = texture
+//            return texture
+//        } catch {
+//            print(error)
+//            return nil
+//        }
 //        return texture
     }
     
