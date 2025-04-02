@@ -59,8 +59,8 @@ struct SpineMTKSwiftUIView: Equatable {
     
         let atlasTxt = try! String.init(contentsOf: atlasURL, encoding: .utf8)
         let jsonTxt = try! String.init(contentsOf: jsonURL, encoding: .utf8)
-        let atlas = try! SpineResourceHandle.parseAndCreateAtlas(atlasTxt: atlasTxt, rendererObject: nil)
-        let skelData = try! SpineResourceHandle.parseAndCreateData(jsonTxt: jsonTxt, atlas: atlas)
+        let atlas = try! SpineResourceHandle.parseAndCreateAtlas(atlasTxt: atlasTxt, rendererObject: nil).get()
+        let skelData = try! SpineResourceHandle.parseAndCreateData(jsonTxt: jsonTxt, atlas: atlas).get()
         let shared = SpineAnimationStateDataBox(skeletonData: skelData)
         let drawable = SpineSwiftDrawable(resource: shared)
         let device = MTLCreateSystemDefaultDevice()!
@@ -73,8 +73,8 @@ struct SpineMTKSwiftUIView: Equatable {
         let delegate = context.coordinator
         let atlasTxt = try! String.init(contentsOf: atlasURL, encoding: .utf8)
         let jsonTxt = try! String.init(contentsOf: jsonURL, encoding: .utf8)
-        let atlas = try! SpineResourceHandle.parseAndCreateAtlas(atlasTxt: atlasTxt, rendererObject: nil)
-        let skelData = try! SpineResourceHandle.parseAndCreateData(jsonTxt: jsonTxt, atlas: atlas)
+        let atlas = try! SpineResourceHandle.parseAndCreateAtlas(atlasTxt: atlasTxt, rendererObject: nil).get()
+        let skelData = try! SpineResourceHandle.parseAndCreateData(jsonTxt: jsonTxt, atlas: atlas).get()
         let shared = SpineAnimationStateDataBox(skeletonData: skelData)
         let drawable = SpineSwiftDrawable(resource: shared)
         delegate.drawable = drawable

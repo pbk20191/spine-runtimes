@@ -22,31 +22,31 @@ public final class SpineResourceHandle: NSObject {
         atlasTxt:String,
         dirPath:String = "",
         rendererObject:UnsafeMutableRawPointer?
-    ) throws(SpineParsingError) -> SpineAtlasBox {
+    ) -> Result<SpineAtlasBox,SpineParsingError> {
         
         guard
             let atlas = spAtlas_create(atlasTxt, Int32(atlasTxt.utf8CString.count), dirPath, rendererObject)
         else {
-            throw SpineParsingError("atlasCreationFailed")
+            return .failure(SpineParsingError("atlasCreationFailed"))
         }
         if atlas.pointee.pages == nil {
             spAtlas_dispose(atlas)
-            throw SpineParsingError("atlasCreationFailed")
+            return .failure(SpineParsingError("atlasCreationFailed"))
         }
         if atlas.pointee.regions == nil {
             spAtlas_dispose(atlas)
-            throw SpineParsingError("atlasCreationFailed")
+            return .failure(SpineParsingError("atlasCreationFailed"))
         }
-        return .init(atlas: atlas)
+        return .success(.init(atlas: atlas))
         
     }
     
     public static func parseAndCreateData(
         jsonTxt:String,
         atlas:SpineAtlasBox
-    ) throws(SpineParsingError) -> SpineSkeletonDataBox {
+    )  -> Result<SpineSkeletonDataBox, SpineParsingError> {
         guard let jsonParser = spSkeletonJson_create(atlas.native) else {
-            throw SpineParsingError("jsonParserCreationFailed")
+            return .failure(SpineParsingError("jsonParserCreationFailed"))
         }
         defer {
             spSkeletonJson_dispose(jsonParser)
@@ -59,20 +59,20 @@ public final class SpineResourceHandle: NSObject {
             if skeletonData != nil {
                 spSkeletonData_dispose(skeletonData)
             }
-            throw SpineParsingError(errorMsg)
+            return .failure(SpineParsingError(errorMsg))
         }
         guard let skeletonData else {
-            throw SpineParsingError("skeletonDataCreationFailed")
+            return .failure(SpineParsingError("skeletonDataCreationFailed"))
         }
-        return .init(atlas: atlas, skeletonData: skeletonData)
+        return .success(.init(atlas: atlas, skeletonData: skeletonData))
     }
     
     public static func parseAndCreateData(
         skelBinary:Data,
         atlas:SpineAtlasBox
-    ) throws(SpineParsingError) -> SpineSkeletonDataBox {
+    ) -> Result<SpineSkeletonDataBox, SpineParsingError> {
         guard let binaryParser = spSkeletonBinary_create(atlas.native) else {
-            throw SpineParsingError("binaryParserCreationFailed")
+            return .failure(SpineParsingError("binaryParserCreationFailed"))
         }
         defer {
             spSkeletonBinary_dispose(binaryParser)
@@ -85,12 +85,12 @@ public final class SpineResourceHandle: NSObject {
             if skeletonData != nil {
                 spSkeletonData_dispose(skeletonData)
             }
-            throw SpineParsingError(errorMsg)
+            return .failure(SpineParsingError(errorMsg))
         }
         guard let skeletonData else {
-            throw SpineParsingError("skeletonDataCreationFailed")
+            return .failure(SpineParsingError("skeletonDataCreationFailed"))
         }
-        return .init(atlas: atlas, skeletonData: skeletonData)
+        return .success(.init(atlas: atlas, skeletonData: skeletonData))
     }
     
 }
