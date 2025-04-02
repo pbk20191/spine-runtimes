@@ -13,7 +13,6 @@ import spine_c
 
 class SpineViewDelegate: SpineMTKViewDefaultDelegate {
     
-    
     override func fetchTexture(_ renderer: SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
         let textureKey = "KSPTexture"
         if let texture = page.rendererObject[textureKey] as? MTLTexture {
@@ -28,6 +27,7 @@ class SpineViewDelegate: SpineMTKViewDefaultDelegate {
         let name = String(cString: page.pointee.name).replacingOccurrences(of: ".png", with: "")
         do {
             if let url = Bundle.main.url(forResource: name, withExtension: "png") {
+                let textureLoader: MTKTextureLoader = MTKTextureLoader(device: device)
                 let texture = try textureLoader.newTexture(
                     URL: url,
                     options: option

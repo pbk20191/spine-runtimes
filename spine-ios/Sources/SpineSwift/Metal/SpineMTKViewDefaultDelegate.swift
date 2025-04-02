@@ -19,7 +19,6 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     private var buffers = [MTLBuffer]()
     private let bufferingSemaphore:DispatchSemaphore
     private var currentBufferIndex: Int = 0
-    public let textureLoader:MTKTextureLoader
     
     public let maxBuffer:SpineMTKBufferingStrategy
 
@@ -125,7 +124,6 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         self.commandQueue = commandQueue
         self.maxBuffer = maxBuffer
         self.bufferingSemaphore = .init(value: maxBuffer.rawValue)
-        self.textureLoader = MTKTextureLoader(device: commandQueue.device)
         try super.init(
             drawable: drawable,
             device: commandQueue.device,
