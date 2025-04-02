@@ -34,9 +34,11 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
         
         deinit {
+            buffer.setPurgeableState(.empty)
             semaphore.signal()
         }
         
+        let offsetInBytes: Int = 0
         
     }
     
@@ -55,6 +57,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
         let buffer = buffers[currentBufferIndex]
         currentBufferIndex = (currentBufferIndex + 1) % maxBuffer.rawValue
+        buffer.setPurgeableState(.nonVolatile)
         return BufferRef(buffer: buffer, semaphore: bufferingSemaphore)
     }
     

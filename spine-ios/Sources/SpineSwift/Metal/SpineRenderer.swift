@@ -202,6 +202,7 @@ open class SpineRenderer: NSObject {
             return false
         }
         let vertexBuffer = vertexBufferRef.buffer
+        let offsetInBytes = vertexBufferRef.offsetInBytes
         guard vertexBuffer.length >= bufferCount else {
             return false
         }
@@ -210,13 +211,13 @@ open class SpineRenderer: NSObject {
             renderEncoder.popDebugGroup()
         }
         commandEntry.verteArray.withUnsafeBytes {
-            let _ = memcpy(vertexBuffer.contents(), $0.baseAddress!, $0.count)
+            let _ = memcpy(vertexBuffer.contents().advanced(by: offsetInBytes), $0.baseAddress!, $0.count)
         }
         Self.signalBuffer(buffer: commandBuffer, ref: vertexBufferRef)
         
 #if os(macOS) || targetEnvironment(macCatalyst)
         if vertexBuffer.storageMode == .managed {
-            vertexBuffer.didModifyRange(0..<bufferCount)
+            vertexBuffer.didModifyRange(offsetInBytes..<(offsetInBytes + bufferCount))
         }
 #endif
         let atlaPageArray = sequence(first: self.model.resource.pSkeletonData.pAtlas.native.pointee.pages, next: \.pointee.next).map(\.self)
@@ -230,7 +231,7 @@ open class SpineRenderer: NSObject {
                 zfar: 1
             )
         )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(SpineVertexInputIndexVertices.rawValue))
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: offsetInBytes, index: Int(SpineVertexInputIndexVertices.rawValue))
         withUnsafeBytes(of: displayTransform.transform) {
             renderEncoder.setVertexBytes($0.baseAddress!, length: $0.count, index: Int(SpineVertexInputIndexTransform.rawValue))
         }
