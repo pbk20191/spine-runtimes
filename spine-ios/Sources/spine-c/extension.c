@@ -17,6 +17,14 @@ CF_INLINE void* cf_realloc(void* ptr, size_t size);
 CF_INLINE void cf_free(void* ptr);
 CF_INLINE void* cf_debug_malloc(size_t size, const char* file, int line);
 
+#define LOG_CATEGORY "com.esotericsoftware.spine"
+
+#define LOG_ERROR(subsystem, category, format, ...) \
+    { \
+        os_log_t _logger = os_log_create((subsystem), (category)); \
+        os_log_error(_logger, (format), ##__VA_ARGS__); \
+        os_release(_logger); \
+    }
 
 CF_INLINE void spin_c_extension_cf_setup() {
     _spSetMalloc(cf_malloc);
@@ -72,6 +80,7 @@ void _spAtlasPage_disposeTexture(spAtlasPage *self) {
 
 char* _spUtil_readFile(const char *path, int *length) {
     *length = 0;
+    #define LOG_FILE_ERROR(format, ...) LOG_ERROR(LOG_CATEGORY, "file", (format), ##__VA_ARGS__)
     CFURLRef url = NULL;
     {
         CFStringRef pathString = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault, path, kCFStringEncodingUTF8, kCFAllocatorNull);
@@ -80,11 +89,11 @@ char* _spUtil_readFile(const char *path, int *length) {
         #if TARGET_OS_WINDOWS
         style = kCFURLWindowsPathStyle;
         #endif
-        url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, pathString, kCFURLPOSIXPathStyle, false);
+        url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, pathString, style, false);
         CFRelease(pathString);
     }
     if (!url) {
-        os_log_error(OS_LOG_DEFAULT, "Failed to create URL from %s", path);
+        LOG_FILE_ERROR("Failed to create URL from %{public}s", path);
         return NULL;
     }
     CFErrorRef cfError = NULL;
@@ -103,13 +112,13 @@ char* _spUtil_readFile(const char *path, int *length) {
     if (cfError) {
         CFStringRef errorDescription = CFErrorCopyDescription(cfError);
         CFIndex errorCode = CFErrorGetCode(cfError);
-        os_log_error(OS_LOG_DEFAULT, "Error reading file size: %@  errorCode: %ld", errorDescription, (long)errorCode);
+        LOG_FILE_ERROR("Error reading file size: %{public}@  errorCode: %{public}ld", errorDescription, (long)errorCode);
         CFRelease(cfError);
         CFRelease(errorDescription);
         return NULL;
     }
     if (!fileSize) {
-        os_log_error(OS_LOG_DEFAULT, "Error reading file size with unknown error");
+        LOG_FILE_ERROR("Error reading file size with unknown error");
         return NULL;
     }
     CFNumberGetValue(fileSize, kCFNumberIntType, length);
@@ -127,12 +136,10 @@ char* _spUtil_readFile(const char *path, int *length) {
     if (cfError) {
         CFStringRef errorDescription = CFErrorCopyDescription(cfError);
         CFIndex errorCode = CFErrorGetCode(cfError);
-        os_log_error(OS_LOG_DEFAULT, "Error reading file : %@  errorCode: %ld", errorDescription, (long)errorCode);
+        LOG_FILE_ERROR("Error reading file: %{public}@  errorCode: %{public}ld", errorDescription, (long)errorCode);
         CFRelease(errorDescription);
-        
-        
-        FREE(block);
         CFRelease(cfError);
+        FREE(block);
         *length = 0;
         return NULL;
     }
@@ -158,6 +165,8 @@ CF_INLINE void cf_free(void* ptr) {
 }
 
 CF_INLINE void* cf_debug_malloc(size_t size, const char* file, int line) {
-    os_signpost_event_emit(OS_LOG_DEFAULT, 1, "_spMalloc", "file=%s line=%d size=%zu", file, line, size);
+    os_log_t logger = os_log_create(LOG_CATEGORY, OS_LOG_CATEGORY_DYNAMIC_TRACING);
+    os_signpost_event_emit(logger, 1, "DebugMalloc", "malloc size=%zu file=%s:%d", size, file, line);
+    os_release(logger);
     return cf_malloc(size);
 }
