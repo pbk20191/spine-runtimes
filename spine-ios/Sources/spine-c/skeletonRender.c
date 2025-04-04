@@ -54,13 +54,11 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
             continue;
         }
         
-        spFloatArray *worldVertices = _worldVertices;
-        spFloatArray *vertices = worldVertices;
-        int32_t verticesCount;
+        spFloatArray *vertices = _worldVertices;
         spFloatArray *uvs = &uvsHolder;
         spUnsignedShortArray *indices = &indicesHolder;
-        int32_t indicesCount;
         spColor attachmentColor;
+
         void *texture;
         bool pma = false;
         char* pageName = (char*) emptyCString;
@@ -74,15 +72,18 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
                 continue;
             }
             
-            spFloatArray_setSize(worldVertices, 8);
-            spRegionAttachment_computeWorldVertices(regionAttachment, slot, worldVertices->items, 0, 2);
-            verticesCount = 4;
-//            uvs = regionAttachment->uvs;
-            uvs->items = regionAttachment->uvs;
-            uvs->capacity = uvs->size = 8;
-            indices->capacity = indices->size = indicesCount = 6;
-            indices->items = (unsigned short*) quadIndices;
-            
+            spFloatArray_setSize(vertices, 8);
+            spRegionAttachment_computeWorldVertices(regionAttachment, slot, vertices->items, 0, 2);
+            *uvs = (spFloatArray){
+                .items = regionAttachment->uvs,
+                .size = 8,
+                .capacity = 8
+            };
+            *indices = (spUnsignedShortArray){
+                .items = (unsigned short*) quadIndices,
+                .size = 6,
+                .capacity = 6
+            };
             spAtlasRegion *atlasRegion = spRegionAttachment_getRegion(regionAttachment);
             pma = atlasRegion->page->pma;
             texture = spAtlasRegion_getPageIndex(atlasRegion, cache);
@@ -98,13 +99,18 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
                 continue;
             }
             //
-            spFloatArray_setSize(worldVertices,mesh->super.worldVerticesLength);
-            spVertexAttachment_computeWorldVertices(&mesh->super, slot, 0, mesh->super.worldVerticesLength, worldVertices->items, 0, 2);
-            verticesCount = (int32_t) (mesh->super.worldVerticesLength >> 1);
-            uvs->items = mesh->uvs;
-            uvs->size = uvs->capacity = mesh->trianglesCount;
-            indices->items = mesh->triangles;
-            indicesCount = indices->size = indices->capacity = mesh->trianglesCount;
+            spFloatArray_setSize(vertices,mesh->super.worldVerticesLength);
+            spVertexAttachment_computeWorldVertices(&mesh->super, slot, 0, mesh->super.worldVerticesLength, vertices->items, 0, 2);
+            *uvs = (spFloatArray){
+                .items = mesh->uvs,
+                .size = mesh->super.worldVerticesLength,
+                .capacity = mesh->super.worldVerticesLength,
+            };
+            *indices = (spUnsignedShortArray) {
+              .items = mesh->triangles,
+              .size = mesh->trianglesCount,
+              .capacity = mesh->trianglesCount,
+            };
             spAtlasRegion *atlasRegion = spMeshAttachment_getRegion(mesh);
             pma = atlasRegion->page->pma;
             texture = spAtlasRegion_getPageIndex(atlasRegion, cache);
@@ -153,18 +159,19 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
         }
         
         if (spSkeletonClipping_isClipping(clipper)) {
-            spSkeletonClipping_clipTriangles(clipper, worldVertices->items, verticesCount, indices->items, indicesCount, uvs->items, 2);
+            spSkeletonClipping_clipTriangles(clipper, vertices->items, vertices->size >> 1, indices->items, indices->size, uvs->items, 2);
             vertices = clipper->clippedVertices;
-            verticesCount = clipper->clippedVertices->size >> 1;
+
             uvs = clipper->clippedUVs;
             indices = clipper->clippedTriangles;
-            indicesCount = clipper->clippedTriangles->size;
         }
-        SpineRenderBatchCommand cmd = sp_render_command_block_create(verticesCount, indicesCount, slot->data->blendMode, texture, pma, pageName, blockPool);
+        const int verticesCount = vertices->size >> 1;
+        SpineRenderBatchCommand cmd = sp_render_command_block_create(verticesCount, indices->size, slot->data->blendMode, texture, pma, pageName, blockPool);
         // CFArray callback calls malloc interally which we provided
         CFArrayAppendValue(_renderCommands, &cmd);
-        memcpy(cmd.positions, vertices->items, (verticesCount << 1) * sizeof(float));
-        memcpy(cmd.uvs, uvs->items, (verticesCount << 1) * sizeof(float));
+        memcpy(cmd.positions, vertices->items, (vertices->size) * sizeof(float));
+        memcpy(cmd.uvs, uvs->items, (uvs->size) * sizeof(float));
+//        assert(vertices->size == verticesCount << 1);
         for (int ii = 0; ii < verticesCount; ii++) {
             cmd.colors[ii] = colorData;
         }
