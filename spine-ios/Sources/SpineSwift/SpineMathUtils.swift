@@ -81,8 +81,8 @@ public final class SpineMathUtils: NSObject {
         let sourceOrigin = biasRect?.origin ?? sourceRect.origin
 
         // 2. Compute scale factors based on destination size
-        let scaleX = destinationRect.width / sourceSize.width
-        let scaleY = destinationRect.height / sourceSize.height
+        let scaleX = sourceSize.width.isNormal ? destinationRect.width / sourceSize.width : 0
+        let scaleY = sourceSize.height.isNormal ? destinationRect.height / sourceSize.height : 0
 
         // Choose scale factor based on contentMode (.fit or .fill)
         let scale: SIMD2<Double>
