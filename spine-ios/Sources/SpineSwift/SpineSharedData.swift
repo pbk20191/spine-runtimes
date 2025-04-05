@@ -136,18 +136,18 @@ open class SpineAnimationStateDataBox: NSObject {
 public extension SpineSkeletonDataBox {
     
     func accessSkeleton<R:~Copyable, Failure:Error>(
-        _ body: (inout spSkeletonData) throws(Failure) -> R
+        _ body: (borrowing PointeeBox<spSkeletonData>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&native.pointee)
+        try body(.init(native))
     }
     
 }
 
 public extension SpineAnimationStateDataBox {
     func accessAnimation<R:~Copyable, Failure:Error>(
-        _ body: (inout spAnimationStateData) throws(Failure) -> R
+        _ body: (borrowing PointeeBox<spAnimationStateData>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&native.pointee)
+        try body(.init(native))
     }
     
 }
@@ -155,9 +155,9 @@ public extension SpineAnimationStateDataBox {
 public extension SpineAtlasBox {
     
     func accessAtlas<R:~Copyable, Failure:Error>(
-        _ body:  (inout spAtlas) throws(Failure) -> R
+        _ body:  (borrowing PointeeBox<spAtlas>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&native.pointee)
+        try body(.init(native))
     }
     
 }
