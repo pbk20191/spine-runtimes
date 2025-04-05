@@ -106,21 +106,23 @@ open class SpineSwiftDrawable: NSObject {
 public extension SpineSwiftDrawable {
     /// access variable outside of the scope can be undefined behavior
     func accessSkeleton<R:~Copyable, Failure:Error>(
-        _ body: (inout spSkeleton) throws(Failure) -> R
+        _ body: (borrowing PointeeBox<spSkeleton>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&pSkeleton.pointee)
+        let box = PointeeBox(pSkeleton)
+        return try body(box)
     }
     /// Do not modify listener and userData
     func accessAnimation<R:~Copyable, Failure:Error>(
-        _ body: (inout spAnimationState) throws(Failure) -> R
+        _ body: (borrowing PointeeBox<spAnimationState>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&pAnimationState.pointee)
+        let box = PointeeBox(pAnimationState)
+        return try body(box)
     }
     /// access variable outside of the scope can be undefined behavior
     func accessBoundingBox<R:~Copyable, Failure:Error>(
-        _ body: (inout spSkeletonBounds) throws(Failure) -> R
+        _ body: (borrowing PointeeBox<spSkeletonBounds>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&pBoundingBox.pointee)
+        try body(.init(pBoundingBox))
     }
     /// access variable outside of the scope can be undefined behavior
     ///
@@ -128,9 +130,9 @@ public extension SpineSwiftDrawable {
     ///
     /// prefer creating your own clipping object
     func accessClipping<R:~Copyable, Failure:Error>(
-        _ body: (inout spSkeletonClipping) throws(Failure) -> R
+        _ body: (borrowing PointeeBox<spSkeletonClipping>) throws(Failure) -> R
     ) throws(Failure) -> R {
-        try body(&pClipping.pointee)
+        try body(.init(pClipping))
     }
     
 }
