@@ -8,18 +8,17 @@
 #include <spine/extension.h>
 #include "spine_public.h"
 
-CF_INLINE void spSkeletonClipping_clipTriangles2( spSkeletonClipping *self, float *vertices, int verticesLength,
-                                      unsigned short *triangles, int trianglesLength,spFloatArray* uv);
 
 CF_RETURNS_RETAINED
 CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _Nullable clipper) {
     spFloatArray *_worldVertices = spFloatArray_create(32);
-    const unsigned short quadIndices[] = {0, 1, 2, 2, 3, 0};
-    float region_vertices[] = {0,0,0,0,0,0,0,0};
-    spFloatArray uvsHolder = {0,0,0};
-    spUnsignedShortArray indicesHolder = {0,0,0};
-
-
+    const unsigned short quadIndices[6] = {0, 1, 2, 2, 3, 0};
+    float region_vertices_item[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    const spFloatArray region_vertices = {
+        .items = region_vertices_item,
+        .size = 8,
+        .capacity = 8
+    };
     CGMutablePathRef path = CGPathCreateMutable();
     for (size_t i = 0; i < self->slotsCount; ++i) {
         spSlot *slot = self->drawOrder[i];
@@ -38,12 +37,19 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
             }
             continue;
         }
-        
+        spFloatArray uvsHolder = {
+            .items = NULL,
+            .size = 0,
+            .capacity = 0,
+        };
+        spUnsignedShortArray indicesHolder = {
+            .items = NULL,
+            .size = 0,
+            .capacity = 0,
+        };
         spFloatArray *vertices = _worldVertices;
         spFloatArray *uvs = &uvsHolder;
         spUnsignedShortArray *indices = &indicesHolder;
-        int32_t verticesCount = 0;
-
         if (attachment->type == SP_ATTACHMENT_REGION) {
             spRegionAttachment *regionAttachment = SUB_CAST(spRegionAttachment, attachment);
             if (regionAttachment->color.a == 0) {
@@ -52,14 +58,15 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
                 }
                 continue;
             }
-            spFloatArray_setSize(vertices, 8);
+            if (vertices != &region_vertices) {
+                vertices = (spFloatArray*) &region_vertices;
+            }
             spRegionAttachment_computeWorldVertices(regionAttachment, slot, vertices->items, 0, 2);
             *uvs = (spFloatArray){
                 .items = regionAttachment->uvs,
                 .size = 8,
                 .capacity = 8
             };
-            verticesCount = 4;
 
             *indices = (spUnsignedShortArray){
                 .items = (unsigned short*) quadIndices,
@@ -75,6 +82,9 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
                 }
                 continue;
             }
+            if (vertices != _worldVertices) {
+                vertices = _worldVertices;
+            }
             spFloatArray_setSize(vertices,mesh->super.worldVerticesLength);
             spVertexAttachment_computeWorldVertices(&mesh->super, slot, 0, mesh->super.worldVerticesLength, vertices->items, 0, 2);
             *uvs = (spFloatArray){
@@ -82,7 +92,6 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
                 .size = mesh->super.worldVerticesLength,
                 .capacity = mesh->super.worldVerticesLength,
             };
-            verticesCount = (int32_t) (mesh->super.worldVerticesLength >> 1);
             *indices = (spUnsignedShortArray){
                 .items = mesh->triangles,
                 .size = mesh->trianglesCount,
@@ -97,11 +106,10 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
         }
 
         if (clipper != NULL && spSkeletonClipping_isClipping(clipper)) {
-            spSkeletonClipping_clipTriangles(clipper, vertices->items, verticesCount, indices->items, indices->size, uvs->items, 2);
+            spSkeletonClipping_clipTriangles(clipper, vertices->items, vertices->size >> 1, indices->items, indices->size, uvs->items, 2);
             vertices = clipper->clippedVertices;
             uvs = clipper->clippedUVs;
             indices = clipper->clippedTriangles;
-            verticesCount = clipper->clippedVertices->size >> 1;
         }
         // add triagles to CGPath
         for (int t = 0; t < indices->size; t += 3) {
@@ -133,11 +141,3 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
 
 }
 
-CF_INLINE
-void spSkeletonClipping_clipTriangles2(spSkeletonClipping *self, float *vertices, int verticesLength,
-                                       unsigned short *triangles, int trianglesLength, spFloatArray* uvDummy) {
-    
-    spFloatArray_setSize(uvDummy, verticesLength);
-    spSkeletonClipping_clipTriangles(self, vertices, verticesLength, triangles, trianglesLength, uvDummy->items, 2);
-
-}
