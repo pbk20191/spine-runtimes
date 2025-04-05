@@ -22,10 +22,10 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
     }
 
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        let region = drawable.accessSkeleton {
+        let region = drawable.accessSkeleton { handle in
             let clipper = spSkeletonClipping_create()!
             defer { spSkeletonClipping_dispose(clipper) }
-            return spSkeleton_createBoundingPath(&$0, clipper)
+            return spSkeleton_createBoundingPath(&handle[], clipper)
         }
         if region.isEmpty {
             return .zero
