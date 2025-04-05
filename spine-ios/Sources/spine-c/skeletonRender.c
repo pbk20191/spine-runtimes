@@ -34,11 +34,15 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
     
     CFMutableDictionaryRef cache = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     CFMutableArrayRef blockPool = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-    const unsigned short quadIndices[] = {0, 1, 2, 2, 3, 0};
-    float region_vertices[] = {0,0,0,0,0,0,0,0};
+    const unsigned short quadIndices[6] = {0, 1, 2, 2, 3, 0};
     const char emptyCString[] = "";
-    spFloatArray uvsHolder = {0,0,0};
-    spUnsignedShortArray indicesHolder = {0,0,0};
+    float region_vertices_item[8] = {0,0,0,0,0,0,0,0};
+    const spFloatArray region_vertices = {
+        .items = region_vertices_item,
+        .size = 8,
+        .capacity = 8
+    };
+
     CFMutableArrayRef _renderCommands = sp_render_command_block_create_Array();
     for (unsigned i = 0; i < skeleton->slotsCount; ++i) {
         spSlot* slot = skeleton->drawOrder[i];
@@ -53,6 +57,16 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
             spSkeletonClipping_clipEnd(clipper, slot);
             continue;
         }
+        spFloatArray uvsHolder = {
+            .items = NULL,
+            .size = 0,
+            .capacity = 0,
+        };
+        spUnsignedShortArray indicesHolder = {
+            .items = NULL,
+            .size = 0,
+            .capacity = 0,
+        };
         
         spFloatArray *vertices = _worldVertices;
         spFloatArray *uvs = &uvsHolder;
@@ -72,7 +86,9 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
                 continue;
             }
             
-            spFloatArray_setSize(vertices, 8);
+            if (vertices != &region_vertices) {
+                vertices = (spFloatArray *)&region_vertices;
+            }
             spRegionAttachment_computeWorldVertices(regionAttachment, slot, vertices->items, 0, 2);
             *uvs = (spFloatArray){
                 .items = regionAttachment->uvs,
@@ -98,7 +114,9 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
                 spSkeletonClipping_clipEnd(clipper, slot);
                 continue;
             }
-            //
+            if (vertices != _worldVertices) {
+                vertices = _worldVertices;
+            }
             spFloatArray_setSize(vertices,mesh->super.worldVerticesLength);
             spVertexAttachment_computeWorldVertices(&mesh->super, slot, 0, mesh->super.worldVerticesLength, vertices->items, 0, 2);
             *uvs = (spFloatArray){
@@ -121,6 +139,12 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
             continue;
         } else {
             continue;
+        }
+        if (spSkeletonClipping_isClipping(clipper)) {
+            spSkeletonClipping_clipTriangles(clipper, vertices->items, vertices->size >> 1, indices->items, indices->size, uvs->items, 2);
+            vertices = clipper->clippedVertices;
+            uvs = clipper->clippedUVs;
+            indices = clipper->clippedTriangles;
         }
         
         float f_a = skeleton->color.a * slot->color.a * attachmentColor.a;
@@ -156,14 +180,6 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
         } else {
             colorData.darkColor = 0xff000000;
             colorData.hasDark = false;
-        }
-        
-        if (spSkeletonClipping_isClipping(clipper)) {
-            spSkeletonClipping_clipTriangles(clipper, vertices->items, vertices->size >> 1, indices->items, indices->size, uvs->items, 2);
-            vertices = clipper->clippedVertices;
-
-            uvs = clipper->clippedUVs;
-            indices = clipper->clippedTriangles;
         }
         const int verticesCount = vertices->size >> 1;
         SpineRenderBatchCommand cmd = sp_render_command_block_create(verticesCount, indices->size, slot->data->blendMode, texture, pma, pageName, blockPool);
