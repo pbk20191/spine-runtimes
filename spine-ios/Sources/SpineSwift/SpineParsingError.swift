@@ -6,10 +6,13 @@
 //
 
 public struct SpineParsingError: Error, Hashable, Sendable {
-    public let message: String
     
-    public init(_ message: String) {
+    internal let message: String
+    
+    internal init(_ message: String) {
         self.message = message
     }
+    
+    public var localizedDescription: String { message }
     
 }

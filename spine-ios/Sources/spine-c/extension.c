@@ -54,17 +54,17 @@ void _spAtlasPage_createTexture(spAtlasPage *self, const char *path) {
     
     CFMutableDictionaryRef dictionary = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     self->rendererObject = dictionary;
-    CFStringRef keyString = CFStringCreateWithCString(kCFAllocatorDefault, "kSPPath", kCFStringEncodingUTF8);
+    CFStringRef keyString = CFStringCreateWithCString(kCFAllocatorDefault, "kSpineTexturePath", kCFStringEncodingUTF8);
     CFTypeRef value = CFStringCreateWithCString(kCFAllocatorDefault, path, kCFStringEncodingUTF8);
     CFDictionarySetValue(dictionary, keyString, value);
     CFRelease(keyString);
     CFRelease(value);
-    keyString = CFStringCreateWithCString(kCFAllocatorDefault, "kSPName", kCFStringEncodingUTF8);
+    keyString = CFStringCreateWithCString(kCFAllocatorDefault, "kSpineTextureName", kCFStringEncodingUTF8);
     value = CFStringCreateWithCString(kCFAllocatorDefault, self->name, kCFStringEncodingUTF8);
     CFDictionarySetValue(dictionary, keyString, value);
     CFRelease(keyString);
     CFRelease(value);
-    keyString = CFStringCreateWithCString(kCFAllocatorDefault, "kSPIndex", kCFStringEncodingUTF8);
+    keyString = CFStringCreateWithCString(kCFAllocatorDefault, "kSpineTextureIndex", kCFStringEncodingUTF8);
     value = CFNumberCreate(kCFAllocatorDefault, kCFNumberCFIndexType, &index);
     CFDictionarySetValue(dictionary, keyString, value);
     CFRelease(keyString);
@@ -93,7 +93,7 @@ char* _spUtil_readFile(const char *path, int *length) {
         CFRelease(pathString);
     }
     if (!url) {
-        LOG_FILE_ERROR("Failed to create URL from %{public}s", path);
+        LOG_FILE_ERROR("Failed to create URL from %s", path);
         return NULL;
     }
     CFErrorRef cfError = NULL;
@@ -112,7 +112,7 @@ char* _spUtil_readFile(const char *path, int *length) {
     if (cfError) {
         CFStringRef errorDescription = CFErrorCopyDescription(cfError);
         CFIndex errorCode = CFErrorGetCode(cfError);
-        LOG_FILE_ERROR("Error reading file size: %{public}@  errorCode: %{public}ld", errorDescription, (long)errorCode);
+        LOG_FILE_ERROR("Error reading file size: %@  errorCode: %ld", errorDescription, (long)errorCode);
         CFRelease(cfError);
         CFRelease(errorDescription);
         return NULL;
@@ -136,7 +136,7 @@ char* _spUtil_readFile(const char *path, int *length) {
     if (cfError) {
         CFStringRef errorDescription = CFErrorCopyDescription(cfError);
         CFIndex errorCode = CFErrorGetCode(cfError);
-        LOG_FILE_ERROR("Error reading file: %{public}@  errorCode: %{public}ld", errorDescription, (long)errorCode);
+        LOG_FILE_ERROR("Error reading file: %@  errorCode: %ld", errorDescription, (long)errorCode);
         CFRelease(errorDescription);
         CFRelease(cfError);
         FREE(block);
