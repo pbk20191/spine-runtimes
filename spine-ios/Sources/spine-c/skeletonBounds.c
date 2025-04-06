@@ -19,7 +19,9 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
         .size = 8,
         .capacity = 8
     };
+    // @begin
     CGMutablePathRef path = CGPathCreateMutable();
+    // @end
     for (size_t i = 0; i < self->slotsCount; ++i) {
         spSlot *slot = self->drawOrder[i];
         if (!slot->bone->active)
@@ -50,6 +52,8 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
         spFloatArray *vertices = _worldVertices;
         spFloatArray *uvs = &uvsHolder;
         spUnsignedShortArray *indices = &indicesHolder;
+        // @begin
+        // @end
         if (attachment->type == SP_ATTACHMENT_REGION) {
             spRegionAttachment *regionAttachment = SUB_CAST(spRegionAttachment, attachment);
             if (regionAttachment->color.a == 0) {
@@ -73,6 +77,8 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
                 .size = 6,
                 .capacity = 6
             };
+            // @begin
+            // @end
         } else if (attachment->type == SP_ATTACHMENT_MESH) {
             spMeshAttachment *mesh = SUB_CAST(spMeshAttachment, attachment);
 
@@ -97,6 +103,8 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
                 .size = mesh->trianglesCount,
                 .capacity = mesh->trianglesCount
             };
+            // @begin
+            // @end
         } else if (attachment->type == SP_ATTACHMENT_CLIPPING && clipper != NULL) {
             spClippingAttachment *clip = SUB_CAST(spClippingAttachment, attachment);
             spSkeletonClipping_clipStart(clipper, slot, clip);
@@ -111,6 +119,7 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
             uvs = clipper->clippedUVs;
             indices = clipper->clippedTriangles;
         }
+        // @begin
         // add triagles to CGPath
         for (int t = 0; t < indices->size; t += 3) {
             int i0 = indices->items[t] * 2;
@@ -126,6 +135,7 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
             CGPathAddLineToPoint(path, NULL, p2.x, p2.y);
             CGPathCloseSubpath(path);
         }
+        // @end
         if (clipper) {
             spSkeletonClipping_clipEnd(clipper, slot);
         }
@@ -134,10 +144,11 @@ CGPathRef spSkeleton_createBoundingPath(spSkeleton *self, spSkeletonClipping * _
         spSkeletonClipping_clipEnd2(clipper);
     }
     spFloatArray_dispose(_worldVertices);
+    // @begin
     CGPathRef final = CGPathCreateCopy(path);
     CFRelease(path);
     path = NULL;
+    // @end
     return final;
-
 }
 
