@@ -29,21 +29,22 @@ CF_INLINE SpineCommandArray batchCommands(CFArrayRef commands, CFMutableArrayRef
 
 
 void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineRenderBatchCommandHandler function, void * _Nullable context) {
-
     spFloatArray *_worldVertices = spFloatArray_create(32);
-    
-    CFMutableDictionaryRef cache = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-    CFMutableArrayRef blockPool = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
     const unsigned short quadIndices[6] = {0, 1, 2, 2, 3, 0};
-    const char emptyCString[] = "";
     float region_vertices_item[8] = {0,0,0,0,0,0,0,0};
     const spFloatArray region_vertices = {
         .items = region_vertices_item,
         .size = 8,
         .capacity = 8
     };
-
+    
+    // @begin
+    CFMutableDictionaryRef cache = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    CFMutableArrayRef blockPool = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+    const char emptyCString[] = "";
     CFMutableArrayRef _renderCommands = sp_render_command_block_create_Array();
+    // @end
+    
     for (unsigned i = 0; i < skeleton->slotsCount; ++i) {
         spSlot* slot = skeleton->drawOrder[i];
         spAttachment *attachment = slot->attachment;
@@ -71,11 +72,14 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
         spFloatArray *vertices = _worldVertices;
         spFloatArray *uvs = &uvsHolder;
         spUnsignedShortArray *indices = &indicesHolder;
+        
+        //@begin
         spColor attachmentColor;
-
         void *texture;
         bool pma = false;
         char* pageName = (char*) emptyCString;
+        //@end
+        
         if (attachment->type == SP_ATTACHMENT_REGION) {
             spRegionAttachment *regionAttachment = SUB_CAST(spRegionAttachment, attachment);
             attachmentColor = regionAttachment->color;
@@ -100,10 +104,12 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
                 .size = 6,
                 .capacity = 6
             };
+            //@begin
             spAtlasRegion *atlasRegion = spRegionAttachment_getRegion(regionAttachment);
             pma = atlasRegion->page->pma;
             texture = spAtlasRegion_getPageIndex(atlasRegion, cache);
             pageName = atlasRegion->page->name;
+            //@end
         } else if (attachment->type == SP_ATTACHMENT_MESH) {
             spMeshAttachment *mesh = SUB_CAST(spMeshAttachment, attachment);
             
@@ -129,10 +135,12 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
               .size = mesh->trianglesCount,
               .capacity = mesh->trianglesCount,
             };
+            //@begin
             spAtlasRegion *atlasRegion = spMeshAttachment_getRegion(mesh);
             pma = atlasRegion->page->pma;
             texture = spAtlasRegion_getPageIndex(atlasRegion, cache);
             pageName = atlasRegion->page->name;
+            //@end
         } else if (attachment->type == SP_ATTACHMENT_CLIPPING) {
             spClippingAttachment *clip = SUB_CAST(spClippingAttachment, attachment);
             spSkeletonClipping_clipStart(clipper, slot, clip);
@@ -146,7 +154,7 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
             uvs = clipper->clippedUVs;
             indices = clipper->clippedTriangles;
         }
-        
+        //@begin
         float f_a = skeleton->color.a * slot->color.a * attachmentColor.a;
         uint32_t a = (uint8_t)(f_a * 255);
         uint32_t color;
@@ -181,20 +189,25 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
             colorData.darkColor = 0xff000000;
             colorData.hasDark = false;
         }
+        
         const int verticesCount = vertices->size >> 1;
         SpineRenderBatchCommand cmd = sp_render_command_block_create(verticesCount, indices->size, slot->data->blendMode, texture, pma, pageName, blockPool);
         // CFArray callback calls malloc interally which we provided
         CFArrayAppendValue(_renderCommands, &cmd);
         memcpy(cmd.positions, vertices->items, (vertices->size) * sizeof(float));
         memcpy(cmd.uvs, uvs->items, (uvs->size) * sizeof(float));
-//        assert(vertices->size == verticesCount << 1);
         for (int ii = 0; ii < verticesCount; ii++) {
             cmd.colors[ii] = colorData;
         }
         memcpy(cmd.indices, indices->items, indices->size * (sizeof(unsigned short)));
+        //@end
         spSkeletonClipping_clipEnd(clipper, slot);
     }
     spSkeletonClipping_clipEnd2(clipper);
+    spFloatArray_dispose(_worldVertices);
+    _worldVertices = NULL;
+    
+    //@begin
     CFMutableArrayRef batchPool = CFArrayCreateMutable(kCFAllocatorMalloc, 0, &kCFTypeArrayCallBacks);
     SpineCommandArray result = batchCommands( _renderCommands, batchPool);
     do {
@@ -206,12 +219,12 @@ void spSkeleton_render(spSkeleton *skeleton, spSkeletonClipping *clipper, SpineR
         CFRelease(_renderCommands);
         _renderCommands = NULL;
     } while(0);
-    spFloatArray_dispose(_worldVertices);
-    _worldVertices = NULL;
+
     const CFOptionFlags batchCount = result.size;
     const SpineRenderBatchCommand* head = result.head ? CFDataGetBytePtr(result.head) : NULL;
     function(head, batchCount, context);
     CFRelease(batchPool);
+    //@end
 }
 
 
