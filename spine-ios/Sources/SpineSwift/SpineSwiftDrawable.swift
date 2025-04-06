@@ -8,7 +8,6 @@
 import Foundation
 import spine_c
 
-@objcMembers
 open class SpineSwiftDrawable: NSObject {
     
     @nonobjc
@@ -52,6 +51,7 @@ open class SpineSwiftDrawable: NSObject {
         spSkeletonClipping_dispose(pClipping)
     }
     
+    @objc
     public func update(delta: Float) {
         spAnimationState_update(pAnimationState, delta)
         spAnimationState_apply(pAnimationState, pSkeleton)
@@ -61,6 +61,7 @@ open class SpineSwiftDrawable: NSObject {
         spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_UPDATE)
     }
     
+    @objc
     public func updateBoundingBox(updateAabb: Bool) {
         spSkeletonBounds_update(pBoundingBox, pSkeleton, updateAabb ? 1 : 0)
     }
