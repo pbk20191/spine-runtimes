@@ -7,8 +7,8 @@ using namespace metal;
 struct RasterizerData {
     simd_float4 position [[position]];
     simd_float2 textureCoordinate;
-    simd_float4 lightColor;
-    simd_float4 darkColor;
+    simd_half4 lightColor;
+    simd_half4 darkColor;
 };
 
 #if __METAL_VERSION__ >= 230
@@ -44,18 +44,18 @@ spine_vertexShader(uint vertexID [[vertex_id]],
     uint light = as_type<uint>(vertices[vertexID].color);
     uint dark  = as_type<uint>(vertices[vertexID].darkColor);
 
-    out.lightColor = float4(
-        float((light >> 16) & 0xFF) / 255.0,
-        float((light >> 8)  & 0xFF) / 255.0,
-        float((light >> 0)  & 0xFF) / 255.0,
-        float((light >> 24) & 0xFF) / 255.0
+    out.lightColor = half4(
+        half((light >> 16) & 0xFF) / 255.0h,
+        half((light >> 8)  & 0xFF) / 255.0h,
+        half((light >> 0)  & 0xFF) / 255.0h,
+        half((light >> 24) & 0xFF) / 255.0h
     );
 
-    out.darkColor = float4(
-        float((dark >> 16) & 0xFF) / 255.0,
-        float((dark >> 8)  & 0xFF) / 255.0,
-        float((dark >> 0)  & 0xFF) / 255.0,
-        float((dark >> 24) & 0xFF) / 255.0
+    out.darkColor = half4(
+        half((dark >> 16) & 0xFF) / 255.0h,
+        half((dark >> 8)  & 0xFF) / 255.0h,
+        half((dark >> 0)  & 0xFF) / 255.0h,
+        half((dark >> 24) & 0xFF) / 255.0h
     );
     out.textureCoordinate = vertices[vertexID].uv;
     
@@ -63,22 +63,22 @@ spine_vertexShader(uint vertexID [[vertex_id]],
 }
 
 FRAGMENT_STAGE
-fragment simd_float4
+fragment simd_half4
 spine_fragmentShader(
                      RasterizerData in [[stage_in]],
-                     const texture2d<half> colorTexture [[ texture(SpineTextureIndexBaseColor) ]],
-                     constant bool &premultiplyAlpha [[buffer(0)]]
+                     const texture2d<half, access::sample> colorTexture [[ texture(SpineTextureIndexBaseColor) ]],
+                     constant bool &premultiplyAlpha [[buffer(0)]],
+                     const sampler textureSampler [[ sampler(0) ]]
                      )
 {
-    constexpr sampler textureSampler (mag_filter::nearest, min_filter::nearest);
 
-    const simd_float4 rawSample = simd_float4(colorTexture.sample(textureSampler, in.textureCoordinate));
+    const half4 rawSample = colorTexture.sample(textureSampler, in.textureCoordinate);
 
-    const simd_float4 tex = simd_float4(rawSample.rgb * (premultiplyAlpha ? rawSample.a : 1.0), rawSample.a);
+    const half4 tex = half4(rawSample.rgb * (premultiplyAlpha ? rawSample.a : 1.0h), rawSample.a);
 
-    
-    simd_float4 src;
+    half4 src;
     src.a = tex.a * in.lightColor.a;
-    src.rgb = ((tex.a - 1.0)*in.darkColor.a + 1.0 - tex.rgb) * in.darkColor.rgb + tex.rgb * in.lightColor.rgb;
-    return src;
+    src.rgb = ((tex.a - 1.0h) * in.darkColor.a + 1.0h - tex.rgb) * in.darkColor.rgb + tex.rgb * in.lightColor.rgb;
+
+    return half4(src);
 }

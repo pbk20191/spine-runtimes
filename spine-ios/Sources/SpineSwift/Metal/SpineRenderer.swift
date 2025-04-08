@@ -105,7 +105,7 @@ open class SpineRenderer: NSObject {
         boundsProvider: any SkeletonBoundsProvider = SetupPoseBounds(),
         contentMode: ContentMode = .fit,
         alignment: Alignment = .center
-    ) throws {
+    )  {
         self.model = drawable
         self.device = device
         self.pipelineStatesByBlendMode = pipelineStatesByBlendMode
@@ -247,7 +247,7 @@ open class SpineRenderer: NSObject {
         var currentPipeLine = (any MTLRenderPipelineState)?.none
         var currentTexture = (any MTLTexture)?.none
         var premultiplyAlpha = false
-        
+        var currentSampler = (any MTLSamplerState)?.none
         withUnsafeBytes(of: premultiplyAlpha) {
             renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
         }
@@ -288,7 +288,14 @@ open class SpineRenderer: NSObject {
             } else {
                 continue
             }
-            
+            if let sampler = self.delegate?.fetchSampler(self, fragment.textureId.index, page) {
+                if !sampler.isEqual(currentSampler) {
+                    currentSampler = sampler
+                    renderEncoder.setFragmentSamplerState(sampler, index: 0)
+                }
+            } else {
+                continue
+            }
             renderEncoder.drawPrimitives(
                 type: .triangle,
                 vertexStart: vertexStart,
