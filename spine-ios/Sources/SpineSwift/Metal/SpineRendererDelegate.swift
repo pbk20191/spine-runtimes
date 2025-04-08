@@ -21,6 +21,8 @@ public protocol SpineRendererDelegate {
     
     func spineRender(_ renderer: SpineRenderer, minimumSize:Int) -> (any SpineVertexBuffer)?
     
+    func fetchSampler(_ renderer: SpineRenderer,_ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLSamplerState)
+    
 }
 
 @objc

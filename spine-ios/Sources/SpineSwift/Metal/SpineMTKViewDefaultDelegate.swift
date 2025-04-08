@@ -13,6 +13,8 @@ import spine_c
 
 @objcMembers
 open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate, SpineAnimationListener {
+
+    
     
     private static let defaultBufferSize = 32 * 1024 // 32KB
     
@@ -58,6 +60,32 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         currentBufferIndex = (currentBufferIndex + 1) % maxBuffer.rawValue
         buffer.setPurgeableState(.nonVolatile)
         return BufferRef(buffer: buffer, semaphore: bufferingSemaphore)
+    }
+    
+    private var samplerCache = [AtlasSamplerConfig: any MTLSamplerState]()
+    
+    public func fetchSampler(_ renderer: SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> any MTLSamplerState {
+        let config = AtlasSamplerConfig(
+            min: .init(rawValue: page.pointee.minFilter),
+            mag: .init(rawValue: page.pointee.magFilter),
+            uwrap: .init(rawValue: page.pointee.uWrap),
+            vwrap: .init(rawValue: page.pointee.vWrap)
+        )
+        if let sampler = samplerCache[config] {
+            return sampler
+        }
+        let samplerKey = "kSpineMetalSampler"
+        if let sampler = page.rendererObject[samplerKey] as? any MTLSamplerState {
+            if samplerCache[config] == nil {
+                samplerCache[config] = sampler
+            }
+            return sampler
+        }
+        let samplerDescriptor = config.generateSamplerDescriptor()
+        let sampler = device.makeSamplerState(descriptor: samplerDescriptor)!
+        page.rendererObject[samplerKey] = sampler
+        samplerCache[config] = sampler
+        return sampler
     }
     
     open func eventDispatched(drawable: SpineSwift.SpineSwiftDrawable, type: spEventType, entry: UnsafeMutablePointer<spTrackEntry>, event: UnsafePointer<spEvent>?) {
