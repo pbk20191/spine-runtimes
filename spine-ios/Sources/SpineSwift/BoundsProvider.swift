@@ -26,7 +26,7 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
             spSkeleton_setToSetupPose(&handle[])
             let clipper = spSkeletonClipping_create()!
             defer { spSkeletonClipping_dispose(clipper) }
-            return spSkeleton_createBoundingPath(&handle[], clipper)
+            return SpineMathUtils.measureBound(&handle[], clipper)
         }
         if region.isEmpty {
             return .zero
@@ -153,7 +153,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
             let steps = Int(max(Double(animation.pointee.duration) / stepTime, 1.0))
             for i in 0..<steps {
                 drawable.update(delta: i > 0 ? Float(stepTime) : 0.0)
-                let path = spSkeleton_createBoundingPath(drawable.pSkeleton, clipper)
+                let path = SpineMathUtils.measureBound(drawable.pSkeleton, clipper)
                 if path.isEmpty {
                     continue
                 }
@@ -164,7 +164,8 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
                 }
             }
         } else {
-            let path = spSkeleton_createBoundingPath(drawable.pSkeleton, clipper)
+
+            let path = SpineMathUtils.measureBound(drawable.pSkeleton, clipper)
             if !path.isEmpty {
                 if bounding.isNull {
                     bounding = path.boundingBox

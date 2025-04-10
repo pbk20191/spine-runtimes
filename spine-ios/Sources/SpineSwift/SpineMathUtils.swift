@@ -136,6 +136,43 @@ public final class SpineMathUtils: NSObject {
         return final
     }
 
+    @objc
+    public static func measureBound(
+        
+        _ skeleton: UnsafeMutablePointer<spSkeleton>,
+        _ clipper: UnsafeMutablePointer<spSkeletonClipping>?
+    ) -> CGPath {
+        
+        let path = CGMutablePath()
+        spSkeleton_render(skeleton, clipper, { blockPtr, ref in
+            let mutable = Unmanaged<CGMutablePath>.fromOpaque(ref!).takeUnretainedValue()
+            let indexBuffer = UnsafeBufferPointer(start: blockPtr.pointee.indices, count: blockPtr.pointee.indexCount)
+            let vertexBuffer = UnsafeBufferPointer(start: blockPtr.pointee.positions, count: blockPtr.pointee.positionCount)
+            for t in stride(from: 0, to: blockPtr.pointee.indexCount, by: 3) {
+                let i0 = Int(indexBuffer[t] * 2)
+                let i1 = Int(indexBuffer[t + 1] * 2)
+                let i2 = Int(indexBuffer[t + 2] * 2)
+                let p0 = CGPoint(
+                    x: Double(vertexBuffer[i0]),
+                    y: Double(vertexBuffer[i0 + 1])
+                )
+                let p1 = CGPoint(
+                    x: Double(vertexBuffer[i1]),
+                    y: Double(vertexBuffer[i1 + 1])
+                )
+                let p2 = CGPoint(
+                    x: Double(vertexBuffer[i2]),
+                    y: Double(vertexBuffer[i2 + 1])
+                )
+                mutable.move(to: p0)
+                mutable.addLine(to: p1)
+                mutable.addLine(to: p2)
+                mutable.closeSubpath()
+            }
+            
+        }, Unmanaged<CGPath>.passUnretained(path).toOpaque())
+        return path
+    }
     
     
 }

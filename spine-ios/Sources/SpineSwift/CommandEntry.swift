@@ -31,55 +31,6 @@ internal struct CommandEntry {
     }
     
     
-    public mutating func fillCommand(_ renderCommand: some RandomAccessCollection<SpineRenderBatchCommand>) {
-        self.verteArray.removeAll()
-        self.metaInfo.removeAll()
-        let vertexBuffer:VertexBuffer
-        
-        do {
-            var mutableBuffer = VertexBuffer()
-            var commandMeta = Array<CommandMeta>()
-            for spineCommand in renderCommand {
-                let pageName = String(cString: spineCommand.pageName)
-                let atlasPage = TextureIdentifier(name: pageName, index: spineCommand.pageIndex, pma: spineCommand.pma)
-
-                let indices = UnsafeBufferPointer(start: spineCommand.indices, count: Int(spineCommand.indexCount))
-                let positions = UnsafeBufferPointer(start: spineCommand.positions, count: Int(spineCommand.positionCount))
-                let uvs = UnsafeBufferPointer(start: spineCommand.uvs, count: spineCommand.uvCount)
-                let colors = UnsafeBufferPointer(start: spineCommand.colors, count: spineCommand.colorCount)
-                mutableBuffer.reserveCapacity(mutableBuffer.count + indices.count)
-                let startIndex = mutableBuffer.endIndex
-                defer {
-
-                    commandMeta.append(
-                        .init(
-                            textureId: atlasPage,
-                            blendMode: spineCommand.blendMode,
-                            slice: startIndex..<mutableBuffer.endIndex
-                        )
-                    )
-                }
-                positions.withMemoryRebound(to: SIMD2<Float>.self) { postionBuffer in
-                    uvs.withMemoryRebound(to: SIMD2<Float>.self) { uvBuffer in
-                        indices.forEach{
-                            let index = Int($0)
-                            let vertex = SpineAdvancedVertex(
-                                position: postionBuffer[index],
-                                uv: uvBuffer[index],
-                                color: colors[index].color,
-                                darkColor: colors[index].darkColor
-                            )
-                            mutableBuffer.append(vertex)
-                        }
-
-                    }
-                }
-
-            }
-            vertexBuffer = mutableBuffer
-            self.metaInfo = commandMeta
-        }
-        self.verteArray = vertexBuffer
-    }
+    
     
 }

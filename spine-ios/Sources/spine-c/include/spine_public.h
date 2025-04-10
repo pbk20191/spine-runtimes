@@ -19,35 +19,23 @@ CF_ASSUME_NONNULL_BEGIN
 CF_EXTERN_C_BEGIN
 
 typedef struct {
-    int color;
-    int darkColor;
-    bool hasDark;
-} spRenderColor;
-
-typedef struct {
-    float* positions;
+    const float* positions;
     CFIndex positionCount;
-    float* uvs;
+    const float* uvs;
     CFIndex uvCount;
-    spRenderColor* colors;
-    CFIndex colorCount;
-    unsigned short* indices;
+    const unsigned short* indices;
     CFIndex indexCount;
-    CFIndex pageIndex;
     spBlendMode blendMode;
-    bool pma;
-    const char* pageName;
-} SpineRenderBatchCommand;
+    // spAtlasRegion
+    const void* renderer;
+    const spSlot* slot;
+} SpineRenderCommandBlock;
+
+
+typedef void (*SpineRenderBatchCommandHandler)(const SpineRenderCommandBlock* cmd, void* _Nullable context);
 
 SP_API
-CF_RETURNS_RETAINED
-CGPathRef spSkeleton_createBoundingPath( spSkeleton *self, spSkeletonClipping * _Nullable clipper);
-
-
-typedef void (*SpineRenderBatchCommandHandler)(const SpineRenderBatchCommand* _Nullable buffer, CFIndex count, void* _Nullable context);
-
-SP_API
-void spSkeleton_render( spSkeleton * self,  spSkeletonClipping * clipping, SpineRenderBatchCommandHandler function, void * _Nullable context);
+void spSkeleton_render( spSkeleton * self,  spSkeletonClipping * _Nullable clipping, SpineRenderBatchCommandHandler function, void * _Nullable context);
 
 CF_EXTERN_C_END
 CF_ASSUME_NONNULL_END
