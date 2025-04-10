@@ -18,8 +18,7 @@ open class SpineSwiftDrawable: NSObject {
     internal let pAnimationState:UnsafeMutablePointer<spAnimationState>
     @nonobjc
     internal let pClipping = spSkeletonClipping_create()!
-    @nonobjc
-    private let pBoundingBox = spSkeletonBounds_create()!
+
     
     @objc
     public weak var animationListner: SpineAnimationListener?
@@ -45,7 +44,6 @@ open class SpineSwiftDrawable: NSObject {
     }
     
     deinit {
-        spSkeletonBounds_dispose(pBoundingBox)
         spSkeleton_dispose(pSkeleton)
         spAnimationState_dispose(pAnimationState)
         spSkeletonClipping_dispose(pClipping)
@@ -59,11 +57,6 @@ open class SpineSwiftDrawable: NSObject {
         spSkeleton_update(pSkeleton, delta)
 
         spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_UPDATE)
-    }
-    
-    @objc
-    public func updateBoundingBox(updateAabb: Bool) {
-        spSkeletonBounds_update(pBoundingBox, pSkeleton, updateAabb ? 1 : 0)
     }
     
     @objc open var resource: SpineAnimationStateDataBox {
@@ -86,13 +79,6 @@ open class SpineSwiftDrawable: NSObject {
         body(pAnimationState)
     }
     
-    @available(swift ,obsoleted: 1.0)
-    @objc
-    public final func accessBoundingBox(
-        _ body: (UnsafeMutablePointer<spSkeletonBounds>) -> Void
-    ) {
-        body(pBoundingBox)
-    }
     
     @available(swift ,obsoleted: 1.0)
     @objc
@@ -119,12 +105,7 @@ public extension SpineSwiftDrawable {
         let box = PointeeBox(pAnimationState)
         return try body(box)
     }
-    /// access variable outside of the scope can be undefined behavior
-    func accessBoundingBox<R:~Copyable, Failure:Error>(
-        _ body: (borrowing PointeeBox<spSkeletonBounds>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        try body(.init(pBoundingBox))
-    }
+
     /// access variable outside of the scope can be undefined behavior
     ///
     /// clipping is used by the render command internally so using this is higly discouraged

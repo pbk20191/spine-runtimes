@@ -189,11 +189,11 @@ open class SpineRenderer: NSObject {
             return false
         }
         let displayTransform = self.pLastSizingOutput
-        var commandEntry = CommandEntry()
-        withUnsafeMutablePointer(to: &commandEntry) {
+        var cb = CallBackContext()
+        withUnsafeMutablePointer(to: &cb) {
             spSkeleton_render(model.pSkeleton,  model.pClipping, fill_render_command_to_entry, $0)
         }
-        
+        let commandEntry = cb.commandEntry
         guard commandEntry.verteArray.count > 0 else {
             return true
         }
@@ -482,12 +482,113 @@ fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
 
 
 
+fileprivate struct CallBackContext {
+    
+    
+    var dictionary = [UnsafePointer<spAtlas> : Array<UnsafeMutablePointer<spAtlasPage>>]()
+    var commandEntry = CommandEntry()
+}
+
+
+
 fileprivate func fill_render_command_to_entry(
-    _ head: UnsafePointer<SpineRenderBatchCommand>?,
-    _ size:Int,
-    _ context:UnsafeMutableRawPointer?
+    _ cmd: UnsafePointer<SpineRenderCommandBlock>,
+    _ ptr:UnsafeMutableRawPointer?
 ) {
-    let contextBuffer = UnsafeMutablePointer<CommandEntry>.init(.init(context!))
-    let buffer = UnsafeBufferPointer(start: head, count: size)
-    contextBuffer.pointee.fillCommand(buffer)
+    let contextBuffer = UnsafeMutablePointer<CallBackContext>.init(.init(ptr!))
+    let indexBuffer = UnsafeBufferPointer(start: cmd.pointee.indices, count: cmd.pointee.indexCount)
+    var context:CallBackContext {
+        unsafeAddress { UnsafePointer(contextBuffer) }
+        unsafeMutableAddress { contextBuffer }
+    }
+
+    let texture = cmd.pointee.renderer.assumingMemoryBound(to: spAtlasRegion.self)
+
+    
+    let pma = texture.pointee.page.pointee.pma != 0
+    let blendMode = cmd.pointee.blendMode
+    let color:Int32
+    let darkColor:Int32
+    do {
+        let skeletonColor = cmd.pointee.slot.pointee.bone.pointee.skeleton.pointee.color
+        let slotColor = cmd.pointee.slot.pointee.color
+        let slotDark = cmd.pointee.slot.pointee.darkColor?.pointee
+        let attachmentColor = if cmd.pointee.slot.pointee.attachment.pointee.type == SP_ATTACHMENT_MESH {
+            UnsafePointer<spMeshAttachment>(OpaquePointer(cmd.pointee.slot.pointee.attachment))!.pointee.color
+        } else if cmd.pointee.slot.pointee.attachment.pointee.type == SP_ATTACHMENT_REGION {
+            UnsafePointer<spRegionAttachment>(OpaquePointer(cmd.pointee.slot.pointee.attachment))!.pointee.color
+        } else {
+            spColor(r: 0, g: 0, b: 0, a: 0)
+        }
+        let fa = skeletonColor.a * slotColor.a * attachmentColor.a
+        let a:UInt32 = UInt32(UInt8(fa * 255))
+        let fr = (skeletonColor.r * slotColor.r * attachmentColor.r)
+        let fg = (skeletonColor.g * slotColor.g * attachmentColor.g)
+        let fb = (skeletonColor.b * slotColor.b * attachmentColor.b)
+        
+        if (pma) {
+            let r:UInt32 = UInt32(UInt8(fr * fa * 255))
+            let g = UInt32(UInt8(fg * fa * 255))
+            let b = UInt32(UInt8(fb * fa * 255))
+            color = .init(bitPattern: a << 24 | r << 16 | g << 8 | b)
+        } else {
+            let r:UInt32 = UInt32(UInt8(fr * 255))
+            let g = UInt32(UInt8(fg * 255))
+            let b = UInt32(UInt8(fb * 255))
+            color = .init(bitPattern: a << 24 | r << 16 | g << 8 | b)
+        }
+        if let slotDark {
+            let dr = UInt32(UInt8(slotDark.r * (pma ? fa : 1) * 255))
+            let dg = UInt32(UInt8(slotDark.g * (pma ? fa : 1) * 255))
+
+            let db = UInt32(UInt8(slotDark.b * (pma ? fa : 1) * 255))
+            let da = UInt32(UInt8((pma ? 1 : 0) * 255))
+            darkColor = Int32(bitPattern: da << 24 | dr << 16 | dg << 8 | db)
+        } else {
+            darkColor = Int32(bitPattern:  0xff000000)
+        }
+    }
+    let textureName = String(cString: texture.pointee.page.pointee.name)
+    let textureIndex:Int
+    do {
+        if context.dictionary[texture.pointee.page.pointee.atlas] == nil {
+            context.dictionary[texture.pointee.page.pointee.atlas] = sequence(first: texture.pointee.page.pointee.atlas.pointee.pages, next: \.pointee.next).map(\.self)
+
+        }
+        if let array = context.dictionary[texture.pointee.page.pointee.atlas] {
+            textureIndex = array.firstIndex(of: texture.pointee.page!) ?? -1
+        } else {
+            textureIndex = -1
+        }
+    }
+    let textureId = TextureIdentifier(name: textureName, index: textureIndex, pma: pma)
+    context.commandEntry.verteArray.reserveCapacity(context.commandEntry.verteArray.count + indexBuffer.count)
+    UnsafeBufferPointer(start: cmd.pointee.uvs, count: cmd.pointee.uvCount).withMemoryRebound(to: SIMD2<Float>.self) { uvBuffer in
+        UnsafeBufferPointer(start: cmd.pointee.positions, count: cmd.pointee.positionCount).withMemoryRebound(to: SIMD2<Float>.self) { vertexBuffer in
+            let startIndex = context.commandEntry.verteArray.endIndex
+
+            for shortIndex in indexBuffer {
+                let index = Int(shortIndex)
+                let vertex = SpineAdvancedVertex(
+                    position: vertexBuffer[index],
+                    uv: uvBuffer[index],
+                    color: color,
+                    darkColor: darkColor
+                )
+                context.commandEntry.verteArray.append(vertex)
+            }
+            if let last = context.commandEntry.metaInfo.last, blendMode == last.blendMode, textureId == last.textureId, last.slice.upperBound == startIndex {
+                let metaInfo = CommandEntry.CommandMeta.init(textureId: textureId, blendMode: blendMode, slice: last.slice.lowerBound..<context.commandEntry.verteArray.endIndex)
+                context.commandEntry.metaInfo.popLast()
+                context.commandEntry.metaInfo.append(metaInfo)
+            } else {
+                context.commandEntry.metaInfo.append(
+                    .init(textureId: textureId, blendMode: blendMode, slice: startIndex..<context.commandEntry.verteArray.endIndex)
+                )
+            }
+            
+            
+        }
+    }
+
 }
