@@ -12,16 +12,16 @@ open class SpineAnimationStateDataBox: NSObject {
     @nonobjc
     internal let pSkeletonData: SpineSkeletonDataBox
     @nonobjc
-    internal let native: UnsafeMutablePointer<spAnimationStateData>
+    internal let nativePointer: UnsafeMutablePointer<spAnimationStateData>
     
     @nonobjc
     public init(
         skeletonData: SpineSkeletonDataBox,
         animationStateData: UnsafeMutablePointer<spAnimationStateData>
     ) {
-        precondition(skeletonData.native == animationStateData.pointee.skeletonData, "skeletonData and animationStateData must be from the same source")
+        precondition(skeletonData.nativePointer == animationStateData.pointee.skeletonData, "skeletonData and animationStateData must be from the same source")
         self.pSkeletonData = skeletonData
-        self.native = animationStateData
+        self.nativePointer = animationStateData
         super.init()
     }
     
@@ -29,12 +29,12 @@ open class SpineAnimationStateDataBox: NSObject {
     public convenience init(skeletonData: SpineSkeletonDataBox) {
         self.init(
             skeletonData: skeletonData,
-            animationStateData: spAnimationStateData_create(skeletonData.native)
+            animationStateData: spAnimationStateData_create(skeletonData.nativePointer)
         )
     }
     
     deinit {
-        spAnimationStateData_dispose(native)
+        spAnimationStateData_dispose(nativePointer)
     }
     
     
@@ -46,16 +46,17 @@ open class SpineAnimationStateDataBox: NSObject {
     public final func accessAnimation(
         _ body: (UnsafeMutablePointer<spAnimationStateData>) -> Void
     ) {
-        body(native)
+        body(nativePointer)
     }
     
-}
+    @nonobjc
+    public subscript() -> spAnimationStateData {
+      unsafeAddress {
+        UnsafePointer(nativePointer)
+      }
 
-public extension SpineAnimationStateDataBox {
-    func accessAnimation<R:~Copyable, Failure:Error>(
-        _ body: (borrowing PointeeBox<spAnimationStateData>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        try body(.init(native))
+      unsafeMutableAddress { nativePointer }
     }
     
+
 }

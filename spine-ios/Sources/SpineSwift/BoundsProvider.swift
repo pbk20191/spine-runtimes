@@ -22,12 +22,10 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
     }
 
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        let region = drawable.accessSkeleton { handle in
-            spSkeleton_setToSetupPose(&handle[])
-            let clipper = spSkeletonClipping_create()!
-            defer { spSkeletonClipping_dispose(clipper) }
-            return SpineMathUtils.measureBound(&handle[], clipper)
-        }
+        spSkeleton_setToSetupPose(drawable.pSkeleton)
+        let clipper = spSkeletonClipping_create()!
+        defer { spSkeletonClipping_dispose(clipper) }
+        let region = SpineMathUtils.measureBound(drawable.pSkeleton, clipper)
         if region.isEmpty {
             return .zero
         }
@@ -35,12 +33,12 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        object is SetupPoseBounds
+        object is Self
     }
     
     public override var hash: Int {
         var hasher = Hasher()
-        hasher.combine(ObjectIdentifier(SetupPoseBounds.self))
+        hasher.combine(ObjectIdentifier(Self.self))
         hasher.combine(100)
         return hasher.finalize()
     }
@@ -74,7 +72,7 @@ public final class SpineRawBounds: NSObject, SkeletonBoundsProvider, Sendable {
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        if let a = object as? SpineRawBounds {
+        if let a = object as? Self {
             return a.imp == imp
         }
         return false
@@ -82,7 +80,7 @@ public final class SpineRawBounds: NSObject, SkeletonBoundsProvider, Sendable {
     
     public override var hash: Int {
         var hasher = Hasher()
-        hasher.combine(ObjectIdentifier(SpineRawBounds.self))
+        hasher.combine(ObjectIdentifier(Self.self))
         hasher.combine(imp)
         return hasher.finalize()
     }
@@ -125,7 +123,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
 
     
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        let data = drawable.resource.skeletonData.native
+        let data = drawable.resource.skeletonData.nativePointer
         let oldSkin = drawable.pSkeleton.pointee.skin
         
         let customSkin = spSkin_create("custom-skin")
@@ -191,7 +189,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
     
     public override var hash: Int {
         var hasher = Hasher()
-        hasher.combine(ObjectIdentifier(SkinAndAnimationBounds.self))
+        hasher.combine(ObjectIdentifier(Self.self))
         hasher.combine(animation)
         hasher.combine(skins)
         hasher.combine(stepTime)
@@ -200,7 +198,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
     
     public override func isEqual(_ object: Any?) -> Bool {
         guard
-            let other = object as? SkinAndAnimationBounds,
+            let other = object as? Self,
             animation == other.animation,
             skins == other.skins,
             stepTime == other.stepTime
