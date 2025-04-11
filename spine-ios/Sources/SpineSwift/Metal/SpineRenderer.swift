@@ -123,11 +123,11 @@ open class SpineRenderer: NSObject {
         boundsProvider: any SkeletonBoundsProvider,
         contentMode: ContentMode,
         alignment: Alignment
-    ) throws {
+    ) {
         let stateDict = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey: MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }
-        try self.init(
+        self.init(
             drawable: drawable,
             device: device,
             pipelineStatesByBlendMode: stateDict,
@@ -146,7 +146,7 @@ open class SpineRenderer: NSObject {
         alignment: Alignment
     ) throws {
         let stateDict = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
-        try self.init(
+        self.init(
             drawable: drawable,
             device: device,
             pipelineStatesByBlendMode: stateDict,
@@ -220,7 +220,7 @@ open class SpineRenderer: NSObject {
             vertexBuffer.didModifyRange(offsetInBytes..<(offsetInBytes + bufferCount))
         }
 #endif
-        let atlaPageArray = sequence(first: self.model.resource.pSkeletonData.pAtlas.native.pointee.pages, next: \.pointee.next).map(\.self)
+        let atlaPageArray = sequence(first: self.model.resource.pSkeletonData.pAtlas[].pages, next: \.pointee.next).map(\.self)
         renderEncoder.setViewport(
             MTLViewport(
                 originX: displayTransform.viewPort.origin.x,
@@ -579,7 +579,7 @@ fileprivate func fill_render_command_to_entry(
             }
             if let last = context.commandEntry.metaInfo.last, blendMode == last.blendMode, textureId == last.textureId, last.slice.upperBound == startIndex {
                 let metaInfo = CommandEntry.CommandMeta.init(textureId: textureId, blendMode: blendMode, slice: last.slice.lowerBound..<context.commandEntry.verteArray.endIndex)
-                context.commandEntry.metaInfo.popLast()
+                context.commandEntry.metaInfo.removeLast()
                 context.commandEntry.metaInfo.append(metaInfo)
             } else {
                 context.commandEntry.metaInfo.append(

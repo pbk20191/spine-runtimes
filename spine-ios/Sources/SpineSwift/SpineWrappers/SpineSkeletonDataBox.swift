@@ -12,7 +12,7 @@ open class SpineSkeletonDataBox: NSObject {
     @nonobjc
     internal let pAtlas: SpineAtlasBox
     @nonobjc
-    internal let native: UnsafeMutablePointer<spSkeletonData>
+    internal let nativePointer: UnsafeMutablePointer<spSkeletonData>
     
     // expects skeletonData is created from the given atlas
     @nonobjc
@@ -21,7 +21,7 @@ open class SpineSkeletonDataBox: NSObject {
         skeletonData: UnsafeMutablePointer<spSkeletonData>
     ) {
         self.pAtlas = atlas
-        self.native = skeletonData
+        self.nativePointer = skeletonData
         super.init()
     }
     
@@ -38,7 +38,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         json:String
     ) throws(SpineParsingError) {
-        let reader = spSkeletonJson_create(atlas.native)!
+        let reader = spSkeletonJson_create(atlas.nativePointer)!
         defer {
             spSkeletonJson_dispose(reader)
         }
@@ -54,7 +54,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         jsonPath:String
     ) throws(SpineParsingError) {
-        let reader = spSkeletonJson_create(atlas.native)!
+        let reader = spSkeletonJson_create(atlas.nativePointer)!
         defer {
             spSkeletonJson_dispose(reader)
         }
@@ -70,7 +70,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         binary:Data
     ) throws(SpineParsingError) {
-        let reader = spSkeletonBinary_create(atlas.native)!
+        let reader = spSkeletonBinary_create(atlas.nativePointer)!
         defer {
             spSkeletonBinary_dispose(reader)
         }
@@ -88,7 +88,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         skelPath:String
     ) throws(SpineParsingError) {
-        let reader = spSkeletonBinary_create(atlas.native)!
+        let reader = spSkeletonBinary_create(atlas.nativePointer)!
         defer {
             spSkeletonBinary_dispose(reader)
         }
@@ -101,7 +101,7 @@ open class SpineSkeletonDataBox: NSObject {
     }
     
     deinit {
-        spSkeletonData_dispose(native)
+        spSkeletonData_dispose(nativePointer)
     }
     
     @objc
@@ -112,18 +112,15 @@ open class SpineSkeletonDataBox: NSObject {
     public func accessSkeleton(
         _ body: (UnsafeMutablePointer<spSkeletonData>) -> Void
     ) {
-        body(native)
+        body(nativePointer)
     }
     
-    
-}
-
-public extension SpineSkeletonDataBox {
-    
-    func accessSkeleton<R:~Copyable, Failure:Error>(
-        _ body: (borrowing PointeeBox<spSkeletonData>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        try body(.init(native))
+    @nonobjc
+    public subscript() -> spSkeletonData {
+        unsafeAddress {
+            UnsafePointer(nativePointer)
+        }
+        unsafeMutableAddress { nativePointer }
     }
     
 }

@@ -9,11 +9,11 @@ import Foundation
 
 open class SpineAtlasBox: NSObject {
     
-    @nonobjc internal let native: UnsafeMutablePointer<spAtlas>
+    @nonobjc internal let nativePointer: UnsafeMutablePointer<spAtlas>
     
     @nonobjc
     public init(atlas: UnsafeMutablePointer<spAtlas>) {
-        self.native = atlas
+        self.nativePointer = atlas
         super.init()
     }
     
@@ -28,14 +28,14 @@ open class SpineAtlasBox: NSObject {
         self.init(atlas: atlas)
     }
     
-    @objc public convenience init?(
+    @objc public convenience init(
         path:String,
         rendererObject:UnsafeMutableRawPointer? = nil
-    ) {
+    ) throws(SpineParsingError) {
         if let atlas = spAtlas_createFromFile(path, rendererObject) {
             self.init(atlas: atlas)
         } else {
-            return nil
+            throw SpineParsingError("Failed to load atlas file: \(path)")
         }
     }
     
@@ -46,7 +46,7 @@ open class SpineAtlasBox: NSObject {
     }
     
     deinit {
-        spAtlas_dispose(native)
+        spAtlas_dispose(nativePointer)
     }
     
     @available(swift ,obsoleted: 1.0)
@@ -54,18 +54,15 @@ open class SpineAtlasBox: NSObject {
     public final func accessAtlas(
         _ body: (UnsafeMutablePointer<spAtlas>) -> Void
     ) {
-        body(native)
+        body(nativePointer)
     }
     
-    
-}
-
-public extension SpineAtlasBox {
-    
-    func accessAtlas<R:~Copyable, Failure:Error>(
-        _ body:  (borrowing PointeeBox<spAtlas>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        try body(.init(native))
+    @nonobjc
+    public subscript() -> spAtlas {
+        unsafeAddress {
+            UnsafePointer(nativePointer)
+        }
+        unsafeMutableAddress { nativePointer }
     }
     
 }
