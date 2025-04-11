@@ -64,13 +64,12 @@ struct SpineMTKSwiftUIView: Equatable {
     let tag:String
     
     func makeCoordinator() -> SpineViewDelegate {
-        let atlas =  SpineAtlasBox(path: atlasURL.path)!
+        let atlas = try! SpineAtlasBox(path: atlasURL.path)
         let shared = try! SpineSkeletonDataBox(atlas: atlas, jsonPath: jsonURL.path)
         let drawable = TaggedDrawable(resource: .init(skeletonData: shared))
         drawable.setTag(tag)
-        let animationName = self.animationName
-        drawable.accessAnimation {
-            let _ = spAnimationState_setAnimationByName(&$0[], 0, animationName, 1)
+        if let animationName = self.animationName {
+            spAnimationState_setAnimationByName(&drawable.animationState, 0, animationName, 1)
         }
         let device = MTLCreateSystemDefaultDevice()!
         let commandQueue = device.makeCommandQueue()!
@@ -94,15 +93,14 @@ struct SpineMTKSwiftUIView: Equatable {
         let delegate = context.coordinator
         let oldDrawable = delegate.drawable as! TaggedDrawable
         if oldDrawable.tag != tag {
-            let atlas =  SpineAtlasBox(path: atlasURL.path)!
+            let atlas = try! SpineAtlasBox(path: atlasURL.path)
             
             let shared = try! SpineSkeletonDataBox(atlas: atlas, jsonPath: jsonURL.path)
             let drawable = TaggedDrawable(resource: .init(skeletonData: shared))
             drawable.setTag(tag)
             delegate.drawable = drawable
-            let animationName = self.animationName
-            drawable.accessAnimation {
-                let _ = spAnimationState_setAnimationByName(&$0[], 0, animationName, 1)
+            if let animationName = self.animationName {
+                spAnimationState_setAnimationByName(&drawable.animationState, 0, animationName, 1)
             }
         }
 

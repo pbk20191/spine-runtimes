@@ -136,7 +136,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         maxBuffer: SpineMTKBufferingStrategy = .double
     ) throws {
         let stateDict = try Self.createDefaultPipeLineState(device: commandQueue.device, pixelFormat: pixelFormat)
-        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: stateDict, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
+        self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: stateDict, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
     @nonobjc
@@ -148,11 +148,11 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         contentMode: ContentMode = .fit,
         alignment: Alignment = .center,
         maxBuffer: SpineMTKBufferingStrategy = .double
-    ) throws {
+    ) {
         self.commandQueue = commandQueue
         self.maxBuffer = maxBuffer
         self.bufferingSemaphore = .init(value: maxBuffer.rawValue)
-        try super.init(
+        super.init(
             drawable: drawable,
             device: commandQueue.device,
             pipelineStatesByBlendMode: pipelineStatesByBlendMode,
@@ -173,11 +173,11 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         contentMode: ContentMode,
         alignment: Alignment,
         maxBuffer: SpineMTKBufferingStrategy
-    ) throws {
+    ) {
         let swiftState = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey : any MTLRenderPipelineState]()) { partialResult, pair in
             partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
         }
-        try self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
+        self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
     

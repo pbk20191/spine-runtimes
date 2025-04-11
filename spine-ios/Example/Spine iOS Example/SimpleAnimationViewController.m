@@ -1,6 +1,7 @@
 #import "SimpleAnimationViewController.h"
 @import Spine;
-
+//@import SpineSwift;
+//@import spine_c;
 @interface SimpleAnimationViewController ()
 
 @property (nonatomic, strong) SpineController *spineController;

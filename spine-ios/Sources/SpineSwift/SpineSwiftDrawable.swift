@@ -18,17 +18,17 @@ open class SpineSwiftDrawable: NSObject {
     internal let pAnimationState:UnsafeMutablePointer<spAnimationState>
     @nonobjc
     internal let pClipping = spSkeletonClipping_create()!
-
     
     @objc
     public weak var animationListner: SpineAnimationListener?
+
     
     @nonobjc
     public init(resource: SpineAnimationStateDataBox) {
         self.pResource = resource
         
-        self.pSkeleton = spSkeleton_create(resource.pSkeletonData.native)
-        self.pAnimationState = spAnimationState_create(resource.native)
+        self.pSkeleton = spSkeleton_create(resource.pSkeletonData.nativePointer)
+        self.pAnimationState = spAnimationState_create(resource.nativePointer)
         super.init()
         self.pAnimationState.pointee.userData = Unmanaged.passUnretained(self).toOpaque()
         self.pAnimationState.pointee.listener = _animationEventDispatched
@@ -79,7 +79,7 @@ open class SpineSwiftDrawable: NSObject {
         body(pAnimationState)
     }
     
-    
+    /// Do Not use this unless you know what you are doing
     @available(swift ,obsoleted: 1.0)
     @objc
     public final func accessClipping(
@@ -87,38 +87,38 @@ open class SpineSwiftDrawable: NSObject {
     ) {
         body(pClipping)
     }
+ 
     
-}
-
-public extension SpineSwiftDrawable {
-    /// access variable outside of the scope can be undefined behavior
-    func accessSkeleton<R:~Copyable, Failure:Error>(
-        _ body: (borrowing PointeeBox<spSkeleton>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        let box = PointeeBox(pSkeleton)
-        return try body(box)
+    public var skeleton: spSkeleton {
+        unsafeAddress {
+            .init(pSkeleton)
+        }
+        unsafeMutableAddress {
+           pSkeleton
+        }
     }
+    
     /// Do not modify listener and userData
-    func accessAnimation<R:~Copyable, Failure:Error>(
-        _ body: (borrowing PointeeBox<spAnimationState>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        let box = PointeeBox(pAnimationState)
-        return try body(box)
+    public var animationState: spAnimationState {
+        unsafeAddress {
+            .init(pAnimationState)
+        }
+        unsafeMutableAddress {
+            pAnimationState
+        }
     }
-
-    /// access variable outside of the scope can be undefined behavior
-    ///
-    /// clipping is used by the render command internally so using this is higly discouraged
-    ///
-    /// prefer creating your own clipping object
-    func accessClipping<R:~Copyable, Failure:Error>(
-        _ body: (borrowing PointeeBox<spSkeletonClipping>) throws(Failure) -> R
-    ) throws(Failure) -> R {
-        try body(.init(pClipping))
+    
+    /// Do Not use this unless you know what you are doing
+    public var clipping: spSkeletonClipping {
+        unsafeAddress {
+            .init(pClipping)
+        }
+        unsafeMutableAddress {
+            pClipping
+        }
     }
     
 }
-
 
 fileprivate func _animationEventDispatched(
     state: UnsafeMutablePointer<spAnimationState>?,
