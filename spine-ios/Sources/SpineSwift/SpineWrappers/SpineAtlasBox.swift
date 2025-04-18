@@ -28,7 +28,7 @@ open class SpineAtlasBox: NSObject {
         self.init(atlas: atlas)
     }
     
-    @objc public convenience init(
+    @nonobjc public convenience init(
         path:String,
         rendererObject:UnsafeMutableRawPointer? = nil
     ) throws(SpineParsingError) {
@@ -37,6 +37,16 @@ open class SpineAtlasBox: NSObject {
         } else {
             throw SpineParsingError("Failed to load atlas file: \(path)")
         }
+    }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithPath:rendererObject:error:)
+    public convenience init(
+        notForSwift path:String,
+        rendererObject:UnsafeMutableRawPointer? = nil
+    ) throws {
+        try self.init(path: path, rendererObject: rendererObject)
     }
     
     @available(swift, obsoleted: 1.0)
@@ -63,6 +73,17 @@ open class SpineAtlasBox: NSObject {
             UnsafePointer(nativePointer)
         }
         unsafeMutableAddress { nativePointer }
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else {
+            return false
+        }
+        return self.nativePointer == other.nativePointer
+    }
+    
+    open override var hash: Int {
+        return self.nativePointer.hashValue
     }
     
 }
