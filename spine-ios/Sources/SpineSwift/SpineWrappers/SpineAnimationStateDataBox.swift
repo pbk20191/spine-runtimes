@@ -58,5 +58,15 @@ open class SpineAnimationStateDataBox: NSObject {
       unsafeMutableAddress { nativePointer }
     }
     
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else {
+            return false
+        }
+        return self.nativePointer == other.nativePointer
+    }
+    
+    open override var hash: Int {
+        return self.nativePointer.hashValue
+    }
 
 }

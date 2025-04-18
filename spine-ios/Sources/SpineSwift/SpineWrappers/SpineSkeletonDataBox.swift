@@ -34,7 +34,9 @@ open class SpineSkeletonDataBox: NSObject {
         self.init(atlas: atlas, skeletonData: skeletonData)
     }
     
-    @objc public convenience init(
+    // typed Throw is unavailbe for objc interface using library evolution mode
+
+    @nonobjc public convenience init(
         atlas:SpineAtlasBox,
         json:String
     ) throws(SpineParsingError) {
@@ -49,8 +51,9 @@ open class SpineSkeletonDataBox: NSObject {
             throw SpineParsingError(String(cString: reader.pointee.error))
         }
     }
-    
-    @objc public convenience init(
+    // typed Throw is unavailbe for objc interface using library evolution mode
+
+    @nonobjc public convenience init(
         atlas:SpineAtlasBox,
         jsonPath:String
     ) throws(SpineParsingError) {
@@ -65,8 +68,9 @@ open class SpineSkeletonDataBox: NSObject {
             throw SpineParsingError(String(cString: reader.pointee.error))
         }
     }
-    
-    @objc public convenience init(
+    // typed Throw is unavailbe for objc interface using library evolution mode
+
+    @nonobjc public convenience init(
         atlas:SpineAtlasBox,
         binary:Data
     ) throws(SpineParsingError) {
@@ -83,8 +87,8 @@ open class SpineSkeletonDataBox: NSObject {
             throw SpineParsingError(String(cString: reader.pointee.error))
         }
     }
-    
-    @objc public convenience init(
+    // typed Throw is unavailbe for objc interface using library evolution mode
+    @nonobjc public convenience init(
         atlas:SpineAtlasBox,
         skelPath:String
     ) throws(SpineParsingError) {
@@ -98,6 +102,48 @@ open class SpineSkeletonDataBox: NSObject {
         } else {
             throw SpineParsingError(String(cString: reader.pointee.error))
         }
+    }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:json:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        json:String
+    ) throws {
+        try self.init(atlas: atlas, json: json)
+
+    }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:jsonPath:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        jsonPath:String
+    ) throws {
+        try self.init(atlas: atlas, jsonPath: jsonPath)
+
+    }
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:binary:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        binary:Data
+    ) throws {
+        try self.init(atlas: atlas, binary: binary)
+
+    }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:skelPath:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        skelPath:String
+    ) throws {
+        try self.init(atlas: atlas, jsonPath: skelPath)
     }
     
     deinit {
@@ -121,6 +167,17 @@ open class SpineSkeletonDataBox: NSObject {
             UnsafePointer(nativePointer)
         }
         unsafeMutableAddress { nativePointer }
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else {
+            return false
+        }
+        return self.nativePointer == other.nativePointer
+    }
+    
+    open override var hash: Int {
+        return self.nativePointer.hashValue
     }
     
 }
