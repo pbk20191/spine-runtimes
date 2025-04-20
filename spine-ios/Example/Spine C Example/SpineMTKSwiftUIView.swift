@@ -13,7 +13,7 @@ import spine_c
 
 class SpineViewDelegate: SpineMTKViewDefaultDelegate {
     
-    override func fetchTexture(_ renderer: SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
+    override func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
         let textureKey = "KSpineMetalTexture"
         if let texture = page.rendererObject[textureKey] as? MTLTexture {
             return texture

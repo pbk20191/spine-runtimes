@@ -16,11 +16,10 @@ open class SpineSwiftDrawable: NSObject {
     internal let pSkeleton: UnsafeMutablePointer<spSkeleton>
     @nonobjc
     internal let pAnimationState:UnsafeMutablePointer<spAnimationState>
-    @nonobjc
-    internal let pClipping = spSkeletonClipping_create()!
     
     @objc
     public weak var animationListner: SpineAnimationListener?
+
 
     
     @nonobjc
@@ -46,7 +45,6 @@ open class SpineSwiftDrawable: NSObject {
     deinit {
         spSkeleton_dispose(pSkeleton)
         spAnimationState_dispose(pAnimationState)
-        spSkeletonClipping_dispose(pClipping)
     }
     
     @objc
@@ -79,16 +77,6 @@ open class SpineSwiftDrawable: NSObject {
         body(pAnimationState)
     }
     
-    /// Do Not use this unless you know what you are doing
-    @available(swift ,obsoleted: 1.0)
-    @objc
-    public final func accessClipping(
-        _ body: (UnsafeMutablePointer<spSkeletonClipping>) -> Void
-    ) {
-        body(pClipping)
-    }
- 
-    
     public var skeleton: spSkeleton {
         unsafeAddress {
             .init(pSkeleton)
@@ -108,16 +96,7 @@ open class SpineSwiftDrawable: NSObject {
         }
     }
     
-    /// Do Not use this unless you know what you are doing
-    public var clipping: spSkeletonClipping {
-        unsafeAddress {
-            .init(pClipping)
-        }
-        unsafeMutableAddress {
-            pClipping
-        }
-    }
-    
+
 }
 
 fileprivate func _animationEventDispatched(
@@ -134,5 +113,3 @@ fileprivate func _animationEventDispatched(
     }
     wrapper.animationListner?.eventDispatched(drawable: wrapper, type: type, entry: entry!, event: event)
 }
-
-

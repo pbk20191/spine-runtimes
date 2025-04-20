@@ -6,7 +6,7 @@
 //
 
 
-public struct PointeeBox<T:Copyable>:~Copyable {
+internal struct PointeeBox<T:Copyable>:~Copyable {
     
     
     @usableFromInline
