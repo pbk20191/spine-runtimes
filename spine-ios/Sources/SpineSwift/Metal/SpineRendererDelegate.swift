@@ -13,15 +13,23 @@ import Metal
 @objc
 public protocol SpineRendererDelegate {
 
-    func spineRenderer(_ renderer: SpineRenderer, willUpdate:CFAbsoluteTime)
+    func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime)
+
+    func spineRenderer(_ renderer: SpineRenderer, didUpdateAtTime time: CFAbsoluteTime)
+
+    func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)?
+
+    func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int) -> (any SpineVertexBuffer)?
+
+    func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spAtlasPage>) -> (any MTLSamplerState)
     
-    func spineRenderer(_ renderer: SpineRenderer, didUpdate:CFAbsoluteTime)
+}
+
+extension SpineRendererDelegate {
     
-    func fetchTexture(_ renderer: SpineRenderer,_ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)?
+    public func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime) {}
     
-    func spineRender(_ renderer: SpineRenderer, minimumSize:Int) -> (any SpineVertexBuffer)?
-    
-    func fetchSampler(_ renderer: SpineRenderer,_ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLSamplerState)
+    public func spineRenderer(_ renderer: SpineRenderer, didUpdateAtTime time: CFAbsoluteTime) {}
     
 }
 

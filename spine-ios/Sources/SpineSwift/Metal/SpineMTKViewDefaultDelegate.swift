@@ -11,7 +11,6 @@ import MetalKit
 import simd
 import spine_c
 
-@objcMembers
 open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate, SpineAnimationListener {
 
     
@@ -49,7 +48,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
     }
     
-    public func spineRender(_ renderer: SpineSwift.SpineRenderer, minimumSize: Int) -> (any SpineVertexBuffer)? {
+    public func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int) -> (any SpineVertexBuffer)? {
         if bufferingSemaphore.wait(timeout: .now()) == .timedOut {
             return nil
         }
@@ -64,7 +63,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     
     private var samplerCache = [AtlasSamplerConfig: any MTLSamplerState]()
     
-    public func fetchSampler(_ renderer: SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> any MTLSamplerState {
+    public func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spAtlasPage>) -> any MTLSamplerState {
         let config = AtlasSamplerConfig(
             min: .init(rawValue: page.pointee.minFilter),
             mag: .init(rawValue: page.pointee.magFilter),
@@ -88,19 +87,13 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         return sampler
     }
     
-    open func eventDispatched(drawable: SpineSwift.SpineSwiftDrawable, type: spEventType, entry: UnsafeMutablePointer<spTrackEntry>, event: UnsafePointer<spEvent>?) {
-        
-    }
+    open func eventDispatched(drawable: SpineSwift.SpineSwiftDrawable, type: spEventType, entry: UnsafeMutablePointer<spTrackEntry>, event: UnsafePointer<spEvent>?) {}
     
-    open func spineRenderer(_ renderer: SpineSwift.SpineRenderer, willUpdate: CFAbsoluteTime) {
-        
-    }
+    open func spineRenderer(_ renderer: SpineRenderer, didUpdateAtTime time: CFAbsoluteTime) {}
     
-    open func spineRenderer(_ renderer: SpineSwift.SpineRenderer, didUpdate: CFAbsoluteTime) {
-        
-    }
+    open func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime) {}
     
-    open func fetchTexture(_ renderer: SpineSwift.SpineRenderer, _ index: Int, _ page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
+    open func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
         assertionFailure("fetchTexture must be implemented")
         return nil
 //        if let texture = page.rendererObject["kSPTexture"] as? MTLTexture {
@@ -125,7 +118,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
 //        return texture
     }
     
-    
+    @objc
     public convenience init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
@@ -164,6 +157,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         delegate = self
     }
     
+    @objc
     @available(swift, obsoleted: 1.0)
     public convenience init(
         drawable: SpineSwiftDrawable,
@@ -180,7 +174,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
-    
+    @objc
     public let commandQueue:any MTLCommandQueue
     
     
@@ -207,14 +201,14 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         guard
             let commandBuffer = self.commandQueue.makeCommandBuffer(),
             let renderPass = view.currentRenderPassDescriptor,
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPass),
             let drawable = view.currentDrawable
         
         else {
             return
         }
-        
-        if self.render(using: commandBuffer, renderEncoder: renderEncoder) {
+        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPass)!
+
+        if self.encode(using: commandBuffer, renderEncoder: renderEncoder) {
             renderEncoder.endEncoding()
             commandBuffer.present(drawable)
             commandBuffer.commit()
