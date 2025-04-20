@@ -92,3 +92,35 @@ extension spSkeletonBounds {
     }
 
 }
+
+extension Dictionary {
+
+    @inline(__always)
+    @usableFromInline
+    internal subscript(_ key:Key, safe block : @autoclosure () -> Value) -> Value {
+        mutating get {
+            if let value = self[key] { return value }
+            let newValue = block()
+            self[key] = newValue
+            return newValue
+        }
+    }
+    
+}
+
+extension Dictionary {
+
+    @inline(__always)
+    @usableFromInline
+    internal subscript(_ key:Key, safe2 block : @autoclosure () -> Value?) -> Value? {
+        mutating get {
+            if let value = self[key] { return value }
+            if let newValue = block() {
+                self[key] = newValue
+                return newValue
+            }
+            return nil
+        }
+    }
+    
+}

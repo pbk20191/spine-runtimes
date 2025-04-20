@@ -11,7 +11,6 @@ import SpineShadersStructs
 #if canImport(Metal)
 import Metal
 
-@objcMembers
 open class SpineRenderer: NSObject {
     
     @nonobjc
@@ -29,6 +28,9 @@ open class SpineRenderer: NSObject {
     
     @nonobjc
     private var pSpineBoundComputer: any SkeletonBoundsProvider = SetupPoseBounds()
+    
+    @nonobjc
+    internal let pClipping = spSkeletonClipping_create()!
     
     @nonobjc
     private var pSizingInput = SizingInfoInput(
@@ -54,6 +56,7 @@ open class SpineRenderer: NSObject {
         pLastSizingOutput
     }
 
+    @objc
     public var boundsProvider: any SkeletonBoundsProvider {
         get { pSpineBoundComputer }
         set {
@@ -71,18 +74,21 @@ open class SpineRenderer: NSObject {
         }
     }
     
+    @objc
     @available(swift, obsoleted: 1.0)
     public var contentMode: ContentMode {
         get { self.sizingInfo.contentMode }
         set { self.sizingInfo.contentMode = newValue }
     }
     
+    @objc
     @available(swift, obsoleted: 1.0)
     public var contentAlignment: Alignment {
         get { self.sizingInfo.alignment }
         set { self.sizingInfo.alignment = newValue }
     }
     
+    @objc
     public var drawable:SpineSwiftDrawable {
         get { model }
         set {
@@ -115,6 +121,11 @@ open class SpineRenderer: NSObject {
         self.boundsProvider = boundsProvider
     }
     
+    deinit {
+        spSkeletonClipping_dispose(self.pClipping)
+    }
+    
+    @objc
     @available(swift, obsoleted: 1.0)
     public convenience init(
         drawable: SpineSwiftDrawable,
@@ -137,6 +148,7 @@ open class SpineRenderer: NSObject {
         )
     }
     
+    @objc
     public convenience init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
@@ -156,20 +168,19 @@ open class SpineRenderer: NSObject {
         )
     }
     
-    
+    @objc
     public func callNeedsUpdate( time: CFAbsoluteTime) {
         if lastDraw == 0 {
             lastDraw = time
         }
         let delta = time - lastDraw
-        delegate?.spineRenderer(self, willUpdate: time)
+        delegate?.spineRenderer(self, willUpdateAtTime: time)
         self.model.update(delta: Float(delta))
         lastDraw = time
-        delegate?.spineRenderer(self, didUpdate: time)
+        delegate?.spineRenderer(self, didUpdateAtTime: time)
     }
     
-
-    
+    @objc
     public func changeSize(_ size: CGSize, _ scale: CGFloat) {
         pSizingInput.displaySize = size
         pSizingInput.displayScale = scale
@@ -184,21 +195,22 @@ open class SpineRenderer: NSObject {
         }
     }
     
-    public func render(using commandBuffer: any MTLCommandBuffer, renderEncoder: any MTLRenderCommandEncoder) -> Bool {
+    @objc
+    public func encode(using commandBuffer: any MTLCommandBuffer, renderEncoder: any MTLRenderCommandEncoder) -> Bool {
         guard let delegate else {
             return false
         }
         let displayTransform = self.pLastSizingOutput
         var cb = CallBackContext()
         withUnsafeMutablePointer(to: &cb) {
-            spSkeleton_render(model.pSkeleton,  model.pClipping, fill_render_command_to_entry, $0)
+            spSkeleton_render(model.pSkeleton,  self.pClipping, fill_render_command_to_entry, $0)
         }
         let commandEntry = cb.commandEntry
         guard commandEntry.verteArray.count > 0 else {
             return true
         }
         let bufferCount = commandEntry.verteArray.withUnsafeBytes{ $0.count }
-        guard let vertexBufferRef = delegate.spineRender(self, minimumSize: bufferCount) else {
+        guard let vertexBufferRef = delegate.spineRenderer(self, vertexBufferForMinimumSize: bufferCount) else {
             return false
         }
         let vertexBuffer = vertexBufferRef.buffer
@@ -251,7 +263,8 @@ open class SpineRenderer: NSObject {
         withUnsafeBytes(of: premultiplyAlpha) {
             renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
         }
-
+        var textureMap = [UnsafeMutablePointer<spAtlasPage>: MTLTexture]()
+        var samplerMap = [UnsafeMutablePointer<spAtlasPage>: MTLSamplerState]()
         for fragment in commandEntry.metaInfo {
             
             guard let pipelineState = pipeLineStates[.init(pma: fragment.textureId.pma, blendMode: fragment.blendMode)] else {
@@ -280,7 +293,7 @@ open class SpineRenderer: NSObject {
             }
             let vertices = commandEntry.verteArray[fragment.slice]
             let page = atlaPageArray[fragment.textureId.index]
-            if let texture = self.delegate?.fetchTexture(self, fragment.textureId.index, page) {
+            if let texture = textureMap[page, safe2: self.delegate?.spineRenderer(self, textureForPage: page)] {
                 if !texture.isEqual(currentTexture) {
                     currentTexture = texture
                     renderEncoder.setFragmentTexture(texture, index: Int(SpineTextureIndexBaseColor.rawValue))
@@ -288,7 +301,7 @@ open class SpineRenderer: NSObject {
             } else {
                 continue
             }
-            if let sampler = self.delegate?.fetchSampler(self, fragment.textureId.index, page) {
+            if let sampler = samplerMap[page, safe2: self.delegate?.spineRenderer(self, samplerForPage: page)] {
                 if !sampler.isEqual(currentSampler) {
                     currentSampler = sampler
                     renderEncoder.setFragmentSamplerState(sampler, index: 0)
@@ -486,6 +499,7 @@ fileprivate struct CallBackContext {
     
     
     var dictionary = [UnsafePointer<spAtlas> : Array<UnsafeMutablePointer<spAtlasPage>>]()
+    var stringLUT = [UnsafeMutablePointer<spAtlasPage> : String]()
     var commandEntry = CommandEntry()
 }
 
@@ -548,18 +562,11 @@ fileprivate func fill_render_command_to_entry(
             darkColor = Int32(bitPattern:  0xff000000)
         }
     }
-    let textureName = String(cString: texture.pointee.page.pointee.name)
+    let textureName = context.stringLUT[texture.pointee.page, safe: String(cString: texture.pointee.page.pointee.name)]
     let textureIndex:Int
     do {
-        if context.dictionary[texture.pointee.page.pointee.atlas] == nil {
-            context.dictionary[texture.pointee.page.pointee.atlas] = sequence(first: texture.pointee.page.pointee.atlas.pointee.pages, next: \.pointee.next).map(\.self)
-
-        }
-        if let array = context.dictionary[texture.pointee.page.pointee.atlas] {
-            textureIndex = array.firstIndex(of: texture.pointee.page!) ?? -1
-        } else {
-            textureIndex = -1
-        }
+        let array = context.dictionary[texture.pointee.page.pointee.atlas, safe: sequence(first: texture.pointee.page.pointee.atlas.pointee.pages, next: \.pointee.next).map(\.self)]
+        textureIndex = array.firstIndex(of: texture.pointee.page!) ?? -1
     }
     let textureId = TextureIdentifier(name: textureName, index: textureIndex, pma: pma)
     context.commandEntry.verteArray.reserveCapacity(context.commandEntry.verteArray.count + indexBuffer.count)
@@ -592,3 +599,4 @@ fileprivate func fill_render_command_to_entry(
     }
 
 }
+
