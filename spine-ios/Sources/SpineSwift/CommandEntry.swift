@@ -7,6 +7,7 @@
 import spine_c
 import SpineShadersStructs
 import Foundation
+import simd
 
 internal struct CommandEntry:  Sendable {
     
@@ -19,14 +20,27 @@ internal struct CommandEntry:  Sendable {
 
 //    let sizeInfo:SizeInfo
     
-    internal struct CommandMeta: Hashable, Sendable {
+    internal struct CommandMeta: Hashable, Sendable,BitwiseCopyable {
         
-        public let textureId:TextureIdentifier
-        public let blendMode:spBlendMode
-        public let slice:VertexBuffer.Indices
+        public var pageIndex:Int
+        public var blendMode:spBlendMode
+        public var _slice:NSRange
         
-        public init(textureId: TextureIdentifier, blendMode: spBlendMode, slice: VertexBuffer.Indices) {
-            self.textureId = textureId
+        public var slice:VertexBuffer.Indices {
+            get {
+                .init(uncheckedBounds: (_slice.lowerBound, _slice.upperBound))
+            }
+            set {
+                self._slice = .init(newValue)
+            }
+            @storageRestrictions(initializes: _slice)
+            init(newValue) {
+                self._slice = .init(newValue)
+            }
+        }
+        
+        public init(pageIndex: Int, blendMode: spBlendMode, slice: VertexBuffer.Indices) {
+            self.pageIndex = pageIndex
             self.blendMode = blendMode
             self.slice = slice
         }
@@ -103,19 +117,15 @@ internal final class CommandEntryMetaData:NSObject {
     
     @objc
     public var slice:NSRange {
-        NSRange(location: imp.slice.lowerBound, length: imp.slice.count)
+        imp._slice
     }
     
     @objc
     public var blendMode:spBlendMode { imp.blendMode }
+
     
     @objc
-    public var pageName:String { imp.textureId.name }
-    
-    @objc
-    public var pageIndex:Int { imp.textureId.index }
-    
-    @objc
-    public var pma:Bool { imp.textureId.pma }
+    public var pageIndex:Int { imp.pageIndex }
+
     
 }

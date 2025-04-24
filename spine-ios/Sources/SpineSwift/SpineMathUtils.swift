@@ -110,7 +110,7 @@ public final class SpineMathUtils: NSObject {
         // 5. Compute anchor point in destinationRect
         let destinationAnchor = CGPoint(
             x: destinationRect.origin.x + destinationRect.width * anchorX,
-            y: destinationRect.origin.y + destinationRect.height * anchorY
+            y: destinationRect.origin.y + destinationRect.height * (1.0 - anchorY) // flip
         )
 
         // 6. Construct final transform
@@ -119,7 +119,7 @@ public final class SpineMathUtils: NSObject {
         let moveAnchorToOrigin = CGAffineTransform(translationX: -sourceAnchor.x, y: -sourceAnchor.y)
 
         // 6-2. Apply scaling
-        let scaleTransform = CGAffineTransform(scaleX: scale.x, y: scale.y)
+        let scaleTransform = CGAffineTransform(scaleX: scale.x, y: -scale.y)
 
         // 6-3. Move to destination anchor point
         let moveToTarget = CGAffineTransform(translationX: destinationAnchor.x, y: destinationAnchor.y)
