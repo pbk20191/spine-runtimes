@@ -7,6 +7,7 @@
 
 import class Foundation.NSMutableDictionary
 import spine_c
+import CoreGraphics
 
 extension UnsafeMutablePointer where Pointee == spRegionAttachment {
     @inlinable

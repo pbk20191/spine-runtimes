@@ -35,7 +35,6 @@ CF_INLINE void spin_c_extension_cf_setup() {
 #if DEBUG
     _spSetDebugMalloc(cf_debug_malloc);
 #endif
-    spBone_setYDown(1);
 }
 
 

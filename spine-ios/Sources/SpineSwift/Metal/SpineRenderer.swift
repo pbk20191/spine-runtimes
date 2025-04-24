@@ -196,16 +196,15 @@ open class SpineRenderer: NSObject {
     }
     
     @objc
-    public func encode(using commandBuffer: any MTLCommandBuffer, renderEncoder: any MTLRenderCommandEncoder) -> Bool {
+    public func encode(
+        using commandBuffer: any MTLCommandBuffer,
+        renderEncoder: any MTLRenderCommandEncoder
+    ) -> Bool {
         guard let delegate else {
             return false
         }
         let displayTransform = self.pLastSizingOutput
-        var cb = CallBackContext()
-        withUnsafeMutablePointer(to: &cb) {
-            spSkeleton_render(model.pSkeleton,  self.pClipping, fill_render_command_to_entry, $0)
-        }
-        let commandEntry = cb.commandEntry
+        let commandEntry = RenderCallBackContext.render(self.model.resource.pSkeletonData.pAtlas.nativePointer, model.pSkeleton, self.pClipping)
         guard commandEntry.verteArray.count > 0 else {
             return true
         }
@@ -243,6 +242,7 @@ open class SpineRenderer: NSObject {
                 zfar: 1
             )
         )
+        self.model.resource.pSkeletonData.atlas.nativePointer
         renderEncoder.setVertexBuffer(vertexBuffer, offset: offsetInBytes, index: Int(SpineVertexInputIndexVertices.rawValue))
         withUnsafeBytes(of: displayTransform.transform) {
             renderEncoder.setVertexBytes($0.baseAddress!, length: $0.count, index: Int(SpineVertexInputIndexTransform.rawValue))
@@ -266,8 +266,9 @@ open class SpineRenderer: NSObject {
         var textureMap = [UnsafeMutablePointer<spAtlasPage>: MTLTexture]()
         var samplerMap = [UnsafeMutablePointer<spAtlasPage>: MTLSamplerState]()
         for fragment in commandEntry.metaInfo {
-            
-            guard let pipelineState = pipeLineStates[.init(pma: fragment.textureId.pma, blendMode: fragment.blendMode)] else {
+            let page = atlaPageArray[fragment.pageIndex]
+            let pma = page.pointee.pma != 0
+            guard let pipelineState = pipeLineStates[.init(pma: pma, blendMode: fragment.blendMode)] else {
                 continue
             }
             if let currentPipeLine, currentPipeLine.isEqual(pipelineState) {
@@ -276,7 +277,7 @@ open class SpineRenderer: NSObject {
                 currentPipeLine = pipelineState
                 renderEncoder.setRenderPipelineState(pipelineState)
             }
-            if !fragment.textureId.pma, fragment.blendMode == SP_BLEND_MODE_SCREEN || fragment.blendMode == SP_BLEND_MODE_MULTIPLY {
+            if !pma, fragment.blendMode == SP_BLEND_MODE_SCREEN || fragment.blendMode == SP_BLEND_MODE_MULTIPLY {
                 if !premultiplyAlpha {
                     premultiplyAlpha = true
                     withUnsafeBytes(of: premultiplyAlpha) {
@@ -292,7 +293,6 @@ open class SpineRenderer: NSObject {
                 }
             }
             let vertices = commandEntry.verteArray[fragment.slice]
-            let page = atlaPageArray[fragment.textureId.index]
             if let texture = textureMap[page, safe2: self.delegate?.spineRenderer(self, textureForPage: page)] {
                 if !texture.isEqual(currentTexture) {
                     currentTexture = texture
@@ -403,6 +403,7 @@ open class SpineRenderer: NSObject {
 }
 
 fileprivate extension spBlendMode {
+    
     func sourceRGBBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
         switch self {
         case SP_BLEND_MODE_NORMAL:
@@ -419,51 +420,7 @@ fileprivate extension spBlendMode {
             return .one // Should never be called
         }
     }
-    
-    func sourceAlphaBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
-        switch self {
-        case SP_BLEND_MODE_NORMAL:
-            return .one
-        case SP_BLEND_MODE_ADDITIVE:
-            return .one
-        case SP_BLEND_MODE_MULTIPLY:
-            return .one
-        case SP_BLEND_MODE_SCREEN:
-            return .oneMinusDestinationAlpha
-        default:
-            return .one // Should never be called
-        }
-    }
 
-    var destinationRGBBlendFactor: MTLBlendFactor {
-        switch self {
-        case SP_BLEND_MODE_NORMAL:
-            return .oneMinusSourceAlpha
-        case SP_BLEND_MODE_ADDITIVE:
-            return .one
-        case SP_BLEND_MODE_MULTIPLY:
-            return .oneMinusSourceAlpha
-        case SP_BLEND_MODE_SCREEN:
-            return .one
-        default:
-            return .one // Should never be called
-        }
-    }
-
-    var destinationAlphaBlendFactor: MTLBlendFactor {
-        switch self {
-        case SP_BLEND_MODE_NORMAL:
-            return .oneMinusSourceAlpha
-        case SP_BLEND_MODE_ADDITIVE:
-            return .one
-        case SP_BLEND_MODE_MULTIPLY:
-            return .oneMinusSourceAlpha
-        case SP_BLEND_MODE_SCREEN:
-            return .one
-        default:
-            return .one // Should never be called
-        }
-    }
 }
 
 fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
@@ -471,9 +428,18 @@ fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
     func apply(blendMode: spBlendMode, with premultipliedAlpha: Bool) {
         isBlendingEnabled = true
         sourceRGBBlendFactor = blendMode.sourceRGBBlendFactor(premultipliedAlpha: premultipliedAlpha)
-        sourceAlphaBlendFactor = blendMode.sourceAlphaBlendFactor(premultipliedAlpha: premultipliedAlpha)
-        destinationRGBBlendFactor = blendMode.destinationRGBBlendFactor
-        destinationAlphaBlendFactor = blendMode.destinationAlphaBlendFactor
+        sourceAlphaBlendFactor = blendMode == SP_BLEND_MODE_SCREEN ? .oneMinusDestinationAlpha : .one
+        switch blendMode {
+        case SP_BLEND_MODE_NORMAL, SP_BLEND_MODE_MULTIPLY:
+            destinationAlphaBlendFactor = .oneMinusSourceAlpha
+            destinationRGBBlendFactor = .oneMinusSourceAlpha
+        case SP_BLEND_MODE_ADDITIVE, SP_BLEND_MODE_SCREEN:
+            destinationAlphaBlendFactor = .one
+            destinationRGBBlendFactor = .one
+        default:
+            destinationRGBBlendFactor = .one
+            destinationAlphaBlendFactor = .one
+        }
     }
     
 }
@@ -494,109 +460,4 @@ fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
 #endif
 
 
-
-fileprivate struct CallBackContext {
-    
-    
-    var dictionary = [UnsafePointer<spAtlas> : Array<UnsafeMutablePointer<spAtlasPage>>]()
-    var stringLUT = [UnsafeMutablePointer<spAtlasPage> : String]()
-    var commandEntry = CommandEntry()
-}
-
-
-
-fileprivate func fill_render_command_to_entry(
-    _ cmd: UnsafePointer<SpineRenderCommandBlock>,
-    _ ptr:UnsafeMutableRawPointer?
-) {
-    let contextBuffer = UnsafeMutablePointer<CallBackContext>.init(.init(ptr!))
-    let indexBuffer = UnsafeBufferPointer(start: cmd.pointee.indices, count: cmd.pointee.indexCount)
-    var context:CallBackContext {
-        unsafeAddress { UnsafePointer(contextBuffer) }
-        unsafeMutableAddress { contextBuffer }
-    }
-
-    let texture = cmd.pointee.renderer.assumingMemoryBound(to: spAtlasRegion.self)
-
-    
-    let pma = texture.pointee.page.pointee.pma != 0
-    let blendMode = cmd.pointee.blendMode
-    let color:Int32
-    let darkColor:Int32
-    do {
-        let skeletonColor = cmd.pointee.slot.pointee.bone.pointee.skeleton.pointee.color
-        let slotColor = cmd.pointee.slot.pointee.color
-        let slotDark = cmd.pointee.slot.pointee.darkColor?.pointee
-        let attachmentColor = if cmd.pointee.slot.pointee.attachment.pointee.type == SP_ATTACHMENT_MESH {
-            UnsafePointer<spMeshAttachment>(OpaquePointer(cmd.pointee.slot.pointee.attachment))!.pointee.color
-        } else if cmd.pointee.slot.pointee.attachment.pointee.type == SP_ATTACHMENT_REGION {
-            UnsafePointer<spRegionAttachment>(OpaquePointer(cmd.pointee.slot.pointee.attachment))!.pointee.color
-        } else {
-            spColor(r: 0, g: 0, b: 0, a: 0)
-        }
-        let fa = skeletonColor.a * slotColor.a * attachmentColor.a
-        let a:UInt32 = UInt32(UInt8(fa * 255))
-        let fr = (skeletonColor.r * slotColor.r * attachmentColor.r)
-        let fg = (skeletonColor.g * slotColor.g * attachmentColor.g)
-        let fb = (skeletonColor.b * slotColor.b * attachmentColor.b)
-        
-        if (pma) {
-            let r:UInt32 = UInt32(UInt8(fr * fa * 255))
-            let g = UInt32(UInt8(fg * fa * 255))
-            let b = UInt32(UInt8(fb * fa * 255))
-            color = .init(bitPattern: a << 24 | r << 16 | g << 8 | b)
-        } else {
-            let r:UInt32 = UInt32(UInt8(fr * 255))
-            let g = UInt32(UInt8(fg * 255))
-            let b = UInt32(UInt8(fb * 255))
-            color = .init(bitPattern: a << 24 | r << 16 | g << 8 | b)
-        }
-        if let slotDark {
-            let dr = UInt32(UInt8(slotDark.r * (pma ? fa : 1) * 255))
-            let dg = UInt32(UInt8(slotDark.g * (pma ? fa : 1) * 255))
-
-            let db = UInt32(UInt8(slotDark.b * (pma ? fa : 1) * 255))
-            let da = UInt32(UInt8((pma ? 1 : 0) * 255))
-            darkColor = Int32(bitPattern: da << 24 | dr << 16 | dg << 8 | db)
-        } else {
-            darkColor = Int32(bitPattern:  0xff000000)
-        }
-    }
-    let textureName = context.stringLUT[texture.pointee.page, safe: String(cString: texture.pointee.page.pointee.name)]
-    let textureIndex:Int
-    do {
-        let array = context.dictionary[texture.pointee.page.pointee.atlas, safe: sequence(first: texture.pointee.page.pointee.atlas.pointee.pages, next: \.pointee.next).map(\.self)]
-        textureIndex = array.firstIndex(of: texture.pointee.page!) ?? -1
-    }
-    let textureId = TextureIdentifier(name: textureName, index: textureIndex, pma: pma)
-    context.commandEntry.verteArray.reserveCapacity(context.commandEntry.verteArray.count + indexBuffer.count)
-    UnsafeBufferPointer(start: cmd.pointee.uvs, count: cmd.pointee.uvCount).withMemoryRebound(to: SIMD2<Float>.self) { uvBuffer in
-        UnsafeBufferPointer(start: cmd.pointee.positions, count: cmd.pointee.positionCount).withMemoryRebound(to: SIMD2<Float>.self) { vertexBuffer in
-            let startIndex = context.commandEntry.verteArray.endIndex
-
-            for shortIndex in indexBuffer {
-                let index = Int(shortIndex)
-                let vertex = SpineAdvancedVertex(
-                    position: vertexBuffer[index],
-                    uv: uvBuffer[index],
-                    color: color,
-                    darkColor: darkColor
-                )
-                context.commandEntry.verteArray.append(vertex)
-            }
-            if let last = context.commandEntry.metaInfo.last, blendMode == last.blendMode, textureId == last.textureId, last.slice.upperBound == startIndex {
-                let metaInfo = CommandEntry.CommandMeta.init(textureId: textureId, blendMode: blendMode, slice: last.slice.lowerBound..<context.commandEntry.verteArray.endIndex)
-                context.commandEntry.metaInfo.removeLast()
-                context.commandEntry.metaInfo.append(metaInfo)
-            } else {
-                context.commandEntry.metaInfo.append(
-                    .init(textureId: textureId, blendMode: blendMode, slice: startIndex..<context.commandEntry.verteArray.endIndex)
-                )
-            }
-            
-            
-        }
-    }
-
-}
 

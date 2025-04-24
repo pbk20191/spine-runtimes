@@ -7,6 +7,7 @@
 import simd
 import SpineShadersStructs
 import CoreGraphics
+import Foundation
 
 public struct SizingInfoOutput: Hashable, BitwiseCopyable, Sendable {
     
@@ -98,40 +99,43 @@ extension SizingInfoOutput {
         let t = logicalTranslation
         let p = platformOffset
 
+        var flipY = CGAffineTransform(scaleX: 1, y: -1)
+            .concatenating(CGAffineTransform(translationX: size.width/2.0, y: size.height/2.0))
         return CGAffineTransform(translationX: p.x, y: p.y)
             .concatenating(CGAffineTransform(translationX: t.x + o.x / s.width, y: t.y + o.y / s.height))
             .concatenating(CGAffineTransform(scaleX: s.width, y: s.height))
+            .concatenating(flipY)
     }
 
     /// Inverse: from platform space back to skeleton (Spine) coordinate space
     public var toSkeletonTransform: CGAffineTransform {
         let s = logicalScale
         let o = logicalOffset
+        let t = logicalTranslation
         let p = platformOffset
 
-        let centerTranslation = CGAffineTransform(
-            translationX: -size.width / 2,
-            y: -size.height / 2
+        // 1. flipY의 역변환
+        let flipYInverse = CGAffineTransform(translationX: -size.width / 2.0, y: -size.height / 2.0)
+            .concatenating(CGAffineTransform(scaleX: 1, y: -1))
+
+        // 2. scale의 역변환
+        let scaleInverse = CGAffineTransform(scaleX: 1 / s.width, y: 1 / s.height)
+
+        // 3. offset + translation의 역변환
+        let offsetTranslationInverse = CGAffineTransform(
+            translationX: -(t.x + o.x / s.width),
+            y: -(t.y + o.y / s.height)
         )
 
-        let scaleInverse = CGAffineTransform(
-            scaleX: 1 / s.width,
-            y: 1 / s.height
-        )
-
-        let offsetInverse = CGAffineTransform(
-            translationX: -o.x,
-            y: -o.y
-        )
-        
+        // 4. platformOffset의 역변환
         let platformOffsetInverse = CGAffineTransform(
             translationX: -p.x,
             y: -p.y
         )
 
-        return centerTranslation
+        return flipYInverse
             .concatenating(scaleInverse)
-            .concatenating(offsetInverse)
+            .concatenating(offsetTranslationInverse)
             .concatenating(platformOffsetInverse)
     }
 }
