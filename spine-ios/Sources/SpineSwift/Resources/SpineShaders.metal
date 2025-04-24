@@ -38,7 +38,6 @@ spine_vertexShader(uint vertexID [[vertex_id]],
     out.position.xy *= transform.scale;
     out.position.xy += transform.translation * transform.scale + transform.offset;
     out.position.xy /= viewportSize / 2;
-    out.position.y *= -1;
     
     //out.lightColor = vertices[vertexID].color;
     uint light = as_type<uint>(vertices[vertexID].color);

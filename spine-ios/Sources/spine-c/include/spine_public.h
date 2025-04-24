@@ -13,7 +13,7 @@
 #include <spine/SlotData.h>
 #include <spine/SkeletonClipping.h>
 #include <spine/Skeleton.h>
-#include <CoreGraphics/CoreGraphics.h>
+#include <spine/Debug.h>
 CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
