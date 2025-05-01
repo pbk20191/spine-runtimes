@@ -8,6 +8,8 @@
 import spine_c
 import simd
 import SpineShadersStructs
+
+
 #if canImport(Metal)
 import Metal
 
@@ -197,7 +199,6 @@ open class SpineRenderer: NSObject {
     
     @objc
     public func encode(
-        using commandBuffer: any MTLCommandBuffer,
         renderEncoder: any MTLRenderCommandEncoder
     ) -> Bool {
         guard let delegate else {
@@ -209,12 +210,19 @@ open class SpineRenderer: NSObject {
             return true
         }
         let bufferCount = commandEntry.verteArray.withUnsafeBytes{ $0.count }
-        guard let vertexBufferRef = delegate.spineRenderer(self, vertexBufferForMinimumSize: bufferCount) else {
+        var offsetInBytes = 0
+        guard let vertexBufferRef = delegate.spineRenderer(self, vertexBufferForMinimumSize: bufferCount, offsetInBytes: &offsetInBytes) else {
             return false
         }
-        let vertexBuffer = vertexBufferRef.buffer
-        let offsetInBytes = vertexBufferRef.offsetInBytes
-        guard vertexBuffer.length >= bufferCount else {
+        let vertexBuffer = vertexBufferRef.`self`()
+        let addressSpace = UnsafeMutableRawBufferPointer(
+            start: vertexBuffer.contents(),
+            count: vertexBuffer.length
+        )
+        let region = addressSpace[offsetInBytes...]
+        
+         // vertexBufferRef.offsetInBytes
+        guard region.count >= bufferCount else {
             return false
         }
         renderEncoder.pushDebugGroup("spine_render")
@@ -222,10 +230,10 @@ open class SpineRenderer: NSObject {
             renderEncoder.popDebugGroup()
         }
         commandEntry.verteArray.withUnsafeBytes {
-            let _ = memcpy(vertexBuffer.contents().advanced(by: offsetInBytes), $0.baseAddress!, $0.count)
+            let rebased = UnsafeMutableRawBufferPointer(rebasing: region)
+            // copyBytes(from:) use memmove rather than memcpy
+            memcpy(rebased.baseAddress!, $0.baseAddress!, $0.count)
         }
-        Self.signalBuffer(buffer: commandBuffer, ref: vertexBufferRef)
-        
 #if os(macOS) || targetEnvironment(macCatalyst)
         if vertexBuffer.storageMode == .managed {
             vertexBuffer.didModifyRange(offsetInBytes..<(offsetInBytes + bufferCount))
@@ -242,8 +250,7 @@ open class SpineRenderer: NSObject {
                 zfar: 1
             )
         )
-        self.model.resource.pSkeletonData.atlas.nativePointer
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: offsetInBytes, index: Int(SpineVertexInputIndexVertices.rawValue))
+        renderEncoder.setVertexBuffer(vertexBufferRef, offset: offsetInBytes, index: Int(SpineVertexInputIndexVertices.rawValue))
         withUnsafeBytes(of: displayTransform.transform) {
             renderEncoder.setVertexBytes($0.baseAddress!, length: $0.count, index: Int(SpineVertexInputIndexTransform.rawValue))
         }

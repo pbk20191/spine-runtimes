@@ -19,7 +19,7 @@ public protocol SpineRendererDelegate {
 
     func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)?
 
-    func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int) -> (any SpineVertexBuffer)?
+    func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int, offsetInBytes: UnsafeMutablePointer<Int>) -> (any MTLBuffer)?
 
     func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spAtlasPage>) -> (any MTLSamplerState)
     
