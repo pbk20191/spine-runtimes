@@ -22,15 +22,35 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     private var currentBufferIndex: Int = 0
     
     public let maxBuffer:SpineMTKBufferingStrategy
-
-    class BufferRef: NSObject, SpineVertexBuffer {
+    
+    final class ScratchBufferSwiftProxy {
         
-        let buffer: any MTLBuffer
-        let semaphore: DispatchSemaphore
+        @nonobjc
+        let buffer:(any MTLBuffer)
+        @nonobjc
+        let semaphore:DispatchSemaphore
         
+        typealias MethodLookup = @convention(c) (AnyObject, Selector, Selector) -> (Unmanaged<NSObject>?)
+        
+        
+        @nonobjc
+        let methodTable:MethodLookup?
+        
+        @nonobjc static var methodSelector: Selector {
+           Selector( "methodSignatureForSelector:")
+        }
+        
+        @nonobjc
         init(buffer: any MTLBuffer, semaphore: DispatchSemaphore) {
             self.buffer = buffer
             self.semaphore = semaphore
+            let type = type(of: buffer)
+            if let method = class_getInstanceMethod(type, Self.methodSelector) {
+                let imp = method_getImplementation(method)
+                self.methodTable = unsafeBitCast(imp, to: MethodLookup.self)
+            } else {
+                self.methodTable = nil
+            }
         }
         
         deinit {
@@ -38,8 +58,109 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
             semaphore.signal()
         }
         
-        let offsetInBytes: Int = 0
+        @objc(forwardingTargetForSelector:)
+        func forwardingTarget(for aSelector: Selector!) -> Any? {
+            guard buffer.responds(to: aSelector) else { return nil }
+            #if !DEBUG
+            return buffer
+            #endif
+            
+            var description = protocol_getMethodDescription(MTLBuffer.self, aSelector, true, true)
+            if description.name == aSelector {
+                return nil
+            }
+            description = protocol_getMethodDescription(MTLBuffer.self, aSelector, false, true)
+            if description.name == aSelector {
+                return nil
+            }
+            return buffer
+        }
         
+//        @objc(resolveClassMethod:)
+//        class func resolveClassMethod(_ sel:Selector) -> Bool {
+//            false
+//        }
+//
+//        @objc(resolveInstanceMethod:)
+//        class func resolveInstanceMethod(_ sel:Selector) -> Bool {
+//            return false
+//        }
+//
+//        @objc(instancesRespondToSelector:)
+//        class func instancesRespond(_ sel:Selector) -> Bool {
+//            false
+//        }
+        
+        @objc(conformsToProtocol:)
+        func conforms(to aProtocol: Protocol) -> Bool {
+            return buffer.conforms(to: aProtocol)
+        }
+        
+        @objc(respondsToSelector:)
+        func responds(to aSelector: Selector) -> Bool {
+            return buffer.responds(to: aSelector)
+        }
+        
+        
+        @available(swift, obsoleted: 1.0)
+        @objc(forwardInvocation:)
+        func forwardInvocation(_ invocation: NSInvocation) {
+            invocation.invoke(withTarget: buffer)
+        }
+        
+        @available(swift, obsoleted: 1.0)
+        @objc(methodSignatureForSelector:)
+        func methodSignature(for selector: Selector) -> NSMethodSignature! {
+            guard let methodTable else { return nil }
+            let object = methodTable(self.buffer, Self.methodSelector, selector)?.takeUnretainedValue()
+            let signature = object as? NSMethodSignature
+            return signature
+        }
+        
+        @objc(isProxy)
+        func isProxy() -> Bool {
+            return true
+        }
+        
+        @objc(isEqual:)
+        func isEqual(_ object: Any?) -> Bool {
+            return buffer.isEqual(object)
+        }
+        
+        @objc(hash)
+        var hash:Int {
+            buffer.hash
+        }
+        
+        @objc(isKindOfClass:)
+        func isKind(of aClass: AnyClass) -> Bool {
+            return buffer.isKind(of: aClass)
+        }
+        
+        @objc(isMemberOfClass:)
+        func isMember(of aClass: AnyClass) -> Bool {
+            return buffer.isMember(of: aClass)
+        }
+        
+        @objc(self)
+        func `self`() -> (any MTLBuffer) {
+            buffer.`self`()
+        }
+        
+        @objc
+        func contents() -> UnsafeMutableRawPointer {
+            buffer.contents()
+        }
+        
+        @objc
+        var length: Int {
+            buffer.length
+        }
+        
+        @objc
+        var storageMode: MTLStorageMode {
+            buffer.storageMode
+        }
     }
     
     private func increaseBuffersSize(to size: Int) {
@@ -48,7 +169,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
     }
     
-    public func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int) -> (any SpineVertexBuffer)? {
+    public func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int, offsetInBytes: UnsafeMutablePointer<Int>) -> (any MTLBuffer)? {
         if bufferingSemaphore.wait(timeout: .now()) == .timedOut {
             return nil
         }
@@ -58,7 +179,10 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         let buffer = buffers[currentBufferIndex]
         currentBufferIndex = (currentBufferIndex + 1) % maxBuffer.rawValue
         buffer.setPurgeableState(.nonVolatile)
-        return BufferRef(buffer: buffer, semaphore: bufferingSemaphore)
+        offsetInBytes.pointee = 0
+        let proxy = ScratchBufferSwiftProxy(buffer: buffer, semaphore: bufferingSemaphore)
+        let ref = proxy as! (any MTLBuffer)
+        return ref
     }
     
     private var samplerCache = [AtlasSamplerConfig: any MTLSamplerState]()
@@ -208,7 +332,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPass)!
 
-        if self.encode(using: commandBuffer, renderEncoder: renderEncoder) {
+        if self.encode(renderEncoder: renderEncoder) {
             renderEncoder.endEncoding()
             commandBuffer.present(drawable)
             commandBuffer.commit()
