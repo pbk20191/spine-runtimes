@@ -11,41 +11,6 @@ import SpineSwift
 import SwiftUI
 import spine_c
 
-class SpineViewDelegate: SpineMTKViewDefaultDelegate {
-    
-    override func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
-        let textureKey = "KSpineMetalTexture"
-        if let texture = page.rendererObject[textureKey] as? MTLTexture {
-            return texture
-        }
-        
-        let option = [
-            .SRGB: false as NSNumber,
-            .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
-            .textureCPUCacheMode: MTLCPUCacheMode.writeCombined.rawValue as NSNumber,
-            .origin: MTKTextureLoader.Origin.topLeft.rawValue
-        ] as [MTKTextureLoader.Option : Any]
-        let name = String(cString: page.pointee.name).replacingOccurrences(of: ".png", with: "")
-        do {
-            if let url = Bundle.main.url(forResource: name, withExtension: "png") {
-                let textureLoader: MTKTextureLoader = MTKTextureLoader(device: device)
-                let texture = try textureLoader.newTexture(
-                    URL: url,
-                    options: option
-                )
-                page.rendererObject[textureKey] = texture
-                return texture
-            }
-            return nil
-        } catch {
-            dump(error)
-            return nil
-        }
-
-    }
-    
-}
-
 class TaggedDrawable: SpineSwiftDrawable {
     
     private(set) var tag:String?
@@ -63,7 +28,7 @@ struct SpineMTKSwiftUIView: Equatable {
     let animationName: String?
     let tag:String
     
-    func makeCoordinator() -> SpineViewDelegate {
+    func makeCoordinator() -> SpineMTKViewDefaultDelegate {
         let atlas = try! SpineAtlasBox(path: atlasURL.path)
         let shared = try! SpineSkeletonDataBox(atlas: atlas, jsonPath: jsonURL.path)
         let drawable = TaggedDrawable(resource: .init(skeletonData: shared))
@@ -73,7 +38,7 @@ struct SpineMTKSwiftUIView: Equatable {
         }
         let device = MTLCreateSystemDefaultDevice()!
         let commandQueue = device.makeCommandQueue()!
-        let delegate = try! SpineViewDelegate(drawable: drawable, commandQueue: commandQueue, pixelFormat: .bgra8Unorm)
+        let delegate = try! SpineMTKViewDefaultDelegate(drawable: drawable, commandQueue: commandQueue, pixelFormat: .bgra8Unorm)
         return delegate
     }
     

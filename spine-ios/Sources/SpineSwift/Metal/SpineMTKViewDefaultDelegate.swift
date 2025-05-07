@@ -13,7 +13,7 @@ import spine_c
 
 open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate, SpineAnimationListener {
 
-    
+    @objc public var textureBundle: Bundle?
     
     private static let defaultBufferSize = 32 * 1024 // 32KB
     
@@ -23,153 +23,13 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     
     public let maxBuffer:SpineMTKBufferingStrategy
     
-    final class ScratchBufferSwiftProxy {
-        
-        @nonobjc
-        let buffer:(any MTLBuffer)
-        @nonobjc
-        let semaphore:DispatchSemaphore
-        
-        typealias MethodLookup = @convention(c) (AnyObject, Selector, Selector) -> (Unmanaged<NSObject>?)
-        
-        
-        @nonobjc
-        let methodTable:MethodLookup?
-        
-        @nonobjc static var methodSelector: Selector {
-           Selector( "methodSignatureForSelector:")
-        }
-        
-        @nonobjc
-        init(buffer: any MTLBuffer, semaphore: DispatchSemaphore) {
-            self.buffer = buffer
-            self.semaphore = semaphore
-            let type = type(of: buffer)
-            if let method = class_getInstanceMethod(type, Self.methodSelector) {
-                let imp = method_getImplementation(method)
-                self.methodTable = unsafeBitCast(imp, to: MethodLookup.self)
-            } else {
-                self.methodTable = nil
-            }
-        }
-        
-        deinit {
-            buffer.setPurgeableState(.empty)
-            semaphore.signal()
-        }
-        
-        @objc(forwardingTargetForSelector:)
-        func forwardingTarget(for aSelector: Selector!) -> Any? {
-            guard buffer.responds(to: aSelector) else { return nil }
-            #if !DEBUG
-            return buffer
-            #endif
-            
-            var description = protocol_getMethodDescription(MTLBuffer.self, aSelector, true, true)
-            if description.name == aSelector {
-                return nil
-            }
-            description = protocol_getMethodDescription(MTLBuffer.self, aSelector, false, true)
-            if description.name == aSelector {
-                return nil
-            }
-            return buffer
-        }
-        
-//        @objc(resolveClassMethod:)
-//        class func resolveClassMethod(_ sel:Selector) -> Bool {
-//            false
-//        }
-//
-//        @objc(resolveInstanceMethod:)
-//        class func resolveInstanceMethod(_ sel:Selector) -> Bool {
-//            return false
-//        }
-//
-//        @objc(instancesRespondToSelector:)
-//        class func instancesRespond(_ sel:Selector) -> Bool {
-//            false
-//        }
-        
-        @objc(conformsToProtocol:)
-        func conforms(to aProtocol: Protocol) -> Bool {
-            return buffer.conforms(to: aProtocol)
-        }
-        
-        @objc(respondsToSelector:)
-        func responds(to aSelector: Selector) -> Bool {
-            return buffer.responds(to: aSelector)
-        }
-        
-        
-        @available(swift, obsoleted: 1.0)
-        @objc(forwardInvocation:)
-        func forwardInvocation(_ invocation: NSInvocation) {
-            invocation.invoke(withTarget: buffer)
-        }
-        
-        @available(swift, obsoleted: 1.0)
-        @objc(methodSignatureForSelector:)
-        func methodSignature(for selector: Selector) -> NSMethodSignature! {
-            guard let methodTable else { return nil }
-            let object = methodTable(self.buffer, Self.methodSelector, selector)?.takeUnretainedValue()
-            let signature = object as? NSMethodSignature
-            return signature
-        }
-        
-        @objc(isProxy)
-        func isProxy() -> Bool {
-            return true
-        }
-        
-        @objc(isEqual:)
-        func isEqual(_ object: Any?) -> Bool {
-            return buffer.isEqual(object)
-        }
-        
-        @objc(hash)
-        var hash:Int {
-            buffer.hash
-        }
-        
-        @objc(isKindOfClass:)
-        func isKind(of aClass: AnyClass) -> Bool {
-            return buffer.isKind(of: aClass)
-        }
-        
-        @objc(isMemberOfClass:)
-        func isMember(of aClass: AnyClass) -> Bool {
-            return buffer.isMember(of: aClass)
-        }
-        
-        @objc(self)
-        func `self`() -> (any MTLBuffer) {
-            buffer.`self`()
-        }
-        
-        @objc
-        func contents() -> UnsafeMutableRawPointer {
-            buffer.contents()
-        }
-        
-        @objc
-        var length: Int {
-            buffer.length
-        }
-        
-        @objc
-        var storageMode: MTLStorageMode {
-            buffer.storageMode
-        }
-    }
-    
     private func increaseBuffersSize(to size: Int) {
         buffers = (0 ..< maxBuffer.rawValue).map { _ in
             device.makeBuffer(length: size, options: [.storageModeShared, .cpuCacheModeWriteCombined])!
         }
     }
     
-    public func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int, offsetInBytes: UnsafeMutablePointer<Int>) -> (any MTLBuffer)? {
+    open func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int, offsetInBytes: UnsafeMutablePointer<Int>) -> (any MTLBuffer)? {
         if bufferingSemaphore.wait(timeout: .now()) == .timedOut {
             return nil
         }
@@ -187,7 +47,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     
     private var samplerCache = [AtlasSamplerConfig: any MTLSamplerState]()
     
-    public func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spAtlasPage>) -> any MTLSamplerState {
+    open func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spAtlasPage>) -> any MTLSamplerState {
         let config = AtlasSamplerConfig(
             min: .init(rawValue: page.pointee.minFilter),
             mag: .init(rawValue: page.pointee.magFilter),
@@ -218,28 +78,45 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     open func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime) {}
     
     open func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spAtlasPage>) -> (any MTLTexture)? {
-        assertionFailure("fetchTexture must be implemented")
+        let textureKey = "kSpineMetalTexture"
+        let userInfo = page.rendererObject
+        if let texture = userInfo[textureKey] as? MTLTexture {
+            return texture
+        }
+        let bundle = self.textureBundle
+        let textureName = String(cString: page.pointee.name)
+        let option = [
+            .SRGB: false as NSNumber,
+            .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
+            .textureCPUCacheMode: MTLCPUCacheMode.writeCombined.rawValue as NSNumber,
+            .origin: MTKTextureLoader.Origin.topLeft.rawValue,
+            .textureUsage: MTLTextureUsage.shaderRead.rawValue as NSNumber,
+        ] as [MTKTextureLoader.Option : Any]
+        if let path = userInfo["kSpineTexturePath"] as? String, textureName != path {
+            let url = URL(fileURLWithPath: path)
+            do {
+                let texture = try MTKTextureLoader(device: device)
+                    .newTexture(URL: url, options: option)
+                userInfo[textureKey] = texture
+                return texture
+            } catch {
+                #if DEBUG
+                print("Error loading texture: \(error)")
+                #endif
+            }
+        }
+        let assetName = textureName.replacingOccurrences(of: ".png", with: "")
+        do {
+            let texture = try MTKTextureLoader(device: device)
+                .newTexture(name: assetName, scaleFactor: 3, bundle: bundle, options: option)
+            userInfo[textureKey] = texture
+            return texture
+        } catch {
+            #if DEBUG
+            print("Error loading texture: \(error)")
+            #endif
+        }
         return nil
-//        if let texture = page.rendererObject["kSPTexture"] as? MTLTexture {
-//            return texture
-//        }
-//   
-//        let imageName = String(cString: page.pointee.name)
-//        do {
-//            let url = (bundle ?? .main).url(forResource: imageName, withExtension: nil)!
-//            let texture = try textureLoader.newTexture(URL: url, options: [
-//                .textureUsage  : MTLTextureUsage.shaderRead.rawValue as NSNumber,
-//                .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
-//                .textureCPUCacheMode: MTLCPUCacheMode.writeCombined.rawValue as NSNumber,
-//                .SRGB: false as NSNumber
-//            ])
-//            page.rendererObject["kSPTexture"] = texture
-//            return texture
-//        } catch {
-//            print(error)
-//            return nil
-//        }
-//        return texture
     }
     
     @objc
@@ -302,7 +179,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     public let commandQueue:any MTLCommandQueue
     
     
-    public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+    open func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         let contentScale:CGFloat
         #if os(macOS)
         // Start with a unit size
@@ -319,7 +196,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         self.changeSize(size.applying(.init(scaleX: 1.0/contentScale, y: 1.0/contentScale)), contentScale)
     }
     
-    public func draw(in view: MTKView) {
+    open func draw(in view: MTKView) {
         self.callNeedsUpdate(time: CACurrentMediaTime())
         
         guard
