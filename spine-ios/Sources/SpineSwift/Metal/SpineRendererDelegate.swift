@@ -33,19 +33,4 @@ extension SpineRendererDelegate {
     
 }
 
-@objc
-public protocol SpineVertexBuffer {
-    
-    /// buffer must be cpu accessible
-    var buffer: any MTLBuffer { get }
-    
-    var offsetInBytes:Int { get }
-}
-
-extension SpineVertexBuffer {
-    
-    var offsetInBytes: Int { 0 }
-    
-}
-
 #endif
