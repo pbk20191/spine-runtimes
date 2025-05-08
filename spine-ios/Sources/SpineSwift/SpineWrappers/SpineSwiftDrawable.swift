@@ -10,13 +10,36 @@ import spine_c
 
 open class SpineSwiftDrawable: NSObject {
     
+    @usableFromInline
+    struct AnimationStateCleaner: BoxDisposerProtocol {
+        
+        @usableFromInline
+        static func dispose(_ pointer: UnsafeMutablePointer<spAnimationState>) {
+            spAnimationState_dispose(pointer)
+        }
+        
+    }
+    
+    @usableFromInline
+    struct SkeletonCleaner: BoxDisposerProtocol {
+        
+        @usableFromInline
+        static func dispose(_ pointer: UnsafeMutablePointer<spSkeleton>) {
+            spSkeleton_dispose(pointer)
+        }
+        
+    }
+    
+    @usableFromInline typealias SkeletonBox = PointeeBox<spSkeleton, SkeletonCleaner>
+    @usableFromInline typealias AnimationStateBox = PointeeBox<spAnimationState, AnimationStateCleaner>
+    
     @nonobjc
     internal let pResource: SpineAnimationStateDataBox
     @nonobjc
-    internal let pSkeleton: UnsafeMutablePointer<spSkeleton>
+    internal let pSkeletonBox: SkeletonBox
     @nonobjc
-    internal let pAnimationState:UnsafeMutablePointer<spAnimationState>
-    
+    internal let pAnimationStateBox: AnimationStateBox
+
     @objc
     public weak var animationListner: SpineAnimationListener?
 
@@ -26,11 +49,14 @@ open class SpineSwiftDrawable: NSObject {
     public init(resource: SpineAnimationStateDataBox) {
         self.pResource = resource
         
-        self.pSkeleton = spSkeleton_create(resource.pSkeletonData.nativePointer)
-        self.pAnimationState = spAnimationState_create(resource.nativePointer)
+        let pSkeleton = spSkeleton_create(&resource.pSkeletonData[])!
+        let pAnimationState = spAnimationState_create(&resource[])!
+        self.pSkeletonBox = .init(pSkeleton)
+        self.pAnimationStateBox = .init(pAnimationState)
         super.init()
-        self.pAnimationState.pointee.userData = Unmanaged.passUnretained(self).toOpaque()
-        self.pAnimationState.pointee.listener = _animationEventDispatched
+        
+        pAnimationState.pointee.userData = Unmanaged.passUnretained(self).toOpaque()
+        pAnimationState.pointee.listener = _animationEventDispatched
         spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_NONE)
     }
     
@@ -41,20 +67,15 @@ open class SpineSwiftDrawable: NSObject {
     ) {
         self.init(resource: spineData)
     }
-    
-    deinit {
-        spSkeleton_dispose(pSkeleton)
-        spAnimationState_dispose(pAnimationState)
-    }
-    
+
     @objc
     public func update(delta: Float) {
-        spAnimationState_update(pAnimationState, delta)
-        spAnimationState_apply(pAnimationState, pSkeleton)
+        spAnimationState_update(&self.pAnimationStateBox[], delta)
+        spAnimationState_apply(&self.pAnimationStateBox[], &self.pSkeletonBox[])
 
-        spSkeleton_update(pSkeleton, delta)
+        spSkeleton_update(&self.pSkeletonBox[], delta)
 
-        spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_UPDATE)
+        spSkeleton_updateWorldTransform(&self.pSkeletonBox[], SP_PHYSICS_UPDATE)
     }
     
     @objc open var resource: SpineAnimationStateDataBox {
@@ -66,7 +87,7 @@ open class SpineSwiftDrawable: NSObject {
     public func accessSkeleton(
         _ body: (UnsafeMutablePointer<spSkeleton>) -> Void
     ) {
-        body(pSkeleton)
+        body(&self.pSkeletonBox[])
     }
     /// Do not modify listener and userData
     @available(swift ,obsoleted: 1.0)
@@ -74,25 +95,31 @@ open class SpineSwiftDrawable: NSObject {
     public final func accessAnimation(
         _ body: (UnsafeMutablePointer<spAnimationState>) -> Void
     ) {
-        body(pAnimationState)
+        body(&self.pAnimationStateBox[])
     }
     
+    @inline(__always)
     public var skeleton: spSkeleton {
-        unsafeAddress {
-            .init(pSkeleton)
+        @inline(__always)
+        borrowing _modify {
+            yield &self.pSkeletonBox[]
         }
-        unsafeMutableAddress {
-           pSkeleton
+        @inline(__always)
+        borrowing _read {
+            yield self.pSkeletonBox[]
         }
     }
     
     /// Do not modify listener and userData
+    @inline(__always)
     public var animationState: spAnimationState {
-        unsafeAddress {
-            .init(pAnimationState)
+        @inline(__always)
+        borrowing _modify {
+            yield &self.pAnimationStateBox[]
         }
-        unsafeMutableAddress {
-            pAnimationState
+        @inline(__always)
+        _read {
+            yield self.pAnimationStateBox[]
         }
     }
     

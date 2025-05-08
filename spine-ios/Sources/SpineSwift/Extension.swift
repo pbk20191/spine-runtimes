@@ -10,7 +10,7 @@ import spine_c
 import CoreGraphics
 
 extension UnsafeMutablePointer where Pointee == spRegionAttachment {
-    @inlinable
+
     var rendererObject: UnsafeMutablePointer<spAtlasRegion> {
         pointee.rendererObject.assumingMemoryBound(to: spAtlasRegion.self)
     }
@@ -18,7 +18,7 @@ extension UnsafeMutablePointer where Pointee == spRegionAttachment {
 }
 
 extension UnsafePointer where Pointee == spRegionAttachment {
-    @inlinable
+
     var rendererObject: UnsafeMutablePointer<spAtlasRegion> {
         pointee.rendererObject.assumingMemoryBound(to: spAtlasRegion.self)
     }
@@ -26,14 +26,14 @@ extension UnsafePointer where Pointee == spRegionAttachment {
 }
 
 extension UnsafeMutablePointer where Pointee == spMeshAttachment {
-    @inlinable
+
     var rendererObject: UnsafeMutablePointer<spAtlasRegion> {
         pointee.rendererObject.assumingMemoryBound(to: spAtlasRegion.self)
     }
 }
 
 extension UnsafePointer where Pointee == spMeshAttachment {
-    @inlinable
+
     var rendererObject: UnsafeMutablePointer<spAtlasRegion> {
         pointee.rendererObject.assumingMemoryBound(to: spAtlasRegion.self)
     }
@@ -97,7 +97,6 @@ extension spSkeletonBounds {
 extension Dictionary {
 
     @inline(__always)
-    @usableFromInline
     internal subscript(_ key:Key, safe block : @autoclosure () -> Value) -> Value {
         mutating get {
             if let value = self[key] { return value }
@@ -112,7 +111,6 @@ extension Dictionary {
 extension Dictionary {
 
     @inline(__always)
-    @usableFromInline
     internal subscript(_ key:Key, safe2 block : @autoclosure () -> Value?) -> Value? {
         mutating get {
             if let value = self[key] { return value }

@@ -9,10 +9,28 @@ import spine_c
 
 open class SpineSkeletonDataBox: NSObject {
         
+    @usableFromInline
+    struct Cleanup: BoxDisposerProtocol {
+        
+        @usableFromInline
+        static func dispose(_ pointer: UnsafeMutablePointer<spSkeletonData>) {
+            spSkeletonData_dispose(pointer)
+        }
+        
+    }
+    
+    @usableFromInline
+    typealias Box = PointeeBox<spSkeletonData, Cleanup>
+    
     @nonobjc
     internal let pAtlas: SpineAtlasBox
     @nonobjc
-    internal let nativePointer: UnsafeMutablePointer<spSkeletonData>
+    internal let box: Box
+    
+    @nonobjc
+    private var nativePointer: UnsafeMutablePointer<spSkeletonData> {
+        self.box._pointer
+    }
     
     // expects skeletonData is created from the given atlas
     @nonobjc
@@ -21,7 +39,7 @@ open class SpineSkeletonDataBox: NSObject {
         skeletonData: UnsafeMutablePointer<spSkeletonData>
     ) {
         self.pAtlas = atlas
-        self.nativePointer = skeletonData
+        self.box = .init(skeletonData)
         super.init()
     }
     
@@ -40,7 +58,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         json:String
     ) throws(SpineParsingError) {
-        let reader = spSkeletonJson_create(atlas.nativePointer)!
+        let reader = spSkeletonJson_create(&atlas[])!
         defer {
             spSkeletonJson_dispose(reader)
         }
@@ -57,7 +75,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         jsonPath:String
     ) throws(SpineParsingError) {
-        let reader = spSkeletonJson_create(atlas.nativePointer)!
+        let reader = spSkeletonJson_create(&atlas[])!
         defer {
             spSkeletonJson_dispose(reader)
         }
@@ -74,7 +92,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         binary:Data
     ) throws(SpineParsingError) {
-        let reader = spSkeletonBinary_create(atlas.nativePointer)!
+        let reader = spSkeletonBinary_create(&atlas[])!
         defer {
             spSkeletonBinary_dispose(reader)
         }
@@ -92,7 +110,7 @@ open class SpineSkeletonDataBox: NSObject {
         atlas:SpineAtlasBox,
         skelPath:String
     ) throws(SpineParsingError) {
-        let reader = spSkeletonBinary_create(atlas.nativePointer)!
+        let reader = spSkeletonBinary_create(&atlas[])!
         defer {
             spSkeletonBinary_dispose(reader)
         }
@@ -145,11 +163,7 @@ open class SpineSkeletonDataBox: NSObject {
     ) throws {
         try self.init(atlas: atlas, jsonPath: skelPath)
     }
-    
-    deinit {
-        spSkeletonData_dispose(nativePointer)
-    }
-    
+
     @objc
     open var atlas: SpineAtlasBox { pAtlas }
         
@@ -158,15 +172,20 @@ open class SpineSkeletonDataBox: NSObject {
     public func accessSkeleton(
         _ body: (UnsafeMutablePointer<spSkeletonData>) -> Void
     ) {
-        body(nativePointer)
+        body(&box[])
     }
     
     @nonobjc
+    @inline(__always)
     public subscript() -> spSkeletonData {
-        unsafeAddress {
-            UnsafePointer(nativePointer)
+        @inline(__always)
+        borrowing _modify {
+            yield &self.box[]
         }
-        unsafeMutableAddress { nativePointer }
+        @inline(__always)
+        borrowing _read {
+            yield self.box[]
+        }
     }
     
     open override func isEqual(_ object: Any?) -> Bool {

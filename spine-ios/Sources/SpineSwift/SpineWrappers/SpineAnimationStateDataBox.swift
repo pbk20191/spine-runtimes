@@ -9,19 +9,36 @@ import Foundation
 
 open class SpineAnimationStateDataBox: NSObject {
         
+    @usableFromInline
+    struct Cleanup: BoxDisposerProtocol {
+    
+        @usableFromInline
+        static func dispose(_ pointer: UnsafeMutablePointer<spAnimationStateData>) {
+            spAnimationStateData_dispose(pointer)
+        }
+        
+    }
+    
+    @usableFromInline
+    typealias Box = PointeeBox<spAnimationStateData, Cleanup>
+    
+    @nonobjc internal let box: Box
+    
     @nonobjc
     internal let pSkeletonData: SpineSkeletonDataBox
     @nonobjc
-    internal let nativePointer: UnsafeMutablePointer<spAnimationStateData>
+    private var nativePointer: UnsafeMutablePointer<spAnimationStateData> {
+        self.box._pointer
+    }
     
     @nonobjc
     public init(
         skeletonData: SpineSkeletonDataBox,
         animationStateData: UnsafeMutablePointer<spAnimationStateData>
     ) {
-        precondition(skeletonData.nativePointer == animationStateData.pointee.skeletonData, "skeletonData and animationStateData must be from the same source")
+        precondition(&skeletonData[] == animationStateData.pointee.skeletonData, "skeletonData and animationStateData must be from the same source")
         self.pSkeletonData = skeletonData
-        self.nativePointer = animationStateData
+        self.box = .init(animationStateData)
         super.init()
     }
     
@@ -29,14 +46,9 @@ open class SpineAnimationStateDataBox: NSObject {
     public convenience init(skeletonData: SpineSkeletonDataBox) {
         self.init(
             skeletonData: skeletonData,
-            animationStateData: spAnimationStateData_create(skeletonData.nativePointer)
+            animationStateData: spAnimationStateData_create(&skeletonData[])
         )
     }
-    
-    deinit {
-        spAnimationStateData_dispose(nativePointer)
-    }
-    
     
     @objc
     open var skeletonData: SpineSkeletonDataBox { pSkeletonData }
@@ -46,16 +58,21 @@ open class SpineAnimationStateDataBox: NSObject {
     public final func accessAnimation(
         _ body: (UnsafeMutablePointer<spAnimationStateData>) -> Void
     ) {
-        body(nativePointer)
+        
+        body(&box[])
     }
     
+    @inline(__always)
     @nonobjc
     public subscript() -> spAnimationStateData {
-      unsafeAddress {
-        UnsafePointer(nativePointer)
-      }
-
-      unsafeMutableAddress { nativePointer }
+        @inline(__always)
+        borrowing _modify {
+            yield &box[]
+        }
+        @inline(__always)
+        borrowing _read {
+            yield box[]
+        }
     }
     
     open override func isEqual(_ object: Any?) -> Bool {

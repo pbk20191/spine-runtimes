@@ -9,11 +9,24 @@ import Foundation
 
 open class SpineAtlasBox: NSObject {
     
-    @nonobjc internal let nativePointer: UnsafeMutablePointer<spAtlas>
+    @usableFromInline
+    struct Cleanup: BoxDisposerProtocol {
+        
+        @usableFromInline
+        static func dispose(_ pointer: UnsafeMutablePointer<spAtlas>) {
+            spAtlas_dispose(pointer)
+        }
+        
+    }
+    
+    @usableFromInline
+    typealias Box = PointeeBox<spAtlas, Cleanup>
+    
+    @nonobjc internal let box: Box
     
     @nonobjc
     public init(atlas: UnsafeMutablePointer<spAtlas>) {
-        self.nativePointer = atlas
+        self.box = .init(atlas)
         super.init()
     }
     
@@ -54,25 +67,27 @@ open class SpineAtlasBox: NSObject {
     public convenience init(notForSwift atlas: UnsafeMutablePointer<spAtlas>) {
         self.init(atlas: atlas)
     }
-    
-    deinit {
-        spAtlas_dispose(nativePointer)
-    }
+
     
     @available(swift ,obsoleted: 1.0)
     @objc
     public final func accessAtlas(
         _ body: (UnsafeMutablePointer<spAtlas>) -> Void
     ) {
-        body(nativePointer)
+        body(&box[])
     }
     
+    @inline(__always)
     @nonobjc
     public subscript() -> spAtlas {
-        unsafeAddress {
-            UnsafePointer(nativePointer)
+        @inline(__always)
+        borrowing _modify {
+            yield &box[]
         }
-        unsafeMutableAddress { nativePointer }
+        @inline(__always)
+        borrowing _read {
+            yield box[]
+        }
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -84,6 +99,10 @@ open class SpineAtlasBox: NSObject {
     
     open override var hash: Int {
         return self.nativePointer.hashValue
+    }
+    
+    @nonobjc private var nativePointer:UnsafeMutablePointer<spAtlas> {
+        self.box._pointer
     }
     
 }
