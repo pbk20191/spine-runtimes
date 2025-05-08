@@ -22,10 +22,10 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
     }
 
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        spSkeleton_setToSetupPose(drawable.pSkeleton)
+        spSkeleton_setToSetupPose(&drawable.skeleton)
         let clipper = spSkeletonClipping_create()!
         defer { spSkeletonClipping_dispose(clipper) }
-        let region = SpineMathUtils.measureBound(drawable.pSkeleton, clipper)
+        let region = SpineMathUtils.measureBound(&drawable.skeleton, clipper)
         if region.isEmpty {
             return .zero
         }
@@ -123,8 +123,8 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
 
     
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        let data = drawable.resource.skeletonData.nativePointer
-        let oldSkin = drawable.pSkeleton.pointee.skin
+        let data = drawable.resource.skeletonData
+        let oldSkin = drawable.skeleton.skin
         
         let customSkin = spSkin_create("custom-skin")
         defer {
@@ -135,23 +135,23 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
             spSkeletonClipping_dispose(clipper)
         }
         for skinName in skins {
-            if let skin = spSkeletonData_findSkin(data, skinName) {
+            if let skin = spSkeletonData_findSkin(&data[], skinName) {
                 spSkin_addSkin(customSkin, skin)
             }
         }
-        spSkeleton_setSkin(drawable.pSkeleton, customSkin);
-        spSkeleton_setToSetupPose(drawable.pSkeleton)
+        spSkeleton_setSkin(&drawable.skeleton, customSkin);
+        spSkeleton_setToSetupPose(&drawable.skeleton)
         let animation = animation.flatMap {
-            spSkeletonData_findAnimation(data, $0)
+            spSkeletonData_findAnimation(&data[], $0)
         }
         var bounding = CGRect.null
 
         if let animation {
-            spAnimationState_setAnimation(drawable.pAnimationState, 0, animation, 0)
+            spAnimationState_setAnimation(&drawable.animationState, 0, animation, 0)
             let steps = Int(max(Double(animation.pointee.duration) / stepTime, 1.0))
             for i in 0..<steps {
                 drawable.update(delta: i > 0 ? Float(stepTime) : 0.0)
-                let path = SpineMathUtils.measureBound(drawable.pSkeleton, clipper)
+                let path = SpineMathUtils.measureBound(&drawable.skeleton, clipper)
                 if path.isEmpty {
                     continue
                 }
@@ -163,7 +163,7 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
             }
         } else {
 
-            let path = SpineMathUtils.measureBound(drawable.pSkeleton, clipper)
+            let path = SpineMathUtils.measureBound(&drawable.skeleton, clipper)
             if !path.isEmpty {
                 if bounding.isNull {
                     bounding = path.boundingBox
@@ -173,13 +173,13 @@ public final class SkinAndAnimationBounds: NSObject, SkeletonBoundsProvider, Sen
             }
 
         }
-        spSkeleton_setSkinByName(drawable.pSkeleton, "default")
-        spAnimationState_clearTracks(drawable.pAnimationState)
+        spSkeleton_setSkinByName(&drawable.skeleton, "default")
+        spAnimationState_clearTracks(&drawable.animationState)
         
         if let oldSkin {
-            spSkeleton_setSkin(drawable.pSkeleton, oldSkin)
+            spSkeleton_setSkin(&drawable.skeleton, oldSkin)
         }
-        spSkeleton_setToSetupPose(drawable.pSkeleton)
+        spSkeleton_setToSetupPose(&drawable.skeleton)
         drawable.update(delta: 0)
         if bounding.isNull {
             return .zero
