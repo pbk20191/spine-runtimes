@@ -11,7 +11,7 @@ import MetalKit
 import simd
 import spine_c
 
-open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate, SpineAnimationListener {
+open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate {
 
     @objc public var textureBundle: Bundle?
     
@@ -70,9 +70,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         samplerCache[config] = sampler
         return sampler
     }
-    
-    open func eventDispatched(drawable: SpineSwift.SpineSwiftDrawable, type: spEventType, entry: UnsafeMutablePointer<spTrackEntry>, event: UnsafePointer<spEvent>?) {}
-    
+       
     open func spineRenderer(_ renderer: SpineRenderer, didUpdateAtTime time: CFAbsoluteTime) {}
     
     open func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime) {}
@@ -154,7 +152,6 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
             contentMode: contentMode,
             alignment: alignment
         )
-        drawable.animationListner = self
         delegate = self
     }
     
