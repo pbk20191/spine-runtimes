@@ -205,7 +205,11 @@ open class SpineRenderer: NSObject {
             return false
         }
         let displayTransform = self.pLastSizingOutput
-        let commandEntry = RenderCallBackContext.render(self.model.resource.pSkeletonData.pAtlas.nativePointer, model.pSkeleton, self.pClipping)
+        
+        let commandEntry = withUnsafePointer(to: &self.model.resource.skeletonData.atlas[]) { ref in
+            RenderCallBackContext.render(ref, &model.skeleton, self.pClipping)
+        }
+        
         guard commandEntry.verteArray.count > 0 else {
             return true
         }
