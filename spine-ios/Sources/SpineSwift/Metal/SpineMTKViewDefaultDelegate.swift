@@ -29,7 +29,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
     }
     
-    open func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int, offsetInBytes: UnsafeMutablePointer<Int>) -> (any MTLBuffer)? {
+    open func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int) -> (any SpineVertexBuffer)? {
         if bufferingSemaphore.wait(timeout: .now()) == .timedOut {
             return nil
         }
@@ -39,10 +39,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         let buffer = buffers[currentBufferIndex]
         currentBufferIndex = (currentBufferIndex + 1) % maxBuffer.rawValue
         buffer.setPurgeableState(.nonVolatile)
-        offsetInBytes.pointee = 0
-        let proxy = ScratchBufferSwiftProxy(buffer: buffer, semaphore: bufferingSemaphore)
-        let ref = proxy as! (any MTLBuffer)
-        return ref
+        return ScratchBufferHolder(buffer: buffer, semaphore: bufferingSemaphore)
     }
     
     private var samplerCache = [AtlasSamplerConfig: any MTLSamplerState]()
@@ -206,7 +203,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         }
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPass)!
 
-        if self.encode(renderEncoder: renderEncoder) {
+        if self.encode(using: commandBuffer, renderEncoder: renderEncoder) {
             renderEncoder.endEncoding()
             commandBuffer.present(drawable)
             commandBuffer.commit()
