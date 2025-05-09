@@ -38,6 +38,22 @@ internal struct CommandEntry:  Sendable {
                 self._slice = .init(newValue)
             }
         }
+#if compiler(<6.1)
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(pageIndex)
+            hasher.combine(blendMode.rawValue)
+            hasher.combine(slice)
+        }
+        
+        static func == (lhs: CommandMeta, rhs: CommandMeta) -> Bool {
+            guard
+                lhs.pageIndex == rhs.pageIndex,
+                lhs.blendMode == rhs.blendMode,
+                lhs.slice == rhs.slice
+            else { return false }
+            return true
+        }
+#endif
         
         public init(pageIndex: Int, blendMode: spBlendMode, slice: VertexBuffer.Indices) {
             self.pageIndex = pageIndex
