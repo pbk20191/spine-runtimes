@@ -232,7 +232,9 @@ open class SpineRenderer: NSObject {
         
 #if os(macOS) || targetEnvironment(macCatalyst)
         if vertexBuffer.storageMode == .managed {
-            vertexBuffer.didModifyRange(offsetInBytes..<(offsetInBytes + bufferCount))
+            if #available(macCatalyst 14.0, macOS 10.11, *) {
+                vertexBuffer.didModifyRange(offsetInBytes..<(offsetInBytes + bufferCount))
+            }
         }
 #endif
         let atlaPageArray = sequence(first: self.model.resource.pSkeletonData.pAtlas[].pages, next: \.pointee.next).map(\.self)
