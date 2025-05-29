@@ -52,74 +52,48 @@ open class SpineSkeletonDataBox: NSObject {
         self.init(atlas: atlas, skeletonData: skeletonData)
     }
     
-    // typed Throw is unavailbe for objc interface using library evolution mode
-
-    @nonobjc public convenience init(
-        atlas:SpineAtlasBox,
-        json:String
-    ) throws(SpineParsingError) {
-        let reader = spSkeletonJson_create(&atlas[])!
-        defer {
-            spSkeletonJson_dispose(reader)
-        }
-        let dataBlock = spSkeletonJson_readSkeletonData(reader, json)
-        if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
-        } else {
-            throw SpineParsingError(String(cString: reader.pointee.error))
-        }
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:json:scale:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        json:String,
+        scale: Float = 1
+    ) throws {
+        try self.init(atlas: atlas, json: json, scale: scale)
     }
-    // typed Throw is unavailbe for objc interface using library evolution mode
-
-    @nonobjc public convenience init(
-        atlas:SpineAtlasBox,
-        jsonPath:String
-    ) throws(SpineParsingError) {
-        let reader = spSkeletonJson_create(&atlas[])!
-        defer {
-            spSkeletonJson_dispose(reader)
-        }
-        let dataBlock = spSkeletonJson_readSkeletonDataFile(reader, jsonPath)
-        if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
-        } else {
-            throw SpineParsingError(String(cString: reader.pointee.error))
-        }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:jsonPath:scale:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        jsonPath:String,
+        scale: Float = 1
+    ) throws {
+        try self.init(atlas: atlas, jsonPath: jsonPath, scale: scale)
     }
-    // typed Throw is unavailbe for objc interface using library evolution mode
-
-    @nonobjc public convenience init(
-        atlas:SpineAtlasBox,
-        binary:Data
-    ) throws(SpineParsingError) {
-        let reader = spSkeletonBinary_create(&atlas[])!
-        defer {
-            spSkeletonBinary_dispose(reader)
-        }
-        let dataBlock = binary.withUnsafeBytes {
-            spSkeletonBinary_readSkeletonData(reader, $0.baseAddress, Int32($0.count))
-        }
-        if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
-        } else {
-            throw SpineParsingError(String(cString: reader.pointee.error))
-        }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:binary:scale:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        binary:Data,
+        scale: Float = 1
+    ) throws {
+        try self.init(atlas: atlas, binary: binary, scale: scale)
     }
-    // typed Throw is unavailbe for objc interface using library evolution mode
-    @nonobjc public convenience init(
-        atlas:SpineAtlasBox,
-        skelPath:String
-    ) throws(SpineParsingError) {
-        let reader = spSkeletonBinary_create(&atlas[])!
-        defer {
-            spSkeletonBinary_dispose(reader)
-        }
-        let dataBlock = spSkeletonBinary_readSkeletonDataFile(reader, skelPath)
-        if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
-        } else {
-            throw SpineParsingError(String(cString: reader.pointee.error))
-        }
+    
+    // typed Throw cause compiler crash with objc interface when library evolution is enabled
+    @available(swift, obsoleted: 1.0)
+    @objc(initWithAtlas:skelPath:scale:error:)
+    public convenience init(
+        notForSwift atlas:SpineAtlasBox,
+        skelPath:String,
+        scale:Float = 1
+    ) throws {
+        try self.init(atlas: atlas, skelPath: skelPath, scale: scale)
     }
     
     // typed Throw cause compiler crash with objc interface when library evolution is enabled
@@ -130,7 +104,6 @@ open class SpineSkeletonDataBox: NSObject {
         json:String
     ) throws {
         try self.init(atlas: atlas, json: json)
-
     }
     
     // typed Throw cause compiler crash with objc interface when library evolution is enabled
@@ -141,7 +114,6 @@ open class SpineSkeletonDataBox: NSObject {
         jsonPath:String
     ) throws {
         try self.init(atlas: atlas, jsonPath: jsonPath)
-
     }
     // typed Throw cause compiler crash with objc interface when library evolution is enabled
     @available(swift, obsoleted: 1.0)
@@ -161,7 +133,7 @@ open class SpineSkeletonDataBox: NSObject {
         notForSwift atlas:SpineAtlasBox,
         skelPath:String
     ) throws {
-        try self.init(atlas: atlas, jsonPath: skelPath)
+        try self.init(atlas: atlas, skelPath: skelPath)
     }
 
     @objc
@@ -197,6 +169,89 @@ open class SpineSkeletonDataBox: NSObject {
     
     open override var hash: Int {
         return self.nativePointer.hashValue
+    }
+    
+}
+
+extension SpineSkeletonDataBox {
+    
+    // typed Throw is unavailbe for objc interface using library evolution mode
+
+    @nonobjc public convenience init(
+        atlas:SpineAtlasBox,
+        json:String,
+        scale: Float = 1
+    ) throws(SpineParsingError) {
+        let reader = spSkeletonJson_create(&atlas[])!
+        reader.pointee.scale = scale
+        defer {
+            spSkeletonJson_dispose(reader)
+        }
+        let dataBlock = spSkeletonJson_readSkeletonData(reader, json)
+        if let dataBlock {
+            self.init(atlas: atlas, skeletonData: dataBlock)
+        } else {
+            throw SpineParsingError(String(cString: reader.pointee.error))
+        }
+    }
+    // typed Throw is unavailbe for objc interface using library evolution mode
+
+    @nonobjc public convenience init(
+        atlas:SpineAtlasBox,
+        jsonPath:String,
+        scale: Float = 1
+    ) throws(SpineParsingError) {
+        let reader = spSkeletonJson_create(&atlas[])!
+        reader.pointee.scale = scale
+        defer {
+            spSkeletonJson_dispose(reader)
+        }
+        let dataBlock = spSkeletonJson_readSkeletonDataFile(reader, jsonPath)
+        if let dataBlock {
+            self.init(atlas: atlas, skeletonData: dataBlock)
+        } else {
+            throw SpineParsingError(String(cString: reader.pointee.error))
+        }
+    }
+    // typed Throw is unavailbe for objc interface using library evolution mode
+
+    @nonobjc public convenience init(
+        atlas:SpineAtlasBox,
+        binary:Data,
+        scale: Float = 1
+    ) throws(SpineParsingError) {
+        let reader = spSkeletonBinary_create(&atlas[])!
+        reader.pointee.scale = scale
+        defer {
+            spSkeletonBinary_dispose(reader)
+        }
+        let dataBlock = binary.withUnsafeBytes {
+            spSkeletonBinary_readSkeletonData(reader, $0.baseAddress, Int32($0.count))
+        }
+        if let dataBlock {
+            self.init(atlas: atlas, skeletonData: dataBlock)
+        } else {
+            throw SpineParsingError(String(cString: reader.pointee.error))
+        }
+    }
+    
+    // typed Throw is unavailbe for objc interface using library evolution mode
+    @nonobjc public convenience init(
+        atlas:SpineAtlasBox,
+        skelPath:String,
+        scale: Float = 1
+    ) throws(SpineParsingError) {
+        let reader = spSkeletonBinary_create(&atlas[])!
+        reader.pointee.scale = scale
+        defer {
+            spSkeletonBinary_dispose(reader)
+        }
+        let dataBlock = spSkeletonBinary_readSkeletonDataFile(reader, skelPath)
+        if let dataBlock {
+            self.init(atlas: atlas, skeletonData: dataBlock)
+        } else {
+            throw SpineParsingError(String(cString: reader.pointee.error))
+        }
     }
     
 }
