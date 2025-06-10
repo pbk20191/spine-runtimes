@@ -282,21 +282,6 @@ open class SpineRenderer: NSObject {
                 currentPipeLine = pipelineState
                 renderEncoder.setRenderPipelineState(pipelineState)
             }
-            if !pma, fragment.blendMode == SP_BLEND_MODE_SCREEN || fragment.blendMode == SP_BLEND_MODE_MULTIPLY {
-                if !premultiplyAlpha {
-                    premultiplyAlpha = true
-                    withUnsafeBytes(of: premultiplyAlpha) {
-                        renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
-                    }
-                }
-            } else {
-                if premultiplyAlpha {
-                    premultiplyAlpha = false
-                    withUnsafeBytes(of: premultiplyAlpha) {
-                        renderEncoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
-                    }
-                }
-            }
             let vertices = commandEntry.verteArray[fragment.slice]
             if let texture = textureMap[page, safe2: self.delegate?.spineRenderer(self, textureForPage: page)] {
                 if !texture.isEqual(currentTexture) {
@@ -341,8 +326,15 @@ open class SpineRenderer: NSObject {
             SP_BLEND_MODE_SCREEN
         ]
         let descriptor = MTLRenderPipelineDescriptor()
+        let constants = MTLFunctionConstantValues()
+        var premulAlphaTrue: Bool = true
+        constants.setConstantValue(&premulAlphaTrue, type: .bool, withName: "kPremultiplyAlpha")
+        let pmaFragment = try defaultLibrary.makeFunction(name: "spine_fragmentShader", constantValues: constants)
+        premulAlphaTrue = false
+        constants.setConstantValue(&premulAlphaTrue, type: .bool, withName: "kPremultiplyAlpha")
+        let nonpmaFragment = try defaultLibrary.makeFunction(name: "spine_fragmentShader", constantValues: constants)
         descriptor.vertexFunction = defaultLibrary.makeFunction(name: "spine_vertexShader")
-        descriptor.fragmentFunction = defaultLibrary.makeFunction(name: "spine_fragmentShader")
+        descriptor.fragmentFunction = nonpmaFragment
         descriptor.colorAttachments[0].pixelFormat = pixelFormat
         descriptor.vertexBuffers[0].mutability = .immutable
         descriptor.vertexBuffers[1].mutability = .immutable
@@ -367,18 +359,21 @@ open class SpineRenderer: NSObject {
             for pma in [true, false] {
                 if  blendMode == SP_BLEND_MODE_ADDITIVE || blendMode == SP_BLEND_MODE_NORMAL, pma {
                     descriptor.label = label + "_PMA"
+                    descriptor.fragmentFunction = pmaFragment
                 } else {
+                    descriptor.fragmentFunction = nonpmaFragment
                     descriptor.label = label
                 }
                 descriptor.colorAttachments[0].apply(
                     blendMode: blendMode,
                     with: pma
                 )
-                if let existing = pipeLinecache[descriptor.colorAttachments[0].computeLocalHashCode()] {
+                let hashCode = descriptor.colorAttachments[0].computeLocalHashCode(pma: descriptor.fragmentFunction === pmaFragment)
+                if let existing = pipeLinecache[hashCode] {
                     pipelineStates[.init(pma: pma, blendMode: blendMode)] = existing
                 } else {
                     let newPipeLine = try device.makeRenderPipelineState(descriptor: descriptor)
-                    pipeLinecache[descriptor.colorAttachments[0].computeLocalHashCode()] = newPipeLine
+                    pipeLinecache[hashCode] = newPipeLine
                     pipelineStates[.init(pma: pma, blendMode: blendMode)] = newPipeLine
                 }
             }
@@ -451,12 +446,13 @@ fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
 
 fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
     
-    func computeLocalHashCode() -> Int {
+    func computeLocalHashCode(pma:Bool) -> Int {
         var hasher = Hasher()
         hasher.combine(self.sourceRGBBlendFactor)
         hasher.combine(self.sourceAlphaBlendFactor)
         hasher.combine(self.destinationRGBBlendFactor)
         hasher.combine(self.destinationAlphaBlendFactor)
+        hasher.combine(pma)
         return hasher.finalize()
     }
     

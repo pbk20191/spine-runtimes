@@ -4,6 +4,8 @@ using namespace metal;
 
 #import "../../SpineShadersStructs/SpineShadersStructs.h"
 
+constant bool kPremultiplyAlpha [[function_constant(0)]];
+
 struct RasterizerData {
     simd_float4 position [[position]];
     simd_float2 textureCoordinate;
@@ -66,14 +68,13 @@ fragment simd_half4
 spine_fragmentShader(
                      RasterizerData in [[stage_in]],
                      const texture2d<half, access::sample> colorTexture [[ texture(SpineTextureIndexBaseColor) ]],
-                     constant bool &premultiplyAlpha [[buffer(0)]],
                      const sampler textureSampler [[ sampler(0) ]]
                      )
 {
 
     const half4 rawSample = colorTexture.sample(textureSampler, in.textureCoordinate);
 
-    const half4 tex = half4(rawSample.rgb * (premultiplyAlpha ? rawSample.a : 1.0h), rawSample.a);
+    const half4 tex = half4(rawSample.rgb * (kPremultiplyAlpha ? rawSample.a : 1.0h), rawSample.a);
 
     half4 src;
     src.a = tex.a * in.lightColor.a;
