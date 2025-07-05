@@ -56,7 +56,7 @@ open class SpineSwiftDrawable: NSObject {
         super.init()
         
         pAnimationState.pointee.userData = Unmanaged.passUnretained(self).toOpaque()
-        pAnimationState.pointee.listener = _animationEventDispatched
+        pAnimationState.pointee.listener = Self._eventDispatcher
         spSkeleton_updateWorldTransform(pSkeleton, SP_PHYSICS_NONE)
     }
     
@@ -123,20 +123,45 @@ open class SpineSwiftDrawable: NSObject {
         }
     }
     
-
-}
-
-fileprivate func _animationEventDispatched(
-    state: UnsafeMutablePointer<spAnimationState>?,
-    type: spEventType,
-    entry: UnsafeMutablePointer<spTrackEntry>?,
-    event: UnsafeMutablePointer<spEvent>?
-) {
-    guard
-        let userRef = state?.pointee.userData,
-        let wrapper = Unmanaged<AnyObject>.fromOpaque(userRef).takeUnretainedValue() as? SpineSwiftDrawable
-    else {
-        return
+    @inline(__always)
+    @usableFromInline
+    @nonobjc
+    internal static var _eventDispatcher:spAnimationStateListener {
+        { state, type, entry, event in
+            let drawable: SpineSwiftDrawable
+            #if DEBUG
+            guard
+                let userRef = state?.pointee.userData,
+                let wrapper = Unmanaged<AnyObject>.fromOpaque(userRef).takeUnretainedValue() as? SpineSwiftDrawable
+            else {
+                assertionFailure("SpineSwiftDrawable must have userData set to itself")
+                return
+            }
+            drawable = wrapper
+            #else
+            drawable = Unmanaged<SpineSwiftDrawable>.fromOpaque(state!.pointee.userData).takeUnretainedValue()
+            #endif
+            drawable.dispatch(state: state, type: type, entry: entry, event: event)
+        }
     }
-    wrapper.animationListner?.eventDispatched(drawable: wrapper, type: type, entry: entry!, event: event)
+    
+    @inline(__always)
+    @usableFromInline
+    @nonobjc
+    internal final func dispatch(
+        state: UnsafeMutablePointer<spAnimationState>!,
+        type: spEventType,
+        entry: UnsafeMutablePointer<spTrackEntry>!,
+        event: UnsafePointer<spEvent>?
+    ) {
+        assert(state == &self.pAnimationStateBox[], "state must be the same as self.animationState")
+        trackMoved(entry: entry, to: type, event: event)
+        animationListner?.eventDispatched(drawable: self, type: type, entry: entry!, event: event)
+    }
+    
+    @objc
+    open func trackMoved(entry: UnsafeMutablePointer<spTrackEntry>, to type:spEventType, event: UnsafePointer<spEvent>?) {
+
+    }
+
 }
