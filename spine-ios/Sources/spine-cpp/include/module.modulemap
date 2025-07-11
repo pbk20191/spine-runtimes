@@ -1,0 +1,4 @@
+module spine_cpp {
+    header "spine_public.hpp"
+    export *
+}

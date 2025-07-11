@@ -18,7 +18,8 @@ let package = Package(
         .library(
             name: "Spine",
             targets: ["SpineModule"]
-        )
+        ),
+        .library(name: "SpineSwift", targets: ["SpineSwift"]),
     ],
     targets: [
         .target(
@@ -45,6 +46,33 @@ let package = Package(
         .target(
             name: "SpineCppLite",
             path: "spine-ios/Sources/SpineCppLite",
+            linkerSettings: [
+                .linkedLibrary("c++"),
+            ]
+        ),
+        .target(
+            name: "spine_cpp",
+            path: "spine-ios/Sources/spine-cpp",
+            cxxSettings: [
+                .define("SPINE_USE_STD_FUNCTION", to: "1"),
+            ],
+            linkerSettings: [
+                .linkedLibrary("c++"),
+            ]
+        ),
+        .target(
+            name: "SpineSwift",
+            dependencies: [
+                "spine_cpp", "SpineShadersStructs",
+            ],
+            path: "spine-ios/Sources/SpineSwift",
+            cxxSettings: [
+                .define("SPINE_USE_STD_FUNCTION"),
+            ],
+            swiftSettings: [
+                .interoperabilityMode(.Cxx),
+                .define("SPINE_USE_STD_FUNCTION"),
+            ],
             linkerSettings: [
                 .linkedLibrary("c++"),
             ]

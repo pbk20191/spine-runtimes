@@ -1,0 +1,35 @@
+//
+//  SizingInfoInput.swift
+//  spine-ios
+//
+//  Created by 박병관 on 3/17/25.
+//
+import CoreGraphics
+
+public struct SizingInfoInput: Hashable, BitwiseCopyable, Sendable {
+    
+    public var spineNativeBound:CGRect
+    public var contentMode:ContentMode
+    public var alignment:Alignment
+    public var displaySize:CGSize
+    public var displayScale:CGFloat
+    // this will be passed to MTLViewPort with scaled version
+    // use it when you only want to render the portion of Texture
+    public var offSet:CGPoint = .zero
+
+    public var displayPixelSize:CGSize {
+        displaySize.applying(.init(scaleX: displayScale, y: displayScale))
+    }
+    
+    public init(spineNativeBound: CGRect, contentMode: ContentMode, alignment: Alignment, displaySize: CGSize, displayScale: CGFloat) {
+        self.spineNativeBound = spineNativeBound
+        self.contentMode = contentMode
+        self.alignment = alignment
+        self.displaySize = displaySize
+        self.displayScale = displayScale
+    }
+    
+    func generateOutput() -> SizingInfoOutput {
+        SpineMathUtils.translateSize(textureBoundInPoint: .init(origin: offSet, size: displaySize), contentScale: displayScale, boundOfDrawable: spineNativeBound, alignment: alignment, contentMode: contentMode)
+    }
+}
