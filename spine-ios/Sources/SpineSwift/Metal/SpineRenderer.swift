@@ -5,7 +5,7 @@
 //  Created by 박병관 on 3/16/25.
 //
 
-import spine_cpp
+import spine_c
 import simd
 import SpineShadersStructs
 #if canImport(Metal)
@@ -30,16 +30,13 @@ open class SpineRenderer: NSObject {
     private var pSpineBoundComputer: any SkeletonBoundsProvider = SetupPoseBounds()
     
     struct Disposer: BoxDisposerProtocol {
-        static func dispose(_ pointer: UnsafeMutablePointer<spine.SkeletonRenderer>) {
-            pointer.deinitialize(count: 1)
-//            let str = #file as StaticString
-//            spine.SpineExtension.free(pointer, str.utf8Start, #line)
-            pointer.deallocate()
+        static func dispose(_ pointer: spine_skeleton_renderer) {
+            spine_skeleton_renderer_dispose(pointer)
         }
     }
     
     @nonobjc
-    internal var cppRenderer = spine.SkeletonRenderer()
+    internal let cppRenderer = PointeeBox<spine_skeleton_renderer_wrapper, Disposer>(spine_skeleton_renderer_create())
     
     @nonobjc
     private var pSizingInput = SizingInfoInput(
@@ -210,15 +207,25 @@ open class SpineRenderer: NSObject {
             return false
         }
         let displayTransform = self.pLastSizingOutput
-        let commandHead = withUnsafeMutablePointer(to: &self.cppRenderer) { spine_support.spine_render(&$0.pointee, &self.model.skeleton)
-        }
+        
+        let commandHead = spine_skeleton_renderer_render(&self.cppRenderer[], &self.model.skeleton)
        
         let commands = sequence(state: commandHead, next: {
-            let command = $0?.pointee
-            $0 = $0?.pointee.next
+            let command = $0
+            if $0 != nil {
+                $0 = spine_render_command_get_next($0)
+            }
             return command
         })
-        let commandEntry = CommandEntry(commands)
+        let pageArrayRef = spine_atlas2_get_pages(&self.model.resource.skeletonData.pAtlas[])
+        let pageBuffer = UnsafeBufferPointer.init(
+            start:  UnsafePointer<spine_atlas_page>(
+                OpaquePointer(spine_array_atlas_page_buffer(pageArrayRef))
+            ),
+            count: spine_array_atlas_page_size(pageArrayRef)
+        )
+            
+        let commandEntry = CommandEntry(commands, pageBuffer)
 
         guard commandEntry.verteArray.count > 0 else {
             return true
@@ -248,8 +255,7 @@ open class SpineRenderer: NSObject {
             }
         }
 #endif
-        let pageArrayRef = spine_support.atlas_getPages(&self.model.resource.skeletonData.pAtlas[])
-        
+
         renderEncoder.setViewport(
             MTLViewport(
                 originX: displayTransform.viewPort.origin.x,
@@ -277,13 +283,12 @@ open class SpineRenderer: NSObject {
         var currentTexture = (any MTLTexture)?.none
         var currentSampler = (any MTLSamplerState)?.none
 
-        var textureMap = [UnsafeMutablePointer<spine.AtlasPage>: MTLTexture]()
-        var samplerMap = [UnsafeMutablePointer<spine.AtlasPage>: MTLSamplerState]()
+        var textureMap = ContiguousArray<MTLTexture?>(repeating: nil, count: pageBuffer.count)
+        var samplerMap = ContiguousArray<MTLSamplerState?>(repeating: nil, count: pageBuffer.count)
         for fragment in commandEntry.metaInfo {
             
-            let page = pageArrayRef.pointee[fragment.pageIndex]!
-
-            let pma = page.pointee.pma
+            let page = pageBuffer[fragment.pageIndex]
+            let pma = spine_atlas_page_get_pma(page)
             
             guard let pipelineState = pipeLineStates[.init(pma: pma, blendMode: fragment.blendMode)] else {
                 continue
@@ -295,7 +300,7 @@ open class SpineRenderer: NSObject {
                 renderEncoder.setRenderPipelineState(pipelineState)
             }
             let vertices = commandEntry.verteArray[fragment.slice]
-            if let texture = textureMap[page, safe2: self.delegate?.spineRenderer(self, textureForPage: page)] {
+            if let texture = textureMap[fragment.pageIndex, safe2: self.delegate?.spineRenderer(self, textureForPage: page)] {
                 if !texture.isEqual(currentTexture) {
                     currentTexture = texture
                     renderEncoder.setFragmentTexture(texture, index: Int(SpineTextureIndexBaseColor.rawValue))
@@ -303,7 +308,7 @@ open class SpineRenderer: NSObject {
             } else {
                 continue
             }
-            if let sampler = samplerMap[page, safe2: self.delegate?.spineRenderer(self, samplerForPage: page)] {
+            if let sampler = samplerMap[fragment.pageIndex, safe2: self.delegate?.spineRenderer(self, samplerForPage: page)] {
                 if !sampler.isEqual(currentSampler) {
                     currentSampler = sampler
                     renderEncoder.setFragmentSamplerState(sampler, index: 0)
@@ -332,10 +337,10 @@ open class SpineRenderer: NSObject {
         
         let defaultLibrary = try device.makeDefaultLibrary(bundle: bundle)
         let blendModes = [
-            spine.BlendMode_Normal,
-            spine.BlendMode_Additive,
-            spine.BlendMode_Multiply,
-            spine.BlendMode_Screen
+            SPINE_BLEND_MODE_NORMAL,
+            SPINE_BLEND_MODE_ADDITIVE,
+            SPINE_BLEND_MODE_MULTIPLY,
+            SPINE_BLEND_MODE_SCREEN
         ]
         let descriptor = MTLRenderPipelineDescriptor()
         let constants = MTLFunctionConstantValues()
@@ -359,13 +364,13 @@ open class SpineRenderer: NSObject {
         for blendMode in blendModes {
             var label = ""
             switch blendMode {
-            case spine.BlendMode_Normal:
+            case SPINE_BLEND_MODE_NORMAL:
                 label = "SPINE_NORMAL"
-            case spine.BlendMode_Screen:
+            case SPINE_BLEND_MODE_SCREEN:
                 label = "SPINE_SCREEN"
-            case spine.BlendMode_Multiply:
+            case SPINE_BLEND_MODE_MULTIPLY:
                 label = "SPINE_MULTIPLY"
-            case spine.BlendMode_Additive:
+            case SPINE_BLEND_MODE_ADDITIVE:
                 label = "SPINE_ADDITIVE"
             default:
                 continue
@@ -376,7 +381,7 @@ open class SpineRenderer: NSObject {
                 } else {
                     descriptor.vertexFunction = nonpmaVertex
                 }
-                if  blendMode == spine.BlendMode_Additive || blendMode == spine.BlendMode_Normal, pma {
+                if  blendMode == SPINE_BLEND_MODE_ADDITIVE || blendMode == SPINE_BLEND_MODE_NORMAL, pma {
                     descriptor.label = label + "_PMA"
                     descriptor.fragmentFunction = pmaFragment
 
@@ -422,18 +427,18 @@ open class SpineRenderer: NSObject {
 
 }
 
-fileprivate extension spine.BlendMode {
+fileprivate extension spine_blend_mode {
     
     func sourceRGBBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
         switch self {
-        case spine.BlendMode_Normal:
+        case SPINE_BLEND_MODE_NORMAL:
             return premultipliedAlpha ? .one : .sourceAlpha
-        case spine.BlendMode_Additive:
+        case SPINE_BLEND_MODE_ADDITIVE:
             return premultipliedAlpha ? .one : .sourceAlpha
-        case spine.BlendMode_Multiply:
+        case SPINE_BLEND_MODE_MULTIPLY:
             // requires src rgb chnnel to be multiplied by 1 alpha src before blending in non pma
             return  .destinationColor
-        case spine.BlendMode_Screen:
+        case SPINE_BLEND_MODE_SCREEN:
             // requires src rgb chnnel to be multiplied by 1 alpha src before blending in non pma
             return  .oneMinusDestinationColor
         default:
@@ -445,15 +450,15 @@ fileprivate extension spine.BlendMode {
 
 fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
     
-    func apply(blendMode: spine.BlendMode, with premultipliedAlpha: Bool) {
+    func apply(blendMode: spine_blend_mode, with premultipliedAlpha: Bool) {
         isBlendingEnabled = true
         sourceRGBBlendFactor = blendMode.sourceRGBBlendFactor(premultipliedAlpha: premultipliedAlpha)
-        sourceAlphaBlendFactor = blendMode == spine.BlendMode_Screen ? .oneMinusDestinationAlpha : .one
+        sourceAlphaBlendFactor = blendMode == SPINE_BLEND_MODE_SCREEN ? .oneMinusDestinationAlpha : .one
         switch blendMode {
-        case spine.BlendMode_Normal, spine.BlendMode_Multiply:
+        case SPINE_BLEND_MODE_NORMAL, SPINE_BLEND_MODE_MULTIPLY:
             destinationAlphaBlendFactor = .oneMinusSourceAlpha
             destinationRGBBlendFactor = .oneMinusSourceAlpha
-        case spine.BlendMode_Additive, spine.BlendMode_Screen:
+        case SPINE_BLEND_MODE_ADDITIVE, SPINE_BLEND_MODE_SCREEN:
             destinationAlphaBlendFactor = .one
             destinationRGBBlendFactor = .one
         default:

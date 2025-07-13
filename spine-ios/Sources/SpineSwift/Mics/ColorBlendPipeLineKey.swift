@@ -4,15 +4,15 @@
 //
 //  Created by 박병관 on 3/17/25.
 //
-import spine_cpp
+import spine_c
 import Foundation
 
 public struct ColorBlendPipeLineKey: Hashable, BitwiseCopyable, Sendable {
     
     public var pma:Bool
-    public var blendMode:spine.BlendMode
+    public var blendMode:spine_blend_mode
     
-    public init(pma: Bool, blendMode: spine.BlendMode) {
+    public init(pma: Bool, blendMode: spine_blend_mode) {
         self.pma = pma
         self.blendMode = blendMode
     }
@@ -30,14 +30,14 @@ public final class SpineColorBlendBridgedKey: NSObject, Sendable, NSCopying {
     internal let imp:ColorBlendPipeLineKey
     
     public var pma:Bool { imp.pma }
-    public var blendMode:spine.BlendMode { imp.blendMode }
+    public var blendMode:spine_blend_mode { imp.blendMode }
     
     @nonobjc
     public init(state: ColorBlendPipeLineKey) {
         self.imp = state
     }
     
-    public convenience init(pma:Bool, blendMode: spine.BlendMode) {
+    public convenience init(pma:Bool, blendMode: spine_blend_mode) {
         self.init(state: .init(pma: pma, blendMode: blendMode))
     }
     

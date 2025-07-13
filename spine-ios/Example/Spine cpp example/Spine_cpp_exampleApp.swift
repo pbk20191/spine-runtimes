@@ -9,6 +9,7 @@ import SwiftUI
 
 import SwiftUI
 import SpineSwift
+import spine_c
 
 @main
 struct Spine_C_ExampleApp: App {
@@ -16,6 +17,9 @@ struct Spine_C_ExampleApp: App {
         WindowGroup {
             NavigationView {
                 List {
+                    NavigationLink("blank") {
+                        Text("Blank")
+                    }
                     NavigationLink {
                         SpineMTKSwiftUIView2.init(atlasURL: Bundle.main.url(forResource: "tank-pma", withExtension: "atlas")!, skelURL: Bundle.main.url(forResource: "tank-pro", withExtension: "skel")!, animationName: "shoot", tag: "tank")
                     } label: {
@@ -34,5 +38,10 @@ struct Spine_C_ExampleApp: App {
                 }
             }
         }
+    }
+    
+    
+    init () {
+
     }
 }

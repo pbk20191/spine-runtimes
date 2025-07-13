@@ -4,13 +4,33 @@
 //
 //  Created by 박병관 on 3/14/25.
 //
-import spine_cpp
+import spine_c
 import Foundation
 
-extension UnsafePointer where Pointee ==  spine.AtlasPage {
+extension spine_atlas_page {
     
-    var dictionaryTexture:NSMutableDictionary {
-        Unmanaged<NSMutableDictionary>.fromOpaque(self.pointee.texture).takeUnretainedValue()
+    public var dictionaryTexture:NSMutableDictionary {
+        Unmanaged<NSMutableDictionary>.fromOpaque(spine_atlas_page_get_texture(self)).takeUnretainedValue()
+    }
+    
+}
+
+extension ContiguousArray {
+    
+
+    @inline(__always)
+    internal subscript<Value>(_ key:Index, safe2 block : @autoclosure () -> Value?) -> Value? where Self.Element == Optional<Value> {
+        mutating get {
+            if !indices.contains(key) {
+                return nil
+            }
+            if let value = self[key] { return value }
+            if let newValue = block() {
+                self[key] = newValue
+                return newValue
+            }
+            return nil
+        }
     }
     
 }

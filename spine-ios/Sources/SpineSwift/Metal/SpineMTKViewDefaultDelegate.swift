@@ -9,7 +9,7 @@ import Dispatch
 import Foundation
 import MetalKit
 import simd
-import spine_cpp
+import spine_c
 
 open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRendererDelegate {
 
@@ -44,13 +44,13 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     
     private var samplerCache = [AtlasSamplerConfig: any MTLSamplerState]()
     
-    open func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spine.AtlasPage>) -> any MTLSamplerState {
+    open func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: spine_atlas_page) -> any MTLSamplerState {
         let rendererObject = page.dictionaryTexture
         let config = AtlasSamplerConfig(
-            min: .init(rawValue: page.pointee.minFilter),
-            mag: .init(rawValue: page.pointee.magFilter),
-            uwrap: .init(rawValue: page.pointee.uWrap),
-            vwrap: .init(rawValue: page.pointee.vWrap)
+            min: .init(rawValue: spine_atlas_page_get_min_filter(page)),
+            mag: .init(rawValue: spine_atlas_page_get_mag_filter(page)),
+            uwrap: .init(rawValue: spine_atlas_page_get_u_wrap(page)),
+            vwrap: .init(rawValue: spine_atlas_page_get_v_wrap(page))
         )
         if let sampler = samplerCache[config] {
             return sampler
@@ -73,7 +73,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     
     open func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime) {}
     
-    open func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spine.AtlasPage>) -> (any MTLTexture)? {
+    open func spineRenderer(_ renderer: SpineRenderer, textureForPage page: spine_atlas_page) -> (any MTLTexture)? {
         let textureKey = "kSpineMetalTexture"
         let userInfo = page.dictionaryTexture
         if let texture = userInfo[textureKey] as? MTLTexture {
@@ -82,9 +82,9 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         let bundle = self.textureBundle
 //        String(cString: <#T##[CChar]#>, encoding: <#T##String.Encoding#>)
 
-        let textureName =         withUnsafePointer(to: page.pointee.name) {
-            String(cString: spine_support.peek_String($0))
-        }
+        
+        let textureName = String(cString: spine_atlas_page_get_name(page))
+        let texturePath = String(cString: spine_atlas_page_get_texture_path(page))
         let option = [
             .SRGB: false as NSNumber,
             .textureStorageMode: MTLStorageMode.private.rawValue as NSNumber,
@@ -92,8 +92,8 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
             .origin: MTKTextureLoader.Origin.topLeft.rawValue,
             .textureUsage: MTLTextureUsage.shaderRead.rawValue as NSNumber,
         ] as [MTKTextureLoader.Option : Any]
-        if let path = userInfo["kSpineTexturePath"] as? String, textureName != path {
-            let url = URL(fileURLWithPath: path)
+        if textureName != texturePath {
+            let url = URL(fileURLWithPath: texturePath)
             do {
                 let texture = try MTKTextureLoader(device: device)
                     .newTexture(URL: url, options: option)

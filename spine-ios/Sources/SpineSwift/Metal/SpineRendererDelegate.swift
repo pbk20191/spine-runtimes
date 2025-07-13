@@ -6,21 +6,22 @@
 //
 
 import Foundation
-import spine_cpp
+import spine_c
 
 #if canImport(Metal)
 import Metal
+@objc
 public protocol SpineRendererDelegate:AnyObject {
 
     func spineRenderer(_ renderer: SpineRenderer, willUpdateAtTime time: CFAbsoluteTime)
 
     func spineRenderer(_ renderer: SpineRenderer, didUpdateAtTime time: CFAbsoluteTime)
 
-    func spineRenderer(_ renderer: SpineRenderer, textureForPage page: UnsafePointer<spine.AtlasPage>) -> (any MTLTexture)?
+    func spineRenderer(_ renderer: SpineRenderer, textureForPage page: spine_atlas_page) -> (any MTLTexture)?
 
     func spineRenderer(_ renderer: SpineRenderer, vertexBufferForMinimumSize minimumSize: Int) -> (any SpineVertexBuffer)?
 
-    func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: UnsafePointer<spine.AtlasPage>) -> (any MTLSamplerState)
+    func spineRenderer(_ renderer: SpineRenderer, samplerForPage page: spine_atlas_page) -> (any MTLSamplerState)
     
 }
 

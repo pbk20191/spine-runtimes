@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import spine_cpp
+import spine_c
 
 open class SpineSwiftDrawable: NSObject {
     
@@ -14,8 +14,10 @@ open class SpineSwiftDrawable: NSObject {
     struct AnimationStateCleaner: BoxDisposerProtocol {
         
         @usableFromInline
-        static func dispose(_ pointer: UnsafeMutablePointer<spine.AnimationState>) {
-            spine_support.dispose_animationState(pointer)
+        static func dispose(_ pointer: spine_animation_state) {
+            spine_animation_state_clear_tracks(pointer)
+            spine_animation_state_dispose(pointer)
+            
         }
         
     }
@@ -24,15 +26,15 @@ open class SpineSwiftDrawable: NSObject {
     struct SkeletonCleaner: BoxDisposerProtocol {
         
         @usableFromInline
-        static func dispose(_ pointer: UnsafeMutablePointer<spine.Skeleton>) {
-            spine_support.dispose_skeleton(pointer)
+        static func dispose(_ pointer: spine_skeleton) {
+            spine_skeleton_dispose(pointer)
 //            spine.SpineExtension.free(pointer, k.utf8Start, #line)
         }
         
     }
     
-    @usableFromInline typealias SkeletonBox = PointeeBox<spine.Skeleton, SkeletonCleaner>
-    @usableFromInline typealias AnimationStateBox = PointeeBox<spine.AnimationState, AnimationStateCleaner>
+    @usableFromInline typealias SkeletonBox = PointeeBox<spine_skeleton_wrapper, SkeletonCleaner>
+    @usableFromInline typealias AnimationStateBox = PointeeBox<spine_animation_state_wrapper, AnimationStateCleaner>
     
     @nonobjc
     internal let pResource: SpineAnimationStateDataBox
@@ -46,19 +48,17 @@ open class SpineSwiftDrawable: NSObject {
     public init(resource: SpineAnimationStateDataBox) {
         self.pResource = resource
         do {
-            let pSkeleton = spine_support.create_skeleton(&resource.skeletonData[])!
+            let pSkeleton = spine_skeleton_create(&resource.skeletonData[])
             self.pSkeletonBox = .init(pSkeleton)
         }
         do {
-            let pAnimationState = spine_support.create_animationState(&resource[])!
+            let pAnimationState = spine_animation_state_create(&resource[])
             self.pAnimationStateBox = .init(pAnimationState)
         }
   
         super.init()
         
-        withUnsafeMutablePointer(to: &self.skeleton) {
-            $0.pointee.updateWorldTransform(spine.Physics_None)
-        }
+        spine_skeleton_update_world_transform(&self.skeleton, SPINE_PHYSICS_NONE)
 //        self.skeleton.updateWorldTransform(spine.Physics_None);
     }
     
@@ -72,10 +72,10 @@ open class SpineSwiftDrawable: NSObject {
 
     @objc
     public func update(delta: Float) {
-        self.animationState.update(delta)
-        self.animationState.apply(&self.skeleton)
-        self.skeleton.update(delta)
-        self.skeleton.updateWorldTransform(spine.Physics_Update);
+        spine_animation_state_update(&self.animationState, delta)
+        spine_animation_state_apply(&self.animationState, &self.skeleton)
+        spine_skeleton_update(&self.skeleton, delta)
+        spine_skeleton_update_world_transform(&self.skeleton, SPINE_PHYSICS_UPDATE)
     }
     
     @objc open var resource: SpineAnimationStateDataBox {
@@ -85,7 +85,7 @@ open class SpineSwiftDrawable: NSObject {
     @available(swift ,obsoleted: 1.0)
     @objc
     public func accessSkeleton(
-        _ body: (UnsafeMutableRawPointer) -> Void
+        _ body: (spine_skeleton) -> Void
     ) {
         withUnsafeMutablePointer(to: &self.pSkeletonBox[]) {
             body($0)
@@ -95,7 +95,7 @@ open class SpineSwiftDrawable: NSObject {
     @available(swift ,obsoleted: 1.0)
     @objc
     public final func accessAnimation(
-        _ body: (UnsafeMutableRawPointer) -> Void
+        _ body: (spine_animation_state) -> Void
     ) {
         withUnsafeMutablePointer(to: &self.pAnimationStateBox[]) {
             body($0)
@@ -103,7 +103,7 @@ open class SpineSwiftDrawable: NSObject {
     }
     
     @inline(__always)
-    public var skeleton: spine.Skeleton {
+    public var skeleton: spine_skeleton_wrapper {
         @inline(__always)
         borrowing _modify {
             yield &self.pSkeletonBox[]
@@ -116,7 +116,7 @@ open class SpineSwiftDrawable: NSObject {
     
     /// Do not modify listener and userData
     @inline(__always)
-    public var animationState: spine.AnimationState {
+    public var animationState: spine_animation_state_wrapper {
         @inline(__always)
         borrowing _modify {
             yield &self.pAnimationStateBox[]

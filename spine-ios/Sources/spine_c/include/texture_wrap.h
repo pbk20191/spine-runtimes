@@ -1,0 +1,12 @@
+#ifndef SPINE_SPINE_TEXTURE_WRAP_H
+#define SPINE_SPINE_TEXTURE_WRAP_H
+#include <CoreFoundation/CoreFoundation.h>
+
+typedef enum {
+    SPINE_TEXTURE_WRAP_MIRRORED_REPEAT = 0,
+    SPINE_TEXTURE_WRAP_CLAMP_TO_EDGE,
+    SPINE_TEXTURE_WRAP_REPEAT
+} spine_texture_wrap;
+
+
+#endif /* SPINE_SPINE_TEXTURE_WRAP_H */

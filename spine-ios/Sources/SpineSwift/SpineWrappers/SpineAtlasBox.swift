@@ -5,28 +5,25 @@
 //
 //  Created by 박병관 on 4/6/25.
 //
-import spine_cpp
 import Foundation
+import spine_c
 
 open class SpineAtlasBox: NSObject {
 
     
-    @nonobjc internal let box: PointeeBox<spine.Atlas, Disposer>
+    @nonobjc internal let box: PointeeBox<spine_atlas2_wrapper, Disposer>
     
     struct Disposer: BoxDisposerProtocol {
-        static func dispose(_ pointer: UnsafeMutablePointer<spine.Atlas>) {
-            pointer.deinitialize(count: 1)
-            let k = #file as StaticString
-            spine.SpineExtension.free(pointer, k.utf8Start, #line)
+        static func dispose(_ pointer: spine_atlas2) {
+            spine_atlas2_dispose(pointer)
         }
         
-        typealias Pointee = spine.Atlas
         
         
     }
     
     @nonobjc
-    public init(atlas: UnsafeMutablePointer<spine.Atlas>) {
+    public init(atlas: spine_atlas2) {
         self.box = .init(atlas)
         super.init()
     }
@@ -36,15 +33,15 @@ open class SpineAtlasBox: NSObject {
         dirPath:String = ""
     ) {
         let atlas = txt.utf8CString.withUnsafeBufferPointer {
-            spine_support.Atlas_load($0.baseAddress, Int32($0.count), dirPath)
-        }!
+            spine_atlas2_create_from_data($0.baseAddress!, Int32($0.count), dirPath)
+        }
         self.init(atlas: atlas)
     }
     
     @nonobjc public convenience init(
         path:String
     ) {
-        let atlas = spine_support.Atlas_load(path)!
+        let atlas = spine_atlas2_create(path)
         self.init(atlas: atlas)
     }
     
@@ -52,14 +49,14 @@ open class SpineAtlasBox: NSObject {
     @available(swift, obsoleted: 1.0)
     @objc(initWithPath:)
     public convenience init(
-        notForSwift path:String,
+        notForSwift path:String
     ) {
         self.init(path: path)
     }
     
     @available(swift, obsoleted: 1.0)
     @objc(initWithAtlas:)
-    public convenience init(notForSwift atlas: OpaquePointer) {
+    public convenience init(notForSwift atlas: spine_atlas2) {
         self.init(atlas: .init(atlas))
     }
 
@@ -67,7 +64,7 @@ open class SpineAtlasBox: NSObject {
     @available(swift ,obsoleted: 1.0)
     @objc
     public final func accessAtlas(
-        _ body: (UnsafeMutableRawPointer) -> Void
+        _ body: (spine_atlas2) -> Void
     ) {
         withUnsafeMutablePointer(to: &self.box[]) {
             body($0)
@@ -76,7 +73,7 @@ open class SpineAtlasBox: NSObject {
     
     @inline(__always)
     @nonobjc
-    public subscript() -> spine.Atlas {
+    public subscript() -> spine_atlas2_wrapper {
         @inline(__always)
         borrowing _modify {
             yield &box[]
@@ -98,7 +95,7 @@ open class SpineAtlasBox: NSObject {
         return self.nativePointer.hashValue
     }
     
-    @nonobjc private var nativePointer:UnsafeMutablePointer<spine.Atlas> {
+    @nonobjc private var nativePointer:spine_atlas2 {
         self.box._pointer
     }
     

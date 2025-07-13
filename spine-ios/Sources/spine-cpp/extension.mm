@@ -13,15 +13,18 @@
 #include <dispatch/dispatch.h>
 #include <spine/Debug.h>
 #define LOG_CATEGORY "com.esotericsoftware.spine"
-
-
+#include <malloc/malloc.h>
+#include <dispatch/dispatch.h>
 
 namespace spine_support {
 
+
 class AppleExtension: public spine::DefaultSpineExtension {
     
-    constexpr static inline CFAllocatorRef allocator(void) {
-        return kCFAllocatorDefault;
+
+    static inline CFAllocatorRef allocator(void) {
+
+        return (CFAllocatorRef) kCFAllocatorDefault;
     }
     
 public:
@@ -77,23 +80,9 @@ public:
 
 static AppleExtension extension;
 
-class DebugExtension2: public spine::DebugExtension {
-    
-public:
-    DebugExtension2():spine::DebugExtension(&extension) {}
-};
-
-
-#if DEBUG
-static DebugExtension2 extension2;
-
-#endif
 
 }
 
 spine::SpineExtension* spine::getDefaultExtension() {
-//#if DEBUG
-//    return &spine_support::extension2;
-//#endif
     return &spine_support::extension;
 }

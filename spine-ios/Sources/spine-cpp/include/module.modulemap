@@ -1,4 +1,4 @@
 module spine_cpp {
-    header "spine_public.hpp"
+    header "spine/spine.h"
     export *
 }

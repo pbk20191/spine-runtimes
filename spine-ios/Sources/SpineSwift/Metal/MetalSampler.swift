@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import spine_cpp
+import spine_c
 #if canImport(Metal)
 import Metal
 #endif
@@ -21,9 +21,9 @@ public struct AtlasWrap: CustomStringConvertible, RawRepresentable, Hashable, Bi
         hasher.combine(rawValue.rawValue)
     }
     
-    public var rawValue: spine.TextureWrap
+    public var rawValue: spine_texture_wrap
 
-    public init(rawValue: spine.TextureWrap) {
+    public init(rawValue:spine_texture_wrap) {
         self.rawValue = rawValue
     }
 
@@ -32,9 +32,9 @@ public struct AtlasWrap: CustomStringConvertible, RawRepresentable, Hashable, Bi
     public var description: String {
         
         switch rawValue {
-        case spine.TextureWrap_ClampToEdge: return "ClampToEdge"
-        case spine.TextureWrap_Repeat: return "Repeat"
-        case spine.TextureWrap_MirroredRepeat: return "MirrorRepeat"
+        case SPINE_TEXTURE_WRAP_CLAMP_TO_EDGE: return "ClampToEdge"
+        case SPINE_TEXTURE_WRAP_REPEAT: return "Repeat"
+        case SPINE_TEXTURE_WRAP_MIRRORED_REPEAT: return "MirrorRepeat"
         default: return "Unknown"
         }
     }
@@ -50,9 +50,9 @@ public struct AtlasFilter: CustomStringConvertible,RawRepresentable, Hashable, S
         hasher.combine(rawValue.rawValue)
     }
     
-    public var rawValue: spine.TextureFilter
+    public var rawValue: spine_texture_filter
     
-    public init(rawValue: spine.TextureFilter) {
+    public init(rawValue: spine_texture_filter) {
         self.rawValue = rawValue
     }
 
@@ -60,13 +60,13 @@ public struct AtlasFilter: CustomStringConvertible,RawRepresentable, Hashable, S
     public var description: String {
         
         switch rawValue {
-        case spine.TextureFilter_Nearest: return "Nearest"
-        case spine.TextureFilter_Linear: return "Linear"
-        case spine.TextureFilter_MipMapLinearLinear: return "MipLinearLinear"
-        case spine.TextureFilter_MipMapNearestNearest: return "MipNearestNearest"
-        case spine.TextureFilter_MipMapLinearNearest: return "MipLinearNearest"
-        case spine.TextureFilter_MipMapNearestLinear: return "MipNearestLinear"
-        case spine.TextureFilter_Unknown: return "UnknownFilter"
+        case SPINE_TEXTURE_FILTER_NEAREST: return "Nearest"
+        case SPINE_TEXTURE_FILTER_LINEAR: return "Linear"
+        case SPINE_TEXTURE_FILTER_MIP_MAP_LINEAR_LINEAR: return "MipLinearLinear"
+        case SPINE_TEXTURE_FILTER_MIP_MAP_NEAREST_NEAREST: return "MipNearestNearest"
+        case SPINE_TEXTURE_FILTER_MIP_MAP_LINEAR_NEAREST: return "MipLinearNearest"
+        case SPINE_TEXTURE_FILTER_MIP_MAP_NEAREST_LINEAR: return "MipNearestLinear"
+        case SPINE_TEXTURE_FILTER_UNKNOWN: return "UnknownFilter"
         default: return "Unknown"
         }
     }
@@ -94,11 +94,11 @@ extension AtlasWrap {
     
     public var mtlAddressMode: MTLSamplerAddressMode {
         switch rawValue {
-        case spine.TextureWrap_ClampToEdge:
+        case SPINE_TEXTURE_WRAP_CLAMP_TO_EDGE:
             return .clampToEdge
-        case spine.TextureWrap_Repeat:
+        case SPINE_TEXTURE_WRAP_REPEAT:
             return .repeat
-        case spine.TextureWrap_MirroredRepeat:
+        case SPINE_TEXTURE_WRAP_MIRRORED_REPEAT:
             return .mirrorRepeat
         default:
             return .clampToEdge
@@ -112,9 +112,9 @@ extension AtlasFilter {
     
     public var minFilter: MTLSamplerMinMagFilter {
         switch rawValue {
-        case spine.TextureFilter_Linear,
-             spine.TextureFilter_MipMapLinearLinear,
-                spine.TextureFilter_MipMapLinearNearest:
+        case SPINE_TEXTURE_FILTER_LINEAR,
+                SPINE_TEXTURE_FILTER_MIP_MAP_LINEAR_LINEAR,
+                SPINE_TEXTURE_FILTER_MIP_MAP_LINEAR_NEAREST:
             return .linear
         default:
             return .nearest
@@ -124,12 +124,12 @@ extension AtlasFilter {
     public var mipFilter: MTLSamplerMipFilter {
         switch rawValue {
         case 
-        spine.TextureFilter_MipMapLinearLinear,
-             spine.TextureFilter_MipMapNearestLinear:
+                SPINE_TEXTURE_FILTER_MIP_MAP_LINEAR_LINEAR,
+                SPINE_TEXTURE_FILTER_MIP_MAP_NEAREST_LINEAR:
 
             return .linear
-        case spine.TextureFilter_MipMapLinearNearest,
-             spine.TextureFilter_MipMapNearestNearest:
+        case SPINE_TEXTURE_FILTER_MIP_MAP_LINEAR_NEAREST,
+                SPINE_TEXTURE_FILTER_MIP_MAP_NEAREST_NEAREST:
             return .nearest
 
         default:
@@ -139,7 +139,7 @@ extension AtlasFilter {
     
     public var magFilter: MTLSamplerMinMagFilter {
         switch rawValue {
-        case spine.TextureFilter_Linear:
+        case SPINE_TEXTURE_FILTER_LINEAR:
             return .linear
         default:
             return .nearest
@@ -172,10 +172,10 @@ extension AtlasSamplerConfig {
 public final class SpineMetalSamplerConfig: NSObject {
     
     public static func defaultSampleDescriptor(
-        min: spine.TextureFilter,
-        mag: spine.TextureFilter,
-        uwrap: spine.TextureWrap,
-        vwrap: spine.TextureWrap
+        min: spine_texture_filter,
+        mag: spine_texture_filter,
+        uwrap: spine_texture_wrap,
+        vwrap: spine_texture_wrap
     ) -> MTLSamplerDescriptor {
         let config = AtlasSamplerConfig(min: .init(rawValue: min), mag: .init(rawValue: mag), uwrap: .init(rawValue: uwrap), vwrap: .init(rawValue: vwrap))
         return config.generateSamplerDescriptor()

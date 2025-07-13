@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		17AA8D472E2131C400E0849D /* SpineSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 17AA8D462E2131C400E0849D /* SpineSwift */; };
+		17AA8DD52E21BF4700E0849D /* Spine in Frameworks */ = {isa = PBXBuildFile; productRef = 928A8CC12BCFE7DF00D9D35B /* Spine */; };
 		76381FCE2C2EF4030087712B /* celestial-circus-pma.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 76381FCC2C2EF4030087712B /* celestial-circus-pma.atlas */; };
 		76381FCF2C2EF4030087712B /* celestial-circus-pma.png in Resources */ = {isa = PBXBuildFile; fileRef = 76381FCD2C2EF4030087712B /* celestial-circus-pma.png */; };
 		76381FD72C2EF4F10087712B /* spineboy-pma.png in Resources */ = {isa = PBXBuildFile; fileRef = 76381FD12C2EF4F00087712B /* spineboy-pma.png */; };
@@ -97,6 +98,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17AA8DD52E21BF4700E0849D /* Spine in Frameworks */,
 				925CB7E92C19BC5A00C8F47F /* Spine in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

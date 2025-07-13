@@ -5,7 +5,7 @@
 //  Created by 박병관 on 4/6/25.
 //
 import Foundation
-import spine_cpp
+import spine_c
 
 open class SpineSkeletonDataBox: NSObject {
         
@@ -13,16 +13,15 @@ open class SpineSkeletonDataBox: NSObject {
     struct Cleanup: BoxDisposerProtocol {
         
         @usableFromInline
-        static func dispose(_ pointer: UnsafeMutablePointer<spine.SkeletonData>) {
-            pointer.deinitialize(count: 1)
-            let k = #file as StaticString
-            spine.SpineExtension.free(pointer, k.utf8Start, #line)
+        static func dispose(_ pointer: spine_skeleton_data) {
+            spine_skeleton_data_dispose(pointer)
+//            spine_cpp_lite.spine_skeleton_data_dispose(pointer)
         }
         
     }
     
     @usableFromInline
-    typealias Box = PointeeBox<spine.SkeletonData, Cleanup>
+    typealias Box = PointeeBox<spine_skeleton_data_wrapper, Cleanup>
     
     @nonobjc
     internal let pAtlas: SpineAtlasBox
@@ -30,7 +29,7 @@ open class SpineSkeletonDataBox: NSObject {
     internal let box: Box
     
     @nonobjc
-    private var nativePointer: UnsafeMutablePointer<spine.SkeletonData> {
+    private var nativePointer: spine_skeleton_data {
         self.box._pointer
     }
     
@@ -38,7 +37,7 @@ open class SpineSkeletonDataBox: NSObject {
     @nonobjc
     public init(
         atlas: SpineAtlasBox,
-        skeletonData: UnsafeMutablePointer<spine.SkeletonData>
+        skeletonData: spine_skeleton_data
     ) {
         self.pAtlas = atlas
         self.box = .init(skeletonData)
@@ -49,7 +48,7 @@ open class SpineSkeletonDataBox: NSObject {
     @objc(initWithAtlas:skeletonData:)
     public convenience init(
         invalidForSwift atlas:SpineAtlasBox,
-        invalidForSwift skeletonData:OpaquePointer
+        invalidForSwift skeletonData:spine_skeleton_data
     ) {
         self.init(atlas: atlas, skeletonData: .init(skeletonData))
     }
@@ -144,7 +143,7 @@ open class SpineSkeletonDataBox: NSObject {
     @available(swift ,obsoleted: 1.0)
     @objc
     public func accessSkeleton(
-        _ body: (UnsafeMutableRawPointer) -> Void
+        _ body: (spine_skeleton_data) -> Void
     ) {
         withUnsafeMutablePointer(to: &self[]) {
             body($0)
@@ -153,7 +152,7 @@ open class SpineSkeletonDataBox: NSObject {
     
     @nonobjc
     @inline(__always)
-    public subscript() -> spine.SkeletonData {
+    public subscript() -> spine_skeleton_data_wrapper {
         @inline(__always)
         borrowing _modify {
             yield &self.box[]
@@ -186,14 +185,18 @@ extension SpineSkeletonDataBox {
         json:String,
         scale: Float = 1
     ) throws(SpineParsingError) {
-        var reader = spine.SkeletonJson(&atlas[])
-        reader.setScale(scale)
-        let dataBlock = spine_support.json_readSkeletonData(&reader, json)
+        let reader = spine_skeleton_json_create(&atlas[])
+        defer {
+            spine_skeleton_json_dispose(reader)
+        }
+        spine_skeleton_json_set_scale(reader, scale)
+//        reader.setScale(scale)
+        let dataBlock = spine_skeleton_json_read_skeleton_data(reader, json)
         if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
+            self.init(atlas: atlas, skeletonData: UnsafeMutableRawPointer(dataBlock).assumingMemoryBound(to: spine_skeleton_data_wrapper.self))
         } else {
-            let error = spine_support.json_getError(&reader)
-            let message = String(cString: spine_support.peek_String(&error.pointee))
+            let error = spine_skeleton_json_get_error(reader)
+            let message = if let error { String(cString: error) } else { "" }
             throw SpineParsingError(message)
         }
     }
@@ -204,15 +207,18 @@ extension SpineSkeletonDataBox {
         jsonPath:String,
         scale: Float = 1
     ) throws(SpineParsingError) {
-        var reader = spine.SkeletonJson(&atlas[])
-        reader.setScale(scale)
- 
-        let dataBlock: UnsafeMutablePointer<spine.SkeletonData>? = spine_support.json_readSkeletonDataFile(&reader, jsonPath)
+        let reader = spine_skeleton_json_create(&atlas[])
+        defer {
+            spine_skeleton_json_dispose(reader)
+        }
+        spine_skeleton_json_set_scale(reader, scale)
+//        reader.setScale(scale)
+        let dataBlock = spine_skeleton_json_read_skeleton_data_file(reader, jsonPath)
         if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
+            self.init(atlas: atlas, skeletonData: UnsafeMutableRawPointer(dataBlock).assumingMemoryBound(to: spine_skeleton_data_wrapper.self))
         } else {
-            let error = spine_support.json_getError(&reader)
-            let message = String(cString: spine_support.peek_String(&error.pointee))
+            let error = spine_skeleton_json_get_error(reader)
+            let message = if let error { String(cString: error) } else { "" }
             throw SpineParsingError(message)
         }
     }
@@ -223,17 +229,20 @@ extension SpineSkeletonDataBox {
         binary:Data,
         scale: Float = 1
     ) throws(SpineParsingError) {
-        var reader = spine.SkeletonBinary(&atlas[])
-        reader.setScale(scale)
-
+        let reader = spine_skeleton_binary_create(&atlas[])
+        defer {
+            spine_skeleton_binary_dispose(reader)
+        }
+        spine_skeleton_binary_set_scale(reader, scale)
+//        reader.setScale(scale)
         let dataBlock = binary.withUnsafeBytes {
-            spine_support.binary_readSkeletonData(&reader, $0.baseAddress, Int32($0.count))
+            spine_skeleton_binary_read_skeleton_data(reader, $0.baseAddress, Int32($0.count))
         }
         if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
+            self.init(atlas: atlas, skeletonData: UnsafeMutableRawPointer(dataBlock).assumingMemoryBound(to: spine_skeleton_data_wrapper.self))
         } else {
-            let error = spine_support.binary_getError(&reader)
-            let message = String(cString: spine_support.peek_String(&error.pointee))
+            let error = spine_skeleton_binary_get_error(reader)
+            let message = if let error { String(cString: error) } else { "" }
             throw SpineParsingError(message)
         }
     }
@@ -244,15 +253,18 @@ extension SpineSkeletonDataBox {
         skelPath:String,
         scale: Float = 1
     ) throws(SpineParsingError) {
-        var reader = spine.SkeletonBinary(&atlas[])
-        reader.setScale(scale)
-
-        let dataBlock = spine_support.binary_readSkeletonDataFile(&reader, skelPath)
+        let reader = spine_skeleton_binary_create(&atlas[])
+        defer {
+            spine_skeleton_binary_dispose(reader)
+        }
+        spine_skeleton_binary_set_scale(reader, scale)
+//        reader.setScale(scale)
+        let dataBlock = spine_skeleton_binary_read_skeleton_data_file(reader, skelPath)
         if let dataBlock {
-            self.init(atlas: atlas, skeletonData: dataBlock)
+            self.init(atlas: atlas, skeletonData: UnsafeMutableRawPointer(dataBlock).assumingMemoryBound(to: spine_skeleton_data_wrapper.self))
         } else {
-            let error = spine_support.binary_getError(&reader)
-            let message = String(cString: spine_support.peek_String(&error.pointee))
+            let error = spine_skeleton_binary_get_error(reader)
+            let message = if let error { String(cString: error) } else { "" }
             throw SpineParsingError(message)
         }
     }

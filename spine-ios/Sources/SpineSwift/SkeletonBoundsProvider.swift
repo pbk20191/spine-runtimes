@@ -12,10 +12,10 @@
 //
 //  Created by 박병관 on 3/16/25.
 //
-import spine_cpp
 import Foundation
 import CoreGraphics
 import simd
+import spine_c
 
 @objc
 public protocol SkeletonBoundsProvider {
@@ -30,21 +30,14 @@ public final class SetupPoseBounds: NSObject, SkeletonBoundsProvider, Sendable {
     }
 
     public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
-        var x = 0 as Float
-        var y = 0 as Float
-        var width = 0 as Float
-        var height = 0 as Float
-        var vector = spine_support.SpineFloatVector()
-        var clipper = spine.SkeletonClipping()
-        drawable.skeleton.setToSetupPose()
-        drawable.skeleton.getBounds(
-            &x, &y, &width, &height, &vector, &clipper
-        )
+
+        spine_skeleton_set_to_setup_pose(&drawable.skeleton)
+        let rect = spine_skeleton_current_rect(&drawable.skeleton, 1)
         return CGRect(
-            x: CGFloat(x),
-            y: CGFloat(y),
-            width: CGFloat(width),
-            height: CGFloat(height)
+            x: CGFloat(rect.x),
+            y: CGFloat(rect.y),
+            width: CGFloat(rect.width),
+            height: CGFloat(rect.height)
         )
     }
     
@@ -140,43 +133,45 @@ public final class SpineRawBounds: NSObject, SkeletonBoundsProvider, Sendable {
     
      public func computeBounds(for drawable: SpineSwiftDrawable) -> CGRect {
          let data = drawable.resource.skeletonData
-         let oldSkin = spine_support.skeleton_getSkin(&drawable.skeleton)
+        
+//         let ptr = drawable.
          
-         var customSkin = spine.Skin(spine.String("custom-skin", false, true))
-         var clipper = spine.SkeletonClipping()
-
-         for skinName in skins {
-             var skinName = spine.String(skinName, true, false)
-             if let skin = spine_support.SkeletonData_findSkin(&data[], skinName) {
-                 customSkin.addSkin(skin)
-             }
-             skinName.unown()
+         let oldSkin = spine_skeleton_get_skin(&drawable.skeleton)
+         
+         let customSkin = spine_skin_create("custom-skin")
+         defer {
+             spine_skin_dispose(customSkin)
          }
          
-         drawable.skeleton.setSkin(&customSkin)
-         drawable.skeleton.setToSetupPose()
-         let animation = animation.flatMap {
-             var skinName = spine.String($0, true, false)
-             defer {
-                 skinName.unown()
+         for skinName in skins {
+             let skin = withUnsafeMutableBytes(of: &data[]) {
+                 spine_skeleton_data_find_skin(.init(OpaquePointer($0.baseAddress!)), skinName)
              }
-             return spine_support.SkeletonData_findAnimation(&data[], skinName)
+             if let skin {
+                 spine_skin_add_skin(customSkin, skin)
+//                 customSkin.addSkin(.init(OpaquePointer(skin)))
+             }
+//             skinName.unown()
+         }
+         spine_skeleton_set_skin(&drawable.skeleton, customSkin)
+         spine_skeleton_set_to_setup_pose(&drawable.skeleton)
+//         spine_skeleton_set_skin(&drawable.skeleton, &customSkin)
+//         drawable.skeleton.setSkin(&customSkin)
+//         drawable.skeleton.setToSetupPose()
+         let animation = animation.flatMap {
+             return spine_skeleton_data_find_animation(&data[], $0)
          }
          var bounding = CGRect.null
-         var x = 0 as Float
-         var y = 0 as Float
-         var width = 0 as Float
-         var height = 0 as Float
-         var vertex = spine_support.SpineFloatVector()
          if let animation {
-             spine_support.animationState_set(&drawable.animationState, 0, animation, false)
+             spine_animation_state_set_animation(&drawable.animationState, 0, animation, 0)
+//             spine_support.animationState_set(&drawable.animationState, 0, animation, false)
              // spAnimationState_setAnimation(&drawable.animationState, 0, animation, 0)
-             let steps = Int(max(Double(animation.pointee.getDuration()) / stepTime, 1.0))
+             let steps = Int(max(Double(spine_animation_get_duration(animation)) / stepTime, 1.0))
 
              for i in 0..<steps {
                  drawable.update(delta: i > 0 ? Float(stepTime) : 0.0)
-                 drawable.skeleton.getBounds(&x, &y, &width, &height, &vertex, &clipper)
-                 let sub = CGRect(x: Double(x), y: Double(y), width: Double(width), height: Double(height))
+                 let rect = spine_skeleton_current_rect(&drawable.skeleton, 1)
+                 let sub = CGRect(x: Double(rect.x), y: Double(rect.y), width: Double(rect.width), height: Double(rect.height))
                  if bounding.isNull {
                      bounding = sub
                  } else {
@@ -184,22 +179,25 @@ public final class SpineRawBounds: NSObject, SkeletonBoundsProvider, Sendable {
                  }
              }
          } else {
-
-             drawable.skeleton.getBounds(&x, &y, &width, &height, &vertex, &clipper)
-             let sub = CGRect(x: Double(x), y: Double(y), width: Double(width), height: Double(height))
+             let rect = spine_skeleton_current_rect(&drawable.skeleton, 1)
+             let sub = CGRect(x: Double(rect.x), y: Double(rect.y), width: Double(rect.width), height: Double(rect.height))
              bounding = sub
 
 
          }
-         drawable.skeleton.setSkin(.init("default", false, true))
-         drawable.animationState.clearTracks()
+         spine_skeleton_set_skin_by_name(&drawable.skeleton, "default")
+//         drawable.skeleton.setSkin(.init("default", false, true))
+         spine_animation_state_clear_tracks(&drawable.animationState)
+//         drawable.animationState.clearTracks()
 //         spAnimationState_clearTracks(&drawable.animationState)
         
          if let oldSkin {
-             drawable.skeleton.setSkin(oldSkin)
+             spine_skeleton_set_skin(&drawable.skeleton, oldSkin)
+//             drawable.skeleton.setSkin(oldSkin)
 //             spSkeleton_setSkin(&drawable.skeleton, oldSkin)
          }
-         drawable.skeleton.setToSetupPose()
+         spine_skeleton_set_to_setup_pose(&drawable.skeleton)
+//         drawable.skeleton.setToSetupPose()
          drawable.update(delta: 0)
          if bounding.isNull {
              return .zero

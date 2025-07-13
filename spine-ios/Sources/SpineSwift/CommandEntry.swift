@@ -4,7 +4,7 @@
 //
 //  Created by 박병관 on 3/17/25.
 //
-import spine_cpp
+import spine_c
 import SpineShadersStructs
 import Foundation
 import simd
@@ -23,7 +23,7 @@ internal struct CommandEntry:  Sendable {
     internal struct CommandMeta: Hashable, Sendable,BitwiseCopyable {
         
         public var pageIndex:Int
-        public var blendMode:spine.BlendMode
+        public var blendMode:spine_blend_mode
         public var _slice:NSRange
         
         public var slice:VertexBuffer.Indices {
@@ -55,7 +55,7 @@ internal struct CommandEntry:  Sendable {
         }
 #endif
         
-        public init(pageIndex: Int, blendMode: spine.BlendMode, slice: VertexBuffer.Indices) {
+        public init(pageIndex: Int, blendMode: spine_blend_mode, slice: VertexBuffer.Indices) {
             self.pageIndex = pageIndex
             self.blendMode = blendMode
             self.slice = slice
@@ -68,7 +68,7 @@ internal struct CommandEntry:  Sendable {
         self.metaInfo = []
     }
     
-    internal init(_ list: some Sequence<spine.RenderCommand>) {
+    internal init(_ list: some Sequence<spine_render_command>, _ buffers:UnsafeBufferPointer<spine_atlas_page>) {
    //        self.sizeInfo = sizeInfo
         self.init()
            let vertexBuffer:VertexBuffer
@@ -76,13 +76,15 @@ internal struct CommandEntry:  Sendable {
            do {
                var mutableBuffer = VertexBuffer()
                var commandMeta = Array<CommandMeta>()
-               for spineCommand in list {
+               for cmd in list {
+                   let numvertices = Int(spine_render_command_get_num_vertices(cmd))
+                   let numIndices = Int(spine_render_command_get_num_indices(cmd))
                    
-                   let indices = UnsafeBufferPointer(start: spineCommand.indices, count: Int(spineCommand.numIndices))
-                   let colors = UnsafeBufferPointer(start: spineCommand.colors, count: Int(spineCommand.numVertices))
-                   let darkColors = UnsafeBufferPointer(start: spineCommand.darkColors, count: Int(spineCommand.numVertices))
-                   let uvs = UnsafeBufferPointer(start: spineCommand.uvs, count: Int(spineCommand.numVertices) * 2)
-                   let positions = UnsafeBufferPointer(start: spineCommand.positions, count: Int(spineCommand.numVertices) * 2)
+                   let indices = UnsafeBufferPointer(start: spine_render_command_get_indices(cmd), count: Int(numIndices))
+                   let colors = UnsafeBufferPointer(start: spine_render_command_get_colors(cmd), count: numvertices)
+                   let darkColors = UnsafeBufferPointer(start: spine_render_command_get_dark_colors(cmd), count: numvertices)
+                   let uvs = UnsafeBufferPointer(start: spine_render_command_get_uvs(cmd), count: numvertices * 2)
+                   let positions = UnsafeBufferPointer(start: spine_render_command_get_positions(cmd), count: numvertices * 2)
 
    //                let numVertices = spineCommand.vertices.count
 
@@ -90,16 +92,27 @@ internal struct CommandEntry:  Sendable {
                    mutableBuffer.reserveCapacity(mutableBuffer.count + indices.count)
                    let startIndex = mutableBuffer.endIndex
                    defer {
-                       let dict = Unmanaged<NSMutableDictionary>.fromOpaque(spineCommand.texture).takeUnretainedValue()
-                       let pageRef = dict["kSpineAtlasPagePointer"] as! NSValue
-                       let page = pageRef.pointerValue!.assumingMemoryBound(to: spine.AtlasPage.self)
-                       commandMeta.append(
-                           .init(
-                            pageIndex: Int(page.pointee.index),
-                               blendMode: spineCommand.blendMode,
-                               slice: startIndex..<mutableBuffer.endIndex
+                       let ptr = spine_render_command_get_texture(cmd)
+                       let pageIndex = buffers.firstIndex {
+                           ptr == spine_atlas_page_get_texture($0)
+                       } ?? -1
+                       let blendMode = spine_render_command_get_blend_mode(cmd)
+                       
+                       if let lastMeta = commandMeta.last, lastMeta.pageIndex == pageIndex, lastMeta.blendMode == blendMode, lastMeta.slice.upperBound == startIndex {
+                           commandMeta.removeLast()
+                           commandMeta.append(
+                            .init(pageIndex: pageIndex, blendMode: blendMode, slice: lastMeta.slice.lowerBound..<mutableBuffer.endIndex)
                            )
-                       )
+                       } else {
+                           commandMeta.append(
+                               .init(
+                                pageIndex: pageIndex,
+                                blendMode: blendMode,
+                                   slice: startIndex..<mutableBuffer.endIndex
+                               )
+                           )
+                       }
+
                    }
                    indices.forEach{
                        let index = Int($0)
@@ -118,8 +131,8 @@ internal struct CommandEntry:  Sendable {
                             uvs[xIndex],
                             uvs[yIndex],
                            ],
-                           color: Int32(bitPattern: colors[index]),
-                           darkColor: Int32(bitPattern: darkColors[index])
+                           color:  colors[index],
+                           darkColor: darkColors[index]
                        )
                        mutableBuffer.append(vertex)
                    }

@@ -17,7 +17,7 @@ import Foundation
 import MetalKit
 import SpineSwift
 import SwiftUI
-import spine_cpp
+import spine_c
 
 class TaggedDrawable: SpineSwiftDrawable {
     
@@ -27,6 +27,17 @@ class TaggedDrawable: SpineSwiftDrawable {
         self.tag = tag
     }
     
+}
+
+class LeakObserer {
+    
+     init() {
+        print("Init")
+    }
+    
+    deinit {
+        print("deinit!")
+    }
 }
 
 struct SpineMTKSwiftUIView: Equatable {
@@ -41,9 +52,17 @@ struct SpineMTKSwiftUIView: Equatable {
         let shared = try! SpineSkeletonDataBox(atlas: atlas, jsonPath: jsonURL.path)
         let drawable = TaggedDrawable(resource: .init(skeletonData: shared))
         drawable.setTag(tag)
+        print(spine_atlas_load)
         if let animationName = self.animationName {
-            spine_support.animationState_set(&drawable.animationState, 0, animationName, true)
+            spine_animation_state_set_animation_by_name(&drawable.animationState, 0, animationName, 1)
+//            spine_support.animationState_set(&drawable.animationState, 0, animationName, true)
         }
+        drawable.animationState
+        let k = LeakObserer()
+        spine_animation_state_set_block(&drawable.animationState) { _, _, _, _ in
+            print(k)
+        }
+
         let device = MTLCreateSystemDefaultDevice()!
         let commandQueue = device.makeCommandQueue()!
         let delegate = try! SpineMTKViewDefaultDelegate(drawable: drawable, commandQueue: commandQueue, pixelFormat: .bgra8Unorm)
@@ -73,7 +92,7 @@ struct SpineMTKSwiftUIView: Equatable {
             drawable.setTag(tag)
             delegate.drawable = drawable
             if let animationName = self.animationName {
-                spine_support.animationState_set(&drawable.animationState, 0, animationName, true)
+                spine_animation_state_set_animation_by_name(&drawable.animationState, 0, animationName, 1)
 //                spAnimationState_setAnimationByName(&drawable.animationState, 0, animationName, 1)
             }
         }
@@ -128,7 +147,7 @@ struct SpineMTKSwiftUIView2: Equatable {
         let drawable = TaggedDrawable(resource: .init(skeletonData: shared))
         drawable.setTag(tag)
         if let animationName = self.animationName {
-            spine_support.animationState_set(&drawable.animationState, 0, animationName, true)
+            spine_animation_state_set_animation_by_name(&drawable.animationState, 0, animationName, 1)
         }
         let device = MTLCreateSystemDefaultDevice()!
         let commandQueue = device.makeCommandQueue()!
@@ -159,7 +178,7 @@ struct SpineMTKSwiftUIView2: Equatable {
             drawable.setTag(tag)
             delegate.drawable = drawable
             if let animationName = self.animationName {
-                spine_support.animationState_set(&drawable.animationState, 0, animationName, true)
+                spine_animation_state_set_animation_by_name(&drawable.animationState, 0, animationName, 1)
             }
         }
 

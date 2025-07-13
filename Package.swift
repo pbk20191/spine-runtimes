@@ -61,20 +61,31 @@ let package = Package(
             ]
         ),
         .target(
-            name: "SpineSwift",
+            name: "spine_c",
             dependencies: [
-                "spine_cpp", "SpineShadersStructs",
+                "spine_cpp"
             ],
-            path: "spine-ios/Sources/SpineSwift",
+            path: "spine-ios/Sources/spine_c",
             cxxSettings: [
-                .define("SPINE_USE_STD_FUNCTION"),
-            ],
-            swiftSettings: [
-                .interoperabilityMode(.Cxx),
-                .define("SPINE_USE_STD_FUNCTION"),
+                .define("SPINE_USE_STD_FUNCTION", to: "1"),
+                .define("getDefaultExtension()", to: "____UNUSED_getDefaultExtension()"),
+                .define("spine_report_leaks()", to: "__UNUSED_report_leaks()"),
+                .define("spine_enable_debug_extension(x)", to: "__UNUSED_enable_debug_extension(x)"),
+//                .define("initExtensions()", to: " "),
             ],
             linkerSettings: [
                 .linkedLibrary("c++"),
+                
+            ]
+        ),
+        .target(
+            name: "SpineSwift",
+            dependencies: [
+              "SpineShadersStructs", "spine_c"
+            ],
+            path: "spine-ios/Sources/SpineSwift",
+            cSettings: [
+                .define("SPINE_USE_STD_FUNCTION", to: "1"),
             ]
         ),
         .systemLibrary(

@@ -4,7 +4,7 @@
 //
 //  Created by 박병관 on 4/6/25.
 //
-import spine_cpp
+import spine_c
 import Foundation
 
 open class SpineAnimationStateDataBox: NSObject {
@@ -13,33 +13,30 @@ open class SpineAnimationStateDataBox: NSObject {
     struct Cleanup: BoxDisposerProtocol {
     
         @usableFromInline
-        static func dispose(_ pointer: UnsafeMutablePointer<spine.AnimationStateData>) {
-            pointer.deinitialize(count: 1)
-            pointer.deallocate()
-//            let k = #file as StaticString
-//            spine.SpineExtension.free(pointer, #file, #line)
+        static func dispose(_ pointer: spine_animation_state_data) {
+            spine_animation_state_data_dispose(pointer)
         }
         
     }
     
     @usableFromInline
-    typealias Box = PointeeBox<spine.AnimationStateData, Cleanup>
+    typealias Box = PointeeBox<spine_animation_state_data_wrapper, Cleanup>
     
     @nonobjc internal let box: Box
     
     @nonobjc
     internal let pSkeletonData: SpineSkeletonDataBox
     @nonobjc
-    private var nativePointer: UnsafeMutablePointer<spine.AnimationStateData> {
+    private var nativePointer: spine_animation_state_data {
         self.box._pointer
     }
     
     @nonobjc
     public init(
         skeletonData: SpineSkeletonDataBox,
-        animationStateData: UnsafeMutablePointer<spine.AnimationStateData>
+        animationStateData: spine_animation_state_data
     ) {
-        precondition(&skeletonData[] == spine_support.animationStateData_getData(&animationStateData.pointee), "skeletonData and animationStateData must be from the same source")
+        precondition(&skeletonData[] == spine_animation_state_data_get_skeleton_data(animationStateData), "skeletonData and animationStateData must be from the same source")
         self.pSkeletonData = skeletonData
         self.box = .init(animationStateData)
         super.init()
@@ -47,12 +44,9 @@ open class SpineAnimationStateDataBox: NSObject {
     
     @objc
     public convenience init(skeletonData: SpineSkeletonDataBox) {
-        let current = #file as StaticString
-        let ptr:UnsafeMutablePointer<spine.AnimationStateData> = .allocate(capacity: 1)
-        ptr.initialize(to: spine.AnimationStateData(&skeletonData[]))
         self.init(
             skeletonData: skeletonData,
-            animationStateData: ptr
+            animationStateData: spine_animation_state_data_create(&skeletonData[])
         )
     }
     
@@ -62,7 +56,7 @@ open class SpineAnimationStateDataBox: NSObject {
     @available(swift ,obsoleted: 1.0)
     @objc
     public final func accessAnimation(
-        _ body: (UnsafeMutableRawPointer) -> Void
+        _ body: (spine_animation_state_data) -> Void
     ) {
         
         withUnsafeMutablePointer(to: &self.box[]) {
@@ -72,7 +66,7 @@ open class SpineAnimationStateDataBox: NSObject {
     
     @inline(__always)
     @nonobjc
-    public subscript() -> spine.AnimationStateData {
+    public subscript() -> spine_animation_state_data_wrapper {
         @inline(__always)
         borrowing _modify {
             yield &box[]
