@@ -129,7 +129,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         alignment: Alignment = .center,
         maxBuffer: SpineMTKBufferingStrategy = .double
     ) throws {
-        let stateDict = try Self.createDefaultPipeLineState(device: commandQueue.device, pixelFormat: pixelFormat)
+        let stateDict = try SpineMetalPipeLineStorage(device: commandQueue.device, pixelFormat: pixelFormat)
         self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: stateDict, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
@@ -137,7 +137,7 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
     public init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
-        pipelineStatesByBlendMode: [ColorBlendPipeLineKey : any MTLRenderPipelineState],
+        pipelineStatesByBlendMode: SpineMetalPipeLineStorage,
         boundsProvider: any SkeletonBoundsProvider = SetupPoseBounds(),
         contentMode: ContentMode = .fit,
         alignment: Alignment = .center,
@@ -157,21 +157,18 @@ open class SpineMTKViewDefaultDelegate: SpineRenderer, MTKViewDelegate, SpineRen
         delegate = self
     }
     
-    @objc
+    @objc(initWithDrawable:commandQueue:pipelineStatesByBlendMode:boundsProvider:contentMode:alignment:maxBuffer:)
     @available(swift, obsoleted: 1.0)
     public convenience init(
         drawable: SpineSwiftDrawable,
         commandQueue: any MTLCommandQueue,
-        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState],
+        notForSwiftBlendStates: SpineMetalPipeLineStorage,
         boundsProvider: any SkeletonBoundsProvider,
         contentMode: ContentMode,
         alignment: Alignment,
         maxBuffer: SpineMTKBufferingStrategy
     ) {
-        let swiftState = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey : any MTLRenderPipelineState]()) { partialResult, pair in
-            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
-        }
-        self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: swiftState, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
+        self.init(drawable: drawable, commandQueue: commandQueue, pipelineStatesByBlendMode: notForSwiftBlendStates, boundsProvider: boundsProvider, contentMode: contentMode, alignment: alignment, maxBuffer: maxBuffer)
     }
     
     @objc

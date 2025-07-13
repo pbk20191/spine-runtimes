@@ -18,8 +18,8 @@ open class SpineRenderer: NSObject {
     
     public let device:any MTLDevice
     
-    @nonobjc
-    public let pipelineStatesByBlendMode: [ColorBlendPipeLineKey: MTLRenderPipelineState]
+    @objc
+    public let pipelineStatesByBlendMode: SpineMetalPipeLineStorage
     
     public weak var delegate: SpineRendererDelegate?
     
@@ -114,7 +114,7 @@ open class SpineRenderer: NSObject {
     public init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
-        pipelineStatesByBlendMode: [ColorBlendPipeLineKey: MTLRenderPipelineState],
+        pipelineStatesByBlendMode: SpineMetalPipeLineStorage,
         boundsProvider: any SkeletonBoundsProvider = SetupPoseBounds(),
         contentMode: ContentMode = .fit,
         alignment: Alignment = .center
@@ -128,23 +128,21 @@ open class SpineRenderer: NSObject {
         self.boundsProvider = boundsProvider
     }
 
-    @objc
+    @objc(initWithDrawable:device:pipelineStatesByBlendMode:boundsProvider:contentMode:alignment:)
     @available(swift, obsoleted: 1.0)
     public convenience init(
         drawable: SpineSwiftDrawable,
         device: any MTLDevice,
-        pipelineStatesByBlendMode: [SpineColorBlendBridgedKey: MTLRenderPipelineState],
+        notForSwiftBlendMode: SpineMetalPipeLineStorage,
         boundsProvider: any SkeletonBoundsProvider,
         contentMode: ContentMode,
         alignment: Alignment
     ) {
-        let stateDict = pipelineStatesByBlendMode.reduce(into: [ColorBlendPipeLineKey: MTLRenderPipelineState]()) { partialResult, pair in
-            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
-        }
+
         self.init(
             drawable: drawable,
             device: device,
-            pipelineStatesByBlendMode: stateDict,
+            pipelineStatesByBlendMode: notForSwiftBlendMode,
             boundsProvider: boundsProvider,
             contentMode: contentMode,
             alignment: alignment
@@ -160,7 +158,7 @@ open class SpineRenderer: NSObject {
         contentMode: ContentMode,
         alignment: Alignment
     ) throws {
-        let stateDict = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
+        let stateDict = try SpineMetalPipeLineStorage(device: device, pixelFormat: pixelFormat)
         self.init(
             drawable: drawable,
             device: device,
@@ -290,7 +288,7 @@ open class SpineRenderer: NSObject {
             let page = pageBuffer[fragment.pageIndex]
             let pma = spine_atlas_page_get_pma(page)
             
-            guard let pipelineState = pipeLineStates[.init(pma: pma, blendMode: fragment.blendMode)] else {
+            guard let pipelineState = pipeLineStates.renderPipelineState(for: fragment.blendMode, premultiplyAlpha: pma) else {
                 continue
             }
             if let currentPipeLine, currentPipeLine.isEqual(pipelineState) {
@@ -325,163 +323,10 @@ open class SpineRenderer: NSObject {
         }
         return true
     }
-    
-    @nonobjc
-    public static func createDefaultPipeLineState(device: MTLDevice, pixelFormat:MTLPixelFormat) throws -> [ColorBlendPipeLineKey: MTLRenderPipelineState] {
-        let bundle: Bundle
-        #if SWIFT_PACKAGE // SPM
-        bundle = .module
-        #else
-        bundle = Bundle(for: SpineRenderer.self)
-        #endif
-        
-        let defaultLibrary = try device.makeDefaultLibrary(bundle: bundle)
-        let blendModes = [
-            SPINE_BLEND_MODE_NORMAL,
-            SPINE_BLEND_MODE_ADDITIVE,
-            SPINE_BLEND_MODE_MULTIPLY,
-            SPINE_BLEND_MODE_SCREEN
-        ]
-        let descriptor = MTLRenderPipelineDescriptor()
-        let constants = MTLFunctionConstantValues()
-        var premulAlphaTrue: Bool = true
-        constants.setConstantValue(&premulAlphaTrue, type: .bool, withName: "kPremultiplyAlpha")
-        let pmaVertex = try defaultLibrary.makeFunction(name: "spine_vertexShader", constantValues: constants)
-        let pmaFragment = try defaultLibrary.makeFunction(name: "spine_fragmentShader", constantValues: constants)
-        premulAlphaTrue = false
-        constants.setConstantValue(&premulAlphaTrue, type: .bool, withName: "kPremultiplyAlpha")
-        let nonpmaVertex = try defaultLibrary.makeFunction(name: "spine_vertexShader", constantValues: constants)
-        let nonpmaFragment = try defaultLibrary.makeFunction(name: "spine_fragmentShader", constantValues: constants)
-        descriptor.vertexFunction = nonpmaVertex
-        descriptor.fragmentFunction = nonpmaFragment
-        descriptor.colorAttachments[0].pixelFormat = pixelFormat
-        descriptor.vertexBuffers[0].mutability = .immutable
-        descriptor.vertexBuffers[1].mutability = .immutable
-        descriptor.vertexBuffers[2].mutability = .immutable
-        descriptor.fragmentBuffers[0].mutability = .immutable
-        var pipelineStates = [ColorBlendPipeLineKey: MTLRenderPipelineState]()
-        var pipeLinecache = [Int:MTLRenderPipelineState]()
-        for blendMode in blendModes {
-            var label = ""
-            switch blendMode {
-            case SPINE_BLEND_MODE_NORMAL:
-                label = "SPINE_NORMAL"
-            case SPINE_BLEND_MODE_SCREEN:
-                label = "SPINE_SCREEN"
-            case SPINE_BLEND_MODE_MULTIPLY:
-                label = "SPINE_MULTIPLY"
-            case SPINE_BLEND_MODE_ADDITIVE:
-                label = "SPINE_ADDITIVE"
-            default:
-                continue
-            }
-            for pma in [true, false] {
-                if (pma) {
-                    descriptor.vertexFunction = pmaVertex
-                } else {
-                    descriptor.vertexFunction = nonpmaVertex
-                }
-                if  blendMode == SPINE_BLEND_MODE_ADDITIVE || blendMode == SPINE_BLEND_MODE_NORMAL, pma {
-                    descriptor.label = label + "_PMA"
-                    descriptor.fragmentFunction = pmaFragment
-
-                } else {
-                    descriptor.fragmentFunction = nonpmaFragment
-                    descriptor.label = label
-                }
-                descriptor.colorAttachments[0].apply(
-                    blendMode: blendMode,
-                    with: pma
-                )
-                let hashCode = descriptor.colorAttachments[0].computeLocalHashCode(pma: descriptor.fragmentFunction === pmaFragment)
-                if let existing = pipeLinecache[hashCode] {
-                    pipelineStates[.init(pma: pma, blendMode: blendMode)] = existing
-                } else {
-                    let newPipeLine = try device.makeRenderPipelineState(descriptor: descriptor)
-                    pipeLinecache[hashCode] = newPipeLine
-                    pipelineStates[.init(pma: pma, blendMode: blendMode)] = newPipeLine
-                }
-            }
-
-        }
-        return pipelineStates
-    }
-    
-    @objc(createDefaultPipeLineState:device:pixelFormat:)
-    @available(swift, obsoleted: 1.0)
-    public static func __createDefaultPipeLineState(device: MTLDevice, pixelFormat:MTLPixelFormat) throws -> [SpineColorBlendBridgedKey: MTLRenderPipelineState] {
-        let swiftState = try Self.createDefaultPipeLineState(device: device, pixelFormat: pixelFormat)
-        return swiftState.reduce(into: [SpineColorBlendBridgedKey:MTLRenderPipelineState]()) { partialResult, pair in
-            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
-        }
-    }
-    
-    @objc(currentPipeLineDictionary)
-    @available(swift, obsoleted: 1.0)
-    public func __currentPipeLineDictionary() -> [SpineColorBlendBridgedKey: any MTLRenderPipelineState] {
-        self.pipelineStatesByBlendMode.reduce(into: [SpineColorBlendBridgedKey: any MTLRenderPipelineState]()) { partialResult, pair in
-            partialResult[.init(pma: pair.key.pma, blendMode: pair.key.blendMode)] = pair.value
-        }
-    }
-
 
 }
 
-fileprivate extension spine_blend_mode {
-    
-    func sourceRGBBlendFactor(premultipliedAlpha: Bool) -> MTLBlendFactor {
-        switch self {
-        case SPINE_BLEND_MODE_NORMAL:
-            return premultipliedAlpha ? .one : .sourceAlpha
-        case SPINE_BLEND_MODE_ADDITIVE:
-            return premultipliedAlpha ? .one : .sourceAlpha
-        case SPINE_BLEND_MODE_MULTIPLY:
-            // requires src rgb chnnel to be multiplied by 1 alpha src before blending in non pma
-            return  .destinationColor
-        case SPINE_BLEND_MODE_SCREEN:
-            // requires src rgb chnnel to be multiplied by 1 alpha src before blending in non pma
-            return  .oneMinusDestinationColor
-        default:
-            return .one // Should never be called
-        }
-    }
 
-}
-
-fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
-    
-    func apply(blendMode: spine_blend_mode, with premultipliedAlpha: Bool) {
-        isBlendingEnabled = true
-        sourceRGBBlendFactor = blendMode.sourceRGBBlendFactor(premultipliedAlpha: premultipliedAlpha)
-        sourceAlphaBlendFactor = blendMode == SPINE_BLEND_MODE_SCREEN ? .oneMinusDestinationAlpha : .one
-        switch blendMode {
-        case SPINE_BLEND_MODE_NORMAL, SPINE_BLEND_MODE_MULTIPLY:
-            destinationAlphaBlendFactor = .oneMinusSourceAlpha
-            destinationRGBBlendFactor = .oneMinusSourceAlpha
-        case SPINE_BLEND_MODE_ADDITIVE, SPINE_BLEND_MODE_SCREEN:
-            destinationAlphaBlendFactor = .one
-            destinationRGBBlendFactor = .one
-        default:
-            destinationRGBBlendFactor = .one
-            destinationAlphaBlendFactor = .one
-        }
-    }
-    
-}
-
-fileprivate extension MTLRenderPipelineColorAttachmentDescriptor {
-    
-    func computeLocalHashCode(pma:Bool) -> Int {
-        var hasher = Hasher()
-        hasher.combine(self.sourceRGBBlendFactor)
-        hasher.combine(self.sourceAlphaBlendFactor)
-        hasher.combine(self.destinationRGBBlendFactor)
-        hasher.combine(self.destinationAlphaBlendFactor)
-        hasher.combine(pma)
-        return hasher.finalize()
-    }
-    
-}
 
 #endif
 
