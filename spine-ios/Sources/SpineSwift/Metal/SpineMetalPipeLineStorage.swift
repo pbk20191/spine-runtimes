@@ -10,7 +10,16 @@ import spine_c
 
 public class SpineMetalPipeLineStorage: NSObject {
     
-    //    var device: any MTLDevice
+    @inline(__always)
+    @usableFromInline
+    internal static var caseIterableBlendModes:ContiguousArray<spine_blend_mode> {
+        [
+            SPINE_BLEND_MODE_NORMAL,
+            SPINE_BLEND_MODE_ADDITIVE,
+            SPINE_BLEND_MODE_MULTIPLY,
+            SPINE_BLEND_MODE_SCREEN,
+        ]
+    }
     
     @inline(__always)
     @usableFromInline
@@ -29,14 +38,8 @@ public class SpineMetalPipeLineStorage: NSObject {
         #else
         bundle = Bundle(for: SpineMetalPipeLineStorage.self)
         #endif
-        
         let defaultLibrary = try device.makeDefaultLibrary(bundle: bundle)
-        let blendModes = [
-            SPINE_BLEND_MODE_NORMAL,
-            SPINE_BLEND_MODE_ADDITIVE,
-            SPINE_BLEND_MODE_MULTIPLY,
-            SPINE_BLEND_MODE_SCREEN
-        ]
+        let blendModes = Self.caseIterableBlendModes
         let descriptor = MTLRenderPipelineDescriptor()
         let constants = MTLFunctionConstantValues()
         var premulAlphaTrue: Bool = true
@@ -88,7 +91,7 @@ public class SpineMetalPipeLineStorage: NSObject {
                     blendMode: blendMode,
                     with: pma
                 )
-                let hashCode = descriptor.colorAttachments[0].computeLocalHashCode(pma: descriptor.fragmentFunction === pmaFragment)
+                let hashCode = descriptor.colorAttachments[0].computeLocalHashCode(pma: pma)
                 if let existing = pipeLinecache[hashCode] {
                     pipelineStates[.init(pma: pma, blendMode: blendMode)] = existing
                     buffer.append(existing)
@@ -109,12 +112,7 @@ public class SpineMetalPipeLineStorage: NSObject {
         device: MTLDevice,
         block: (MTLDevice, ColorBlendPipeLineKey) throws(E) -> MTLRenderPipelineState?
     ) throws(E) {
-        let blendModes = [
-            SPINE_BLEND_MODE_NORMAL,
-            SPINE_BLEND_MODE_ADDITIVE,
-            SPINE_BLEND_MODE_MULTIPLY,
-            SPINE_BLEND_MODE_SCREEN
-        ]
+        let blendModes = Self.caseIterableBlendModes
         var buffer = ContiguousArray<MTLRenderPipelineState?>()
         for blendMode in blendModes {
             for pma in [false, true] {
@@ -133,12 +131,7 @@ public class SpineMetalPipeLineStorage: NSObject {
         device: any MTLDevice,
         block: (MTLDevice, SpineColorBlendBridgedKey, UnsafeMutablePointer<NSError?>) -> MTLRenderPipelineState?
     ) throws {
-        let blendModes = [
-            SPINE_BLEND_MODE_NORMAL,
-            SPINE_BLEND_MODE_ADDITIVE,
-            SPINE_BLEND_MODE_MULTIPLY,
-            SPINE_BLEND_MODE_SCREEN
-        ]
+        let blendModes = Self.caseIterableBlendModes
         var buffer = ContiguousArray<MTLRenderPipelineState?>()
         var error:NSError? = nil
         for blendMode in blendModes {
@@ -160,7 +153,8 @@ public class SpineMetalPipeLineStorage: NSObject {
         for blendMode: spine_blend_mode,
         premultiplyAlpha: Bool = true
     ) -> MTLRenderPipelineState? {
-        let index = Int(blendMode.rawValue) << (premultiplyAlpha ? 1 : 0)
+        let base = Int(blendMode.rawValue) << 1
+        let index = base | (premultiplyAlpha ? 1 : 0)
         guard index < storage.count else {
             return nil
         }
