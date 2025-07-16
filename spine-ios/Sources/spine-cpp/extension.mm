@@ -56,22 +56,30 @@ public:
         @autoreleasepool {
             os_log_t logger = os_log_create(LOG_CATEGORY, "file");
             NSURL* url = [NSURL fileURLWithFileSystemRepresentation:path.buffer() isDirectory:false relativeToURL:nil];
-            //            NSFileManager.defaultManager
-            NSError* error = nil;
-            NSData* data = [NSData dataWithContentsOfURL:url options:NSDataReadingMappedIfSafe error:&error];
-            if (error) {
-                os_log_error(logger, "Error reading file size: %@ errorCode: %ld", error, error.code);
-            } else if (data == nil) {
-                os_log_error(logger, "Error reading file with unknown error from %@", url);
-            }
-            if (error || data == nil) {
+            
+            if (!url) {
+                os_log_error(logger, "Failed to create NSURL from path: %s", path.buffer());
                 *length = 0;
                 block = nil;
             }
-            *length = (int) data.length;
-            block = alloc<char>(data.length, __FILE__, __LINE__);
-            
-            memcpy(block, data.bytes, data.length);
+            if (url) {
+                NSError* error = nil;
+                NSData* data = [NSData dataWithContentsOfURL:url options:NSDataReadingMappedIfSafe error:&error];
+                if (error) {
+                    os_log_error(logger, "Error reading file size: %@ errorCode: %ld", error, error.code);
+                } else if (data == nil) {
+                    os_log_error(logger, "Error reading file with unknown error from %@", url);
+                }
+                if (error || data == nil) {
+                    *length = 0;
+                    block = nil;
+                }
+                *length = (int) data.length;
+                block = alloc<char>(data.length, __FILE__, __LINE__);
+                
+                memcpy(block, data.bytes, data.length);
+            }
+
         }
         return block;
     }
