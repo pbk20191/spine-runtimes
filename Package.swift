@@ -51,7 +51,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "spine_cpp",
+            name: "spine-cpp",
             path: "spine-ios/Sources/spine-cpp",
             cxxSettings: [
                 .define("SPINE_USE_STD_FUNCTION", to: "1"),
@@ -61,11 +61,11 @@ let package = Package(
             ]
         ),
         .target(
-            name: "spine_c",
+            name: "spine-c",
             dependencies: [
-                "spine_cpp"
+                "spine-cpp"
             ],
-            path: "spine-ios/Sources/spine_c",
+            path: "spine-ios/Sources/spine-c",
             cxxSettings: [
                 .define("SPINE_USE_STD_FUNCTION", to: "1"),
                 .define("getDefaultExtension()", to: "____UNUSED_getDefaultExtension()"),
@@ -81,7 +81,7 @@ let package = Package(
         .target(
             name: "SpineSwift",
             dependencies: [
-              "SpineShadersStructs", "spine_c"
+              "SpineShadersStructs", "spine-c"
             ],
             path: "spine-ios/Sources/SpineSwift",
             cSettings: [
