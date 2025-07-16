@@ -1,0 +1,6 @@
+module spine_c {
+    header "spine-c/spine-c.h"
+    header "spine-c/texture_loader.h"
+    header "spine-c/SpineCTextureLoader.hpp"
+    export *
+}

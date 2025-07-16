@@ -1,0 +1,4 @@
+module spine_cpp {
+    umbrella header "spine/spine.h"
+    export *
+}

@@ -3,6 +3,8 @@
 
 import PackageDescription
 
+let cxxLambdaSetting = CXXSetting.define("SPINE_USE_STD_FUNCTION", to: "1")
+
 let package = Package(
     name: "spine-ios",
     platforms: [
@@ -67,6 +69,48 @@ let package = Package(
         .systemLibrary(
             name: "SpineShadersStructs",
             path: "spine-ios/Sources/SpineShadersStructs"
+        ),
+        .target(
+            name: "spine-cpp",
+            path: "spine-ios/Sources/spine-cpp",
+            cxxSettings: [
+                cxxLambdaSetting,
+            ],
+            linkerSettings: [
+                
+            ]
+        ),
+        .target(
+            name: "spine-c",
+            dependencies: [
+                "spine-cpp",
+            ],
+            path: "spine-ios/Sources/spine-c",
+            cxxSettings: [
+                cxxLambdaSetting,
+            ]
+        ),
+        .target(
+            name: "spine_apple_extension",
+            dependencies: [
+                "spine-cpp",
+            ],
+            path: "spine-ios/Sources/spine_apple_extension"
+            
+        ),
+        .testTarget(
+            name: "HeadlessTests",
+            dependencies: [
+                "spine-c",
+                .target(
+                    name: "spine_apple_extension",
+                    condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .visionOS, .macOS])
+                ),
+            ],
+            path: "spine-ios/Tests/HeadlessTests",
+            resources: [
+                .process("Resources"),
+            ]
         ),
     ],
     cxxLanguageStandard: .cxx11
