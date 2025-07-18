@@ -29,6 +29,14 @@ let package = Package(
             name: "SpineiOS",
             targets: ["SpineiOSWrapper"]
         ),
+        .library(
+            name: "spine-c",
+            targets: ["spine-c"]
+        ),
+        .library(
+            name: "SpineRuntime",
+            targets: ["SpineRuntime"]
+        )
     ],
     targets: [
         .target(
@@ -98,12 +106,26 @@ let package = Package(
             path: "spine-ios/Sources/spine_apple_extension"
             
         ),
+        .target(
+            name: "SpineRuntime",
+            dependencies: [
+                "spine-c", "SpineShadersStructs",
+            ],
+            path: "spine-ios/Sources/SpineRuntime",
+            resources: [
+                .process("Resources"),
+            ]
+        ),
         .testTarget(
             name: "HeadlessTests",
             dependencies: [
                 "spine-c",
                 .target(
                     name: "spine_apple_extension",
+                    condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .visionOS, .macOS])
+                ),
+                .target(
+                    name: "SpineRuntime",
                     condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .visionOS, .macOS])
                 ),
             ],

@@ -10,7 +10,6 @@ import Testing
 import spine_c
 import spine_c.block_support
 
-
 struct SimpleTestCase {
 
 

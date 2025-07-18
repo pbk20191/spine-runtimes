@@ -54,4 +54,13 @@ typedef struct {
 	vector_float2 offset;
 } SpineTransform;
 
+
+typedef struct {
+	simd_float2 position;
+	simd_float2 uv;
+	int32_t color;
+	int32_t darkColor;
+} SpineAdvancedVertex;
+
+
 #endif /* SpineShadersStructs_h */
