@@ -88,3 +88,41 @@ spine::SpineExtension* spine::getDefaultExtension() {
     static AppleExtension extension;
     return &extension;
 }
+
+namespace {
+
+class DictionaryTextureLoader: public spine::TextureLoader {
+    
+    
+    public:
+    DictionaryTextureLoader(): spine::TextureLoader() {}
+
+    void load(spine::AtlasPage &page, const spine::String &path) override {
+        #define P_VALUE(key) @#key : @(page.key),
+        NSMutableDictionary* buffer = NSMutableDictionary.dictionary;
+        page.texture = (__bridge_retained CFMutableDictionaryRef)buffer;
+        buffer[@"kSpineTextureProperty"] = @{
+            @"textuerPath": [NSString stringWithUTF8String:path.buffer()],
+            @"name": [NSString stringWithUTF8String:page.name.buffer()],
+            P_VALUE(width)
+            P_VALUE(height)
+            P_VALUE(index)
+            P_VALUE(pma)
+            P_VALUE(uWrap)
+            P_VALUE(vWrap)
+            P_VALUE(magFilter)
+            P_VALUE(minFilter)
+            P_VALUE(format)
+        };
+        buffer[@"kSpineTextureNativePointer"] = [NSValue valueWithPointer:&page];
+    }
+    
+    void unload(void *texture) override {
+        id ref = (__bridge_transfer id)texture;
+        SP_UNUSED(ref);
+    }
+    
+};
+
+
+}
