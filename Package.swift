@@ -79,20 +79,8 @@ let package = Package(
             path: "spine-ios/Sources/SpineShadersStructs"
         ),
         .target(
-            name: "spine-cpp",
-            path: "spine-ios/Sources/spine-cpp",
-            cxxSettings: [
-                cxxLambdaSetting,
-            ],
-            linkerSettings: [
-                
-            ]
-        ),
-        .target(
             name: "spine-c",
-            dependencies: [
-                "spine-cpp",
-            ],
+            dependencies: [],
             path: "spine-ios/Sources/spine-c",
             cxxSettings: [
                 cxxLambdaSetting,
@@ -101,7 +89,7 @@ let package = Package(
         .target(
             name: "spine_apple_extension",
             dependencies: [
-                "spine-cpp",
+                "spine-c",
             ],
             path: "spine-ios/Sources/spine_apple_extension"
             

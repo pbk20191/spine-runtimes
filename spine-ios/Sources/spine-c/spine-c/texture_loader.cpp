@@ -8,6 +8,7 @@
 #include "spine-c/texture_loader.h"
 #include <spine/spine.h>
 #include "spine-c/SpineCTextureLoader.hpp"
+#include "spine-c/SpineTextureLoaderContext.h"
 
 spine_texture_loader spine_texture_loader_create(const SpineTextureLoaderContext* vtable) {
     if (!vtable) {

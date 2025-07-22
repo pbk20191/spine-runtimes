@@ -1,6 +1,27 @@
 module spine_c {
-    header "spine-c/spine-c.h"
-    header "spine-c/texture_loader.h"
-    header "spine-c/SpineCTextureLoader.hpp"
-    export *
+    use c
+    export c
+    explicit module cpp {
+        umbrella header "spine/spine.h"
+        requires cplusplus11
+        export *
+    }
+    
+    explicit module block_support {
+        header "spine-c/block_support.h"
+        requires blocks
+    }
+    
+    explicit module C_TextureLoader {
+        header "spine-c/SpineCTextureLoader.hpp"
+        requires cplusplus11
+    }
+    
+    explicit module c {
+        header "spine-c/spine-c.h"
+        header "spine-c/texture_loader.h"
+        header "spine-c/SpineTextureLoaderContext.h"
+        export *
+    }
+    
 }

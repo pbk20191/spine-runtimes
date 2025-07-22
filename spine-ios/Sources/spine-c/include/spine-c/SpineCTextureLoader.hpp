@@ -8,8 +8,8 @@
 #ifndef SpineCTextureLoader_hpp
 #define SpineCTextureLoader_hpp
 #if __cplusplus
-#include <spine/spine.h>
-#include "texture_loader.h"
+#include <spine/TextureLoader.h>
+#include <spine-c/SpineTextureLoaderContext.h>
 
 namespace spine {
     class SpineCTextureLoader: public spine::TextureLoader {
