@@ -7,19 +7,8 @@
 
 #ifndef patch_file_hpp
 #define patch_file_hpp
-#include <CoreFoundation/CoreFoundation.h>
+
 #include "spine-cpp-lite.h"
-
-
-#if __BLOCKS__
-
-typedef void (^SpineAnimationCallbackBlock)(spine_animation_state _Nonnull state, spine_event_type type, spine_track_entry _Nonnull entry, spine_event _Nullable event);
-
-SPINE_CPP_LITE_EXPORT void spine_track_entry_set_block(spine_track_entry _Nonnull entry, SpineAnimationCallbackBlock _Nullable block);
-
-SPINE_CPP_LITE_EXPORT void spine_animation_state_set_block(spine_animation_state _Nonnull state, SpineAnimationCallbackBlock _Nullable block);
-
-#endif
 
 SPINE_CPP_LITE_EXPORT void spine_animation_state_dispose(spine_animation_state _Nullable state);
 SPINE_CPP_LITE_EXPORT void spine_animation_state_data_dispose(spine_animation_state_data _Nullable state);

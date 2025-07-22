@@ -1,4 +1,0 @@
-module spine_cpp {
-    header "spine/spine.h"
-    export *
-}

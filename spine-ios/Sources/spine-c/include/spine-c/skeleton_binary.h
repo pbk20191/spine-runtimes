@@ -2,7 +2,7 @@
 #define SPINE_SPINE_SKELETON_BINARY_H
 
 #include "spine-cpp-lite.h"
-#include "atlas.h"
+#include <spine-c/atlas.h>
 
 SPINE_OPAQUE_TYPE(spine_skeleton_binary)
 #ifdef __cplusplus

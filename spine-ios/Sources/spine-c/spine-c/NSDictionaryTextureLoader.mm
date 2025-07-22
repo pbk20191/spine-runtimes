@@ -10,7 +10,7 @@
 #include <spine/spine.h>
 #include <spine/Skeleton.h>
 //AnimationStateListenerObject
-#include "NSDictionaryTextureLoader.hpp"
+#include "spine-c/NSDictionaryTextureLoader.hpp"
 
 
 namespace spine_support{

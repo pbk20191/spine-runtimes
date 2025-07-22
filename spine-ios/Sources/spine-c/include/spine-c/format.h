@@ -1,6 +1,6 @@
 #ifndef SPINE_SPINE_FORMAT_H
 #define SPINE_SPINE_FORMAT_H
-#include <CoreFoundation/CoreFoundation.h>
+
 typedef enum {
     SPINE_FORMAT_UNKNOWN = 0,
     SPINE_FORMAT_ALPHA,

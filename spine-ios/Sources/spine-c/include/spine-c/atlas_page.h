@@ -2,9 +2,10 @@
 #define SPINE_SPINE_ATLAS_PAGE_H
 
 #include "spine-cpp-lite.h"
-#include "texture_wrap.h"
-#include "texture_filter.h"
-#include "format.h"
+#include <spine-c/texture_wrap.h>
+#include <spine-c/texture_filter.h>
+#include <spine-c/format.h>
+#include <stdbool.h>
 
 SPINE_OPAQUE_TYPE(spine_atlas_page);
 

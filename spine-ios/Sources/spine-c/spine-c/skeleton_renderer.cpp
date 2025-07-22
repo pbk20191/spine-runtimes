@@ -1,4 +1,4 @@
-#include "skeleton_renderer.h"
+#include "spine-c/skeleton_renderer.h"
 #include <spine/spine.h>
 
 using namespace spine;

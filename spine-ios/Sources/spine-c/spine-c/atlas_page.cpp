@@ -1,4 +1,4 @@
-#include "atlas_page.h"
+#include "spine-c/atlas_page.h"
 #include <spine/spine.h>
 
 using namespace spine;

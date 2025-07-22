@@ -1,4 +1,4 @@
-#include "skeleton_json.h"
+#include "spine-c/skeleton_json.h"
 #include <spine/spine.h>
 
 using namespace spine;

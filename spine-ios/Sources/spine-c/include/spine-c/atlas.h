@@ -2,7 +2,7 @@
 #define SPINE_SPINE_ATLAS_H
 
 #include "spine-cpp-lite.h"
-#include "arrays.h"
+#include <spine-c/arrays.h>
 
 SPINE_OPAQUE_TYPE(spine_atlas2);
 

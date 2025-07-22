@@ -30,9 +30,10 @@
 #ifndef SPINE_C_ARRAYS_H
 #define SPINE_C_ARRAYS_H
 
-#include "spine-cpp-lite.h"
-#include <stdlib.h>
-#include "atlas_page.h"
+#include <spine-c/arrays.h>
+#include <spine-c/atlas_page.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 SPINE_OPAQUE_TYPE(spine_array_atlas_page)
 

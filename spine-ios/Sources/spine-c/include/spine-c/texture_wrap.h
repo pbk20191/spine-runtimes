@@ -1,6 +1,5 @@
 #ifndef SPINE_SPINE_TEXTURE_WRAP_H
 #define SPINE_SPINE_TEXTURE_WRAP_H
-#include <CoreFoundation/CoreFoundation.h>
 
 typedef enum {
     SPINE_TEXTURE_WRAP_MIRRORED_REPEAT = 0,

@@ -1,7 +1,6 @@
 #ifndef SPINE_SPINE_TEXTURE_FILTER_H
 #define SPINE_SPINE_TEXTURE_FILTER_H
 
-#include <CoreFoundation/CoreFoundation.h>
 
 typedef enum {
     SPINE_TEXTURE_FILTER_UNKNOWN = 0,

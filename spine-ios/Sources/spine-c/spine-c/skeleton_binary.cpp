@@ -1,4 +1,4 @@
-#include "skeleton_binary.h"
+#include "spine-c/skeleton_binary.h"
 #include <spine/spine.h>
 
 using namespace spine;

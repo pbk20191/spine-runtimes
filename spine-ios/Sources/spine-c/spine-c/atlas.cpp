@@ -1,6 +1,7 @@
-#include "atlas.h"
+#include "spine-c/atlas.h"
 #include <spine/spine.h>
-#include "NSDictionaryTextureLoader.hpp"
+#include "spine-c/NSDictionaryTextureLoader.hpp"
+
 using namespace spine;
 
 

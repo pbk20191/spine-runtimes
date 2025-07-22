@@ -27,8 +27,8 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include "arrays.h"
 #include <spine/spine.h>
+#include "spine-c/arrays.h"
 #include <spine/Vector.h>
 
 using namespace spine;
