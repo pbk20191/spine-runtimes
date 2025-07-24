@@ -83,16 +83,16 @@ let package = Package(
             dependencies: [],
             path: "spine-ios/Sources/spine-c",
             cxxSettings: [
-                cxxLambdaSetting,
+                cxxLambdaSetting
             ]
         ),
         .target(
             name: "spine_apple_extension",
             dependencies: [
-                "spine-c",
+                "spine-c"
             ],
             path: "spine-ios/Sources/spine_apple_extension"
-            
+
         ),
         .target(
             name: "SpineRuntime",
@@ -119,7 +119,7 @@ let package = Package(
             ],
             path: "spine-ios/Tests/HeadlessTests",
             resources: [
-                .process("Resources"),
+                .process("Resources")
             ]
         ),
     ],

@@ -17,7 +17,8 @@ SPINE_FORWARD_OPAQUE_TYPE(spine_animation_state)
 SPINE_FORWARD_OPAQUE_TYPE(spine_track_entry)
 SPINE_FORWARD_OPAQUE_TYPE(spine_event)
 
-typedef void (^SpineAnimationCallbackBlock)(spine_animation_state _Nonnull state, spine_event_type type, spine_track_entry _Nonnull entry, spine_event _Nullable event);
+typedef void (^SpineAnimationCallbackBlock)(spine_animation_state _Nonnull state, spine_event_type type, spine_track_entry _Nonnull entry,
+											spine_event _Nullable event);
 
 SPINE_C_API void spine_track_entry_set_block(spine_track_entry _Nonnull entry, SpineAnimationCallbackBlock _Nullable block);
 
