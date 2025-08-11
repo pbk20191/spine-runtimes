@@ -7,6 +7,7 @@
 //
 import Foundation
 import spine_c
+import spine_apple_extension
 
 open class SpineAtlasBox: NSObject {
 
@@ -33,7 +34,7 @@ open class SpineAtlasBox: NSObject {
         dirPath:String = ""
     ) {
         let atlas = txt.utf8CString.withUnsafeBufferPointer {
-            spine_atlas2_create_from_data($0.baseAddress!, Int32($0.count), dirPath)
+            spine_atlas2_create_from_data($0.baseAddress!, Int32($0.count), dirPath, spine_get_default_dictionary_texture_loader(), true)
         }
         self.init(atlas: atlas)
     }
@@ -41,7 +42,7 @@ open class SpineAtlasBox: NSObject {
     @nonobjc public convenience init(
         path:String
     ) {
-        let atlas = spine_atlas2_create(path)
+        let atlas = spine_atlas2_create(path, spine_get_default_dictionary_texture_loader(), true)
         self.init(atlas: atlas)
     }
     

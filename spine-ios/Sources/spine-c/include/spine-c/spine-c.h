@@ -19,7 +19,6 @@
 #include <spine-c/skeleton_json.h>
 #include <spine-c/skeleton_renderer.h>
 #include <spine-c/arrays.h>
-#include <spine-c/NSDictionaryTextureLoader.hpp>
 
 
 #endif /* spine_cpp_lite_public_hpp */
