@@ -7,6 +7,7 @@ import CoreGraphics
 //
 import Foundation
 import SpineShadersStructs
+import spine_c
 
 public final class SpineMathUtils: NSObject {
 
@@ -37,13 +38,14 @@ public final class SpineMathUtils: NSObject {
         case .fit:
             scaleX = min(sizeInPoints.width / boundOfDrawable.width, sizeInPoints.height / boundOfDrawable.height)
             scaleY = scaleX
-            vector.dy.negate()
+            // vector.dy.negate()
         case .fill:
             scaleX = sizeInPoints.width / boundOfDrawable.width
             scaleY = sizeInPoints.height / boundOfDrawable.height
         case .aspectFill:
             scaleX = max(sizeInPoints.width / boundOfDrawable.width, sizeInPoints.height / boundOfDrawable.height)
             scaleY = scaleX
+            vector.dy.negate()
             vector.dx.negate()
         }
         let offsetX = abs(sizeInPoints.width - boundOfDrawable.width * scaleX) * vector.dx / 2
@@ -97,11 +99,13 @@ public final class SpineMathUtils: NSObject {
         case .fit:
             let scaleValue = min(scaleX, scaleY)
             scale = [scaleValue, scaleValue]
-            vector.dy.negate()  // Adjust for vertical alignment
+            // negate only if y down
+            //vector.dy.negate()  // Adjust for vertical alignment
         case .aspectFill:
             let scaleValue = max(scaleX, scaleY)
             scale = [scaleValue, scaleValue]
-            vector.dy.negate()  // Adjust for horizontal alignment
+            // negate only if y down
+            //vector.dx.negate()  // Adjust for horizontal alignment
         case .fill:
             scale = [scaleX, scaleY]
         }
@@ -119,7 +123,7 @@ public final class SpineMathUtils: NSObject {
         // 5. Compute anchor point in destinationRect
         let destinationAnchor = CGPoint(
             x: destinationRect.origin.x + destinationRect.width * anchorX,
-            y: destinationRect.origin.y + destinationRect.height * (1.0 - anchorY)  // flip
+            y: destinationRect.origin.y + destinationRect.height * anchorY
         )
 
         // 6. Construct final transform
@@ -128,7 +132,7 @@ public final class SpineMathUtils: NSObject {
         let moveAnchorToOrigin = CGAffineTransform(translationX: -sourceAnchor.x, y: -sourceAnchor.y)
 
         // 6-2. Apply scaling
-        let scaleTransform = CGAffineTransform(scaleX: scale.x, y: -scale.y)
+        let scaleTransform = CGAffineTransform(scaleX: scale.x, y: scale.y)
 
         // 6-3. Move to destination anchor point
         let moveToTarget = CGAffineTransform(translationX: destinationAnchor.x, y: destinationAnchor.y)
@@ -143,5 +147,44 @@ public final class SpineMathUtils: NSObject {
         }
 
         return final
+    }
+    
+    
+    
+    public static func measurePath(_ head:spine_render_command) -> CGPath {
+        
+        let commandEntries = sequence(first: head, next: spine_render_command_get_next)
+        let mutable = CGMutablePath()
+        for cmd in commandEntries {
+            
+            let indexBuffer = UnsafeBufferPointer<UInt16>(start: spine_render_command_get_indices(cmd), count: .init(spine_render_command_get_num_indices(cmd)))
+           
+            let vertexBuffer =  UnsafeRawBufferPointer(UnsafeBufferPointer<Float>(
+                start: spine_render_command_get_positions(cmd),
+                count: .init(spine_render_command_get_num_vertices(cmd) * 2))
+            ).assumingMemoryBound(to: SIMD2<Float>.self)
+            for t in stride(from: 0, to: indexBuffer.count, by: 3) {
+                let i0 = Int(indexBuffer[t])
+                let i1 = Int(indexBuffer[t + 1] )
+                let i2 = Int(indexBuffer[t + 2] )
+                let p0 = CGPoint(
+                    x: Double(vertexBuffer[i0].x),
+                    y: Double(vertexBuffer[i0].y)
+                )
+                let p1 = CGPoint(
+                    x: Double(vertexBuffer[i1].x),
+                    y: Double(vertexBuffer[i1].y)
+                )
+                let p2 = CGPoint(
+                    x: Double(vertexBuffer[i2].x),
+                    y: Double(vertexBuffer[i2].y)
+                )
+                mutable.move(to: p0)
+                mutable.addLine(to: p1)
+                mutable.addLine(to: p2)
+                mutable.closeSubpath()
+            }
+        }
+        return mutable
     }
 }

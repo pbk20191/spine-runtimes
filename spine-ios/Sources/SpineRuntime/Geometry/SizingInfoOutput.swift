@@ -107,7 +107,7 @@ extension SizingInfoOutput {
         let t = logicalTranslation
         let p = platformOffset
 
-        let flipY = CGAffineTransform(scaleX: 1, y: -1)
+        let flipY = CGAffineTransform(scaleX: 1, y: 1)
             .concatenating(CGAffineTransform(translationX: size.width / 2.0, y: size.height / 2.0))
         return CGAffineTransform(translationX: p.x, y: p.y)
             .concatenating(CGAffineTransform(translationX: t.x + o.x / s.width, y: t.y + o.y / s.height))
@@ -124,7 +124,7 @@ extension SizingInfoOutput {
 
         // 1. flipY의 역변환
         let flipYInverse = CGAffineTransform(translationX: -size.width / 2.0, y: -size.height / 2.0)
-            .concatenating(CGAffineTransform(scaleX: 1, y: -1))
+            .concatenating(CGAffineTransform(scaleX: 1, y: 1))
 
         // 2. scale의 역변환
         let scaleInverse = CGAffineTransform(scaleX: 1 / s.width, y: 1 / s.height)
