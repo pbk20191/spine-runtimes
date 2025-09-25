@@ -97,7 +97,7 @@ let package = Package(
         .target(
             name: "SpineRuntime",
             dependencies: [
-                "spine-c", "SpineShadersStructs",
+                "spine-c", "SpineShadersStructs", "spine_apple_extension"
             ],
             path: "spine-ios/Sources/SpineRuntime",
             resources: [

@@ -6,6 +6,7 @@
 //
 import Foundation
 import spine_c
+import spine_apple_extension
 
 open class SpineAtlasBox: NSObject {
 
@@ -18,33 +19,33 @@ open class SpineAtlasBox: NSObject {
         }
     }
 
-    nonisolated(unsafe)
-        static let loader: spine_texture_loader = {
-            var context = SpineTextureLoaderContext()
-            context.load = { page, path, context in
-                let prop = NSMutableDictionary()
-
-                spine_atlas_page_set_texture(page, Unmanaged.passRetained(prop).toOpaque())
-                prop["kSpineAtlasPageProperty"] = [
-                    "name": String(cString: spine_atlas_page_get_name(page)),
-                    "width": spine_atlas_page_get_width(page),
-                    "height": spine_atlas_page_get_height(page),
-                    "minFilter": spine_atlas_page_get_min_filter(page).rawValue,
-                    "magFilter": spine_atlas_page_get_mag_filter(page).rawValue,
-                    "uWrap": spine_atlas_page_get_u_wrap(page).rawValue,
-                    "vWrap": spine_atlas_page_get_v_wrap(page).rawValue,
-                    "pma": spine_atlas_page_get_pma(page),
-                    "texturePath": String(cString: path),
-                    "index": spine_atlas_page_get_index(page),
-                ]
-                prop["kSpineAtlasPagePointer"] = NSValue(pointer: page)
-
-            }
-            context.unload = { storage, _ in
-                Unmanaged<AnyObject>.fromOpaque(storage!).release()
-            }
-            return spine_texture_loader_create(&context)
-        }()
+//    nonisolated(unsafe)
+//        static let loader: spine_texture_loader = {
+//            var context = SpineTextureLoaderContext()
+//            context.load = { page, path, context in
+//                let prop = NSMutableDictionary()
+//
+//                spine_atlas_page_set_texture(page, Unmanaged.passRetained(prop).toOpaque())
+//                prop["kSpineAtlasPageProperty"] = [
+//                    "name": String(cString: spine_atlas_page_get_name(page)),
+//                    "width": spine_atlas_page_get_width(page),
+//                    "height": spine_atlas_page_get_height(page),
+//                    "minFilter": spine_atlas_page_get_min_filter(page).rawValue,
+//                    "magFilter": spine_atlas_page_get_mag_filter(page).rawValue,
+//                    "uWrap": spine_atlas_page_get_u_wrap(page).rawValue,
+//                    "vWrap": spine_atlas_page_get_v_wrap(page).rawValue,
+//                    "pma": spine_atlas_page_get_pma(page),
+//                    "texturePath": String(cString: path),
+//                    "index": spine_atlas_page_get_index(page),
+//                ]
+//                prop["kSpineAtlasPagePointer"] = NSValue(pointer: page)
+//
+//            }
+//            context.unload = { storage, _ in
+//                Unmanaged<AnyObject>.fromOpaque(storage!).release()
+//            }
+//            return spine_texture_loader_create(&context)
+//        }()
 
     @nonobjc
     public init(atlas: spine_atlas) {
@@ -58,7 +59,7 @@ open class SpineAtlasBox: NSObject {
     ) {
 
         let atlas = txt.utf8CString.withUnsafeBufferPointer {
-            spine_atlas_create($0.baseAddress!, Int32($0.count), dirPath, Self.loader, true)
+            spine_atlas_create($0.baseAddress!, Int32($0.count), dirPath, spine_get_default_dictionary_texture_loader(), true)
         }
         self.init(atlas: atlas)
     }
@@ -66,7 +67,7 @@ open class SpineAtlasBox: NSObject {
     @nonobjc public convenience init(
         path: String
     ) {
-        let atlas = spine_atlas_load(path, Self.loader, true)
+        let atlas = spine_atlas_load(path, spine_get_default_dictionary_texture_loader(), true)
         self.init(atlas: atlas)
     }
 
