@@ -83,7 +83,7 @@ let package = Package(
             dependencies: [],
             path: "spine-ios/Sources/spine-c",
             cxxSettings: [
-                cxxLambdaSetting
+//                cxxLambdaSetting
             ]
         ),
         .target(

@@ -131,7 +131,7 @@ namespace {
 	};
 
 	template<typename Base>
-	static inline void dispatch_block_callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event) {
+	static inline void dispatch_block_callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event, void *userData) {
 		SpineAnimationCallbackBlock block = BlockSelector<Base>::select(state, entry);
 		if (!block) return;
 		block(reinterpret_cast<spine_animation_state>(state), static_cast<spine_event_type>(type), reinterpret_cast<spine_track_entry>(entry),
