@@ -652,9 +652,12 @@ namespace Spine.Unity.Editor {
 
 			List<Material> vestigialMaterials = new List<Material>();
 
-			if (atlasAsset == null)
+			bool isFirstImport;
+			if (atlasAsset == null) {
+				isFirstImport = true;
 				atlasAsset = SpineAtlasAsset.CreateInstance<SpineAtlasAsset>();
-			else {
+			} else {
+				isFirstImport = false;
 				foreach (Material m in atlasAsset.materials)
 					vestigialMaterials.Add(m);
 			}
@@ -667,7 +670,7 @@ namespace Spine.Unity.Editor {
 			if (atlas != null) {
 				foreach (AtlasPage page in atlas.Pages)
 					pageFiles.Add(page.name);
-				IssuePMAWarnings(atlas, atlasAsset);
+				IssuePMAWarnings(isFirstImport, atlas, atlasAsset);
 			}
 			bool atlasHasCustomMaterials = HasCustomMaterialsAssigned(vestigialMaterials, primaryName, pageFiles);
 
@@ -769,7 +772,7 @@ namespace Spine.Unity.Editor {
 			return loadedAtlas != null ? loadedAtlas : atlasAsset;
 		}
 
-		static void IssuePMAWarnings (Atlas atlas, SpineAtlasAsset atlasAsset) {
+		static void IssuePMAWarnings (bool isFirstImport, Atlas atlas, SpineAtlasAsset atlasAsset) {
 			bool isPMA = atlas.Pages.Count > 0 && atlas.Pages[0].pma;
 			if (QualitySettings.activeColorSpace == ColorSpace.Linear && isPMA) {
 				bool wasFixed = false;
@@ -782,7 +785,7 @@ namespace Spine.Unity.Editor {
 					+ "b) switch to Gamma color space via\nProject Settings - Player - Other Settings - Color Space.\n",
 					atlasAsset.name), atlasAsset);
 				}
-			} else if (SpineEditorUtilities.Preferences.UsesPMAWorkflow != isPMA) {
+			} else if (isFirstImport && SpineEditorUtilities.Preferences.UsesPMAWorkflow != isPMA) {
 				bool wasFixed = false;
 				if (SpineEditorUtilities.Preferences.ShowWorkflowMismatchDialog)
 					wasFixed = ShowWorkflowMismatchDialog(atlasAsset, isLinearPMAMismatch: false, atlasIsPMA: isPMA);
