@@ -232,7 +232,7 @@ namespace spine {
 			if (constraintName.isEmpty()) return NULL;
 			for (size_t i = 0; i < _constraints.size(); i++) {
 				Constraint *constraint = _constraints[i];
-				if (constraint->getRTTI().isExactly(T::RTTI)) {
+				if (constraint->getRTTI().isExactly(T::rtti)) {
 					if (constraint->getData().getName() == constraintName) {
 						return (T *) constraint;
 					}
