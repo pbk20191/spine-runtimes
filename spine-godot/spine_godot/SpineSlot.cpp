@@ -134,10 +134,8 @@ int SpineSlot::get_attachment_state() {
 	return 0;
 }
 
-void SpineSlot::set_attachment_state(int v) {
-	// TODO: attachmentState is no longer exposed in the new API
-	SPINE_CHECK(get_spine_object(), )
-}
+void SpineSlot::set_attachment_state(int v){// TODO: attachmentState is no longer exposed in the new API
+											SPINE_CHECK(get_spine_object(), )}
 
 Array SpineSlot::get_deform() {
 	Array result;

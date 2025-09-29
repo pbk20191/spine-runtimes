@@ -40,7 +40,8 @@ void SpineAnimation::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_duration"), &SpineAnimation::get_duration);
 	ClassDB::bind_method(D_METHOD("set_duration", "duration"), &SpineAnimation::set_duration);
 
-	ClassDB::bind_method(D_METHOD("apply", "skeleton", "last_time", "time", "loop", "events", "alpha", "blend", "direction", "appliedPose"), &SpineAnimation::apply);
+	ClassDB::bind_method(D_METHOD("apply", "skeleton", "last_time", "time", "loop", "events", "alpha", "blend", "direction", "appliedPose"),
+						 &SpineAnimation::apply);
 	ClassDB::bind_method(D_METHOD("get_timelines"), &SpineAnimation::get_timelines);
 	ClassDB::bind_method(D_METHOD("has_timeline", "ids"), &SpineAnimation::has_timeline);
 }

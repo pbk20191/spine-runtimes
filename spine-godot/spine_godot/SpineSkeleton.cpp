@@ -294,7 +294,7 @@ Array SpineSkeleton::get_ik_constraints() {
 		auto constraint = constraints[i];
 		if (!constraint->getRTTI().isExactly(spine::IkConstraint::rtti) == false) continue;
 		Ref<SpineIkConstraint> constraint_ref(memnew(SpineIkConstraint));
-		constraint_ref->set_spine_object(sprite, static_cast<spine::IkConstraint*>(constraint));
+		constraint_ref->set_spine_object(sprite, static_cast<spine::IkConstraint *>(constraint));
 		result[i] = constraint_ref;
 		size++;
 	}
@@ -312,7 +312,7 @@ Array SpineSkeleton::get_transform_constraints() {
 		auto constraint = constraints[i];
 		if (!constraint->getRTTI().isExactly(spine::TransformConstraint::rtti) == false) continue;
 		Ref<SpineTransformConstraint> constraint_ref(memnew(SpineTransformConstraint));
-		constraint_ref->set_spine_object(sprite, static_cast<spine::TransformConstraint*>(constraint));
+		constraint_ref->set_spine_object(sprite, static_cast<spine::TransformConstraint *>(constraint));
 		result[i] = constraint_ref;
 		size++;
 	}
@@ -330,7 +330,7 @@ Array SpineSkeleton::get_path_constraints() {
 		auto constraint = constraints[i];
 		if (!constraint->getRTTI().isExactly(spine::PathConstraint::rtti) == false) continue;
 		Ref<SpinePathConstraint> constraint_ref(memnew(SpinePathConstraint));
-		constraint_ref->set_spine_object(sprite, static_cast<spine::PathConstraint*>(constraint));
+		constraint_ref->set_spine_object(sprite, static_cast<spine::PathConstraint *>(constraint));
 		result[i] = constraint_ref;
 		size++;
 	}

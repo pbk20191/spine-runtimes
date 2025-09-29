@@ -1168,7 +1168,8 @@ void SpineSprite::draw() {
 		statics.scratch_points.set(2, Vector2(bone_length, 0));
 		statics.scratch_points.set(3, Vector2(0, -debug_bones_thickness));
 		statics.scratch_points.set(4, Vector2(-debug_bones_thickness, 0));
-		Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(), Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()));
+		Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
+								   Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()));
 		bone_transform.scale_basis(Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 		auto mouse_local_position = bone_transform.affine_inverse().xform(mouse_position);
 #ifdef SPINE_GODOT_EXTENSION
@@ -1196,7 +1197,8 @@ void SpineSprite::draw() {
 			statics.scratch_points.set(2, Vector2(bone_length, 0));
 			statics.scratch_points.set(3, Vector2(0, -debug_bones_thickness));
 			statics.scratch_points.set(4, Vector2(-debug_bones_thickness, 0));
-			Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(), Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()));
+			Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
+									   Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()));
 			bone_transform.scale_basis(Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 			auto mouse_local_position = bone_transform.affine_inverse().xform(mouse_position);
 #ifdef SPINE_GODOT_EXTENSION
