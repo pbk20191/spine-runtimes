@@ -117,7 +117,8 @@ void Slider::sort(Skeleton &skeleton) {
 				skeleton.constrained((Posed &) *constraints[timeline->getConstraintIndex()]);
 		} else if (t->getRTTI().instanceOf(ConstraintTimeline::rtti)) {
 			ConstraintTimeline *timeline = (ConstraintTimeline *) t;
-			skeleton.constrained((Posed &) *constraints[timeline->getConstraintIndex()]);
+			int index = timeline->getConstraintIndex();
+			if (index != -1) skeleton.constrained((Posed &) *constraints[timeline->getConstraintIndex()]);
 		}
 	}
 }
