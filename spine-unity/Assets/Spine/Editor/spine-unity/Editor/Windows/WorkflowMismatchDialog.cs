@@ -45,7 +45,7 @@ namespace Spine.Unity.Editor {
 			Cancel = 2
 		}
 
-		const string REEXPORT_INSTRUCTIONS_URL = "https://esotericsoftware.com/spine-unity-assets#Correct-Texture-Packer-export-and-Texture-and-Material-import-settings:";
+		const string REEXPORT_INSTRUCTIONS_URL = "https://esotericsoftware.com/spine-unity-assets#Correct-Texture-Packer-export";
 
 		public static DialogResult ShowDialog (string atlasName, bool isLinearPMAMismatch, bool atlasIsPMA) {
 			int result;
@@ -113,7 +113,7 @@ namespace Spine.Unity.Editor {
 			Cancel = 2
 		}
 
-		const string REEXPORT_INSTRUCTIONS_URL = "https://esotericsoftware.com/spine-unity-assets#Correct-Texture-Packer-export-and-Texture-and-Material-import-settings:";
+		const string REEXPORT_INSTRUCTIONS_URL = "https://esotericsoftware.com/spine-unity-assets#Correct-Texture-Packer-export";
 
 		private static DialogResult dialogResult = DialogResult.None;
 		private static WorkflowMismatchDialog currentWindow;
