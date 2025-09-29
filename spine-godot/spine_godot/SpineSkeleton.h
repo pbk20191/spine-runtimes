@@ -42,6 +42,7 @@ class SpineIkConstraint;
 class SpineTransformConstraint;
 class SpinePathConstraint;
 class SpinePhysicsConstraint;
+class SpineSlider;
 
 class SpineSkeleton : public REFCOUNTED {
 	GDCLASS(SpineSkeleton, REFCOUNTED);
@@ -59,6 +60,7 @@ class SpineSkeleton : public REFCOUNTED {
 	friend class SpineIkConstraint;
 	friend class SpineTransformConstraint;
 	friend class SpinePathConstraint;
+	friend class SpineSlider;
 
 protected:
 	static void _bind_methods();
@@ -115,6 +117,8 @@ public:
 
 	Ref<SpinePhysicsConstraint> find_physics_constraint(const String &constraint_name);
 
+	Ref<SpineSlider> find_slider(const String &slider_name);
+
 	Rect2 get_bounds();
 
 	Ref<SpineBone> get_root_bone();
@@ -132,6 +136,8 @@ public:
 	Array get_path_constraints();
 
 	Array get_physics_constraints();
+
+	Array get_sliders();
 
 	Ref<SpineSkin> get_skin();
 

@@ -40,8 +40,8 @@ void SpineTransformConstraintData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_offset_scale_x"), &SpineTransformConstraintData::get_offset_scale_x);
 	ClassDB::bind_method(D_METHOD("get_offset_scale_y"), &SpineTransformConstraintData::get_offset_scale_y);
 	ClassDB::bind_method(D_METHOD("get_offset_shear_y"), &SpineTransformConstraintData::get_offset_shear_y);
-	ClassDB::bind_method(D_METHOD("is_relative"), &SpineTransformConstraintData::is_relative);
-	ClassDB::bind_method(D_METHOD("is_local"), &SpineTransformConstraintData::is_local);
+	ClassDB::bind_method(D_METHOD("is_local_source"), &SpineTransformConstraintData::is_local_source);
+	ClassDB::bind_method(D_METHOD("is_local_target"), &SpineTransformConstraintData::is_local_target);
 	ClassDB::bind_method(D_METHOD("get_setup_pose"), &SpineTransformConstraintData::get_setup_pose);
 }
 
@@ -97,14 +97,14 @@ float SpineTransformConstraintData::get_offset_shear_y() {
 	return get_spine_constraint_data()->getOffsetShearY();
 }
 
-bool SpineTransformConstraintData::is_relative() {
+bool SpineTransformConstraintData::is_local_source() {
 	SPINE_CHECK(get_spine_constraint_data(), false)
-	return get_spine_constraint_data()->getRelative();
+	return get_spine_constraint_data()->getLocalSource();
 }
 
-bool SpineTransformConstraintData::is_local() {
+bool SpineTransformConstraintData::is_local_target() {
 	SPINE_CHECK(get_spine_constraint_data(), false)
-	return get_spine_constraint_data()->getLocal();
+	return get_spine_constraint_data()->getLocalTarget();
 }
 
 Ref<SpineTransformConstraintPose> SpineTransformConstraintData::get_setup_pose() {

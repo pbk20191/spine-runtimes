@@ -29,19 +29,43 @@
 
 #pragma once
 
-#include "SpineCommon.h"
-#include <spine/ConstraintData.h>
+#include "SpineConstraintData.h"
+#include "SpineBoneData.h"
+#include <spine/SliderData.h>
 
-class SpineSkeletonDataResource;
+class SpineAnimation;
+class SpineSliderPose;
 
-class SpineConstraintData : public SpineSkeletonDataResourceOwnedObject<spine::ConstraintData> {
-	GDCLASS(SpineConstraintData, SpineObjectWrapper)
+class SpineSliderData : public SpineConstraintData {
+	GDCLASS(SpineSliderData, SpineConstraintData)
+
+	spine::SliderData *get_spine_constraint_data() {
+		return (spine::SliderData *) get_spine_object();
+	}
 
 protected:
 	static void _bind_methods();
 
 public:
-	String get_constraint_name();
+	Ref<SpineAnimation> get_animation();
 
-	bool is_skin_required();
+	bool get_additive();
+	void set_additive(bool value);
+
+	bool get_loop();
+	void set_loop(bool value);
+
+	Ref<SpineBoneData> get_bone();
+	void set_bone(Ref<SpineBoneData> value);
+
+	float get_scale();
+	void set_scale(float value);
+
+	float get_offset();
+	void set_offset(float value);
+
+	bool get_local();
+	void set_local(bool value);
+
+	Ref<SpineSliderPose> get_setup_pose();
 };

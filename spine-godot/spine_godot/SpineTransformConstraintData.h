@@ -62,9 +62,9 @@ public:
 
 	float get_offset_shear_y();
 
-	bool is_relative();
+	bool is_local_source();
 
-	bool is_local();
+	bool is_local_target();
 
 	Ref<SpineTransformConstraintPose> get_setup_pose();
 };

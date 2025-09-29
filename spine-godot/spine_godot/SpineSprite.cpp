@@ -859,7 +859,7 @@ void SpineSprite::update_meshes(Ref<SpineSkeleton> skeleton_ref) {
 
 			vertices->setSize(8, 0);
 			region->computeWorldVertices(*slot, *vertices, 0);
-			renderer_object = (SpineRendererObject *) ((spine::AtlasRegion *) region->getRegion())->page->texture;
+			renderer_object = (SpineRendererObject *) ((spine::AtlasRegion *) region->getRegion())->getPage()->texture;
 			uvs = &region->getUVs();
 			indices = &statics.quad_indices;
 
@@ -872,8 +872,9 @@ void SpineSprite::update_meshes(Ref<SpineSkeleton> skeleton_ref) {
 			auto mesh = (spine::MeshAttachment *) attachment;
 
 			vertices->setSize(mesh->getWorldVerticesLength(), 0);
-			mesh->computeWorldVertices(*skeleton, *slot, *vertices);
-			renderer_object = (SpineRendererObject *) ((spine::AtlasRegion *) mesh->getRegion())->page->texture;
+			mesh->computeWorldVertices(*skeleton, *slot, 0, mesh->getWorldVerticesLength(), vertices->buffer(), 0, 2);
+
+			renderer_object = (SpineRendererObject *) ((spine::AtlasRegion *) mesh->getRegion())->getPage()->texture;
 			uvs = &mesh->getUVs();
 			indices = &mesh->getTriangles();
 
@@ -1075,15 +1076,15 @@ void SpineSprite::draw() {
 		draw_set_transform(Vector2(0, 0), 0, Vector2(1, 1));
 		auto &draw_order = skeleton->get_spine_object()->getDrawOrder();
 		for (int i = 0; i < (int) draw_order.size(); i++) {
-			auto *slot = draw_order[i];
+			auto slot = draw_order[i];
 			if (!slot->getBone().isActive()) continue;
-			auto *attachment = slot->getAppliedPose().getAttachment();
+			auto attachment = slot->getAppliedPose().getAttachment();
 			if (!attachment) continue;
 			if (!attachment->getRTTI().isExactly(spine::MeshAttachment::rtti)) continue;
-			auto *mesh = (spine::MeshAttachment *) attachment;
-			auto *vertices = &statics.scratch_vertices;
+			auto mesh = (spine::MeshAttachment *) attachment;
+			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(mesh->getWorldVerticesLength(), 0);
-			mesh->computeWorldVertices(*slot, *vertices);
+			mesh->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, mesh->getWorldVerticesLength(), vertices->buffer(), 0, 2);
 
 			// Render triangles.
 			createLinesFromMesh(statics.scratch_points, mesh->getTriangles(), vertices);
@@ -1123,7 +1124,7 @@ void SpineSprite::draw() {
 			auto bounding_box = (spine::BoundingBoxAttachment *) attachment;
 			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(bounding_box->getWorldVerticesLength(), 0);
-			bounding_box->computeWorldVertices(*slot, *vertices);
+			bounding_box->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, bounding_box->getWorldVerticesLength(), vertices->buffer(), 0, 2);
 			size_t num_vertices = vertices->size() / 2;
 			statics.scratch_points.resize((int) num_vertices);
 			memcpy(statics.scratch_points.ptrw(), vertices->buffer(), num_vertices * 2 * sizeof(float));
@@ -1144,7 +1145,7 @@ void SpineSprite::draw() {
 			auto clipping = (spine::ClippingAttachment *) attachment;
 			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(clipping->getWorldVerticesLength(), 0);
-			clipping->computeWorldVertices(*slot, *vertices);
+			clipping->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, clipping->getWorldVerticesLength(), vertices->buffer(), 0, 2);
 			size_t num_vertices = vertices->size() / 2;
 			statics.scratch_points.resize((int) num_vertices);
 			memcpy(statics.scratch_points.ptrw(), vertices->buffer(), num_vertices * 2 * sizeof(float));
@@ -1288,8 +1289,8 @@ void SpineSprite::draw() {
 }
 
 void SpineSprite::draw_bone(spine::Bone *bone, const Color &color) {
-	draw_set_transform(Vector2(bone->getWorldX(), bone->getWorldY()), spine::MathUtil::Deg_Rad * bone->getWorldRotationX(),
-					   Vector2(bone->getWorldScaleX(), bone->getWorldScaleY()));
+	draw_set_transform(Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()), spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
+					   Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 	float bone_length = bone->getData().getLength();
 	if (bone_length == 0) bone_length = debug_bones_thickness * 2;
 #ifdef SPINE_GODOT_EXTENSION

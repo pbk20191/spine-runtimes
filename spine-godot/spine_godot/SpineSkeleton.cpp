@@ -34,10 +34,12 @@
 #include "SpineTransformConstraint.h"
 #include "SpinePathConstraint.h"
 #include "SpinePhysicsConstraint.h"
+#include "SpineSlider.h"
 #include "spine/IkConstraint.h"
 #include "spine/PathConstraint.h"
 #include "spine/PhysicsConstraint.h"
 #include "spine/TransformConstraint.h"
+#include "spine/Slider.h"
 #include <spine/SkeletonClipping.h>
 
 void SpineSkeleton::_bind_methods() {
@@ -56,6 +58,7 @@ void SpineSkeleton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("find_transform_constraint", "constraint_name"), &SpineSkeleton::find_transform_constraint);
 	ClassDB::bind_method(D_METHOD("find_path_constraint", "constraint_name"), &SpineSkeleton::find_path_constraint);
 	ClassDB::bind_method(D_METHOD("find_physics_constraint", "constraint_name"), &SpineSkeleton::find_physics_constraint);
+	ClassDB::bind_method(D_METHOD("find_slider", "slider_name"), &SpineSkeleton::find_slider);
 	ClassDB::bind_method(D_METHOD("get_bounds"), &SpineSkeleton::get_bounds);
 	ClassDB::bind_method(D_METHOD("get_root_bone"), &SpineSkeleton::get_root_bone);
 	ClassDB::bind_method(D_METHOD("get_data"), &SpineSkeleton::get_skeleton_data_res);
@@ -65,6 +68,7 @@ void SpineSkeleton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_ik_constraints"), &SpineSkeleton::get_ik_constraints);
 	ClassDB::bind_method(D_METHOD("get_path_constraints"), &SpineSkeleton::get_path_constraints);
 	ClassDB::bind_method(D_METHOD("get_transform_constraints"), &SpineSkeleton::get_transform_constraints);
+	ClassDB::bind_method(D_METHOD("get_sliders"), &SpineSkeleton::get_sliders);
 	ClassDB::bind_method(D_METHOD("get_skin"), &SpineSkeleton::get_skin);
 	ClassDB::bind_method(D_METHOD("get_color"), &SpineSkeleton::get_color);
 	ClassDB::bind_method(D_METHOD("set_color", "v"), &SpineSkeleton::set_color);
@@ -229,6 +233,16 @@ Ref<SpinePhysicsConstraint> SpineSkeleton::find_physics_constraint(const String 
 	return constraint_ref;
 }
 
+Ref<SpineSlider> SpineSkeleton::find_slider(const String &slider_name) {
+	SPINE_CHECK(skeleton, nullptr)
+	if (EMPTY(slider_name)) return nullptr;
+	auto slider = skeleton->findConstraint<spine::Slider>(SPINE_STRING_TMP(slider_name));
+	if (!slider) return nullptr;
+	Ref<SpineSlider> slider_ref(memnew(SpineSlider));
+	slider_ref->set_spine_object(sprite, slider);
+	return slider_ref;
+}
+
 Rect2 SpineSkeleton::get_bounds() {
 	SPINE_CHECK(skeleton, Rect2(0, 0, 0, 0))
 	float x, y, w, h;
@@ -352,6 +366,20 @@ Array SpineSkeleton::get_physics_constraints() {
 		Ref<SpinePhysicsConstraint> constraint_ref(memnew(SpinePhysicsConstraint));
 		constraint_ref->set_spine_object(sprite, constraint);
 		result[i] = constraint_ref;
+	}
+	return result;
+}
+
+Array SpineSkeleton::get_sliders() {
+	Array result;
+	SPINE_CHECK(skeleton, result)
+	auto &constraints = skeleton->getConstraints();
+	for (int i = 0; i < constraints.size(); ++i) {
+		auto constraint = constraints[i];
+		if (!constraint->getRTTI().isExactly(spine::Slider::rtti) == false) continue;
+		Ref<SpineSlider> slider_ref(memnew(SpineSlider));
+		slider_ref->set_spine_object(sprite, (spine::Slider *)constraint);
+		result.append(slider_ref);
 	}
 	return result;
 }

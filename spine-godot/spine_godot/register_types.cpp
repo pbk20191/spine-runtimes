@@ -63,6 +63,8 @@
 #include "SpinePhysicsConstraintData.h"
 #include "SpinePhysicsConstraint.h"
 #include "SpinePhysicsConstraintPose.h"
+#include "SpineSlider.h"
+#include "SpineSliderData.h"
 #include "SpineSliderPose.h"
 #include "SpineTimeline.h"
 #include "SpineConstant.h"
@@ -163,6 +165,8 @@ void register_spine_godot_types() {
 	GDREGISTER_CLASS(SpineTransformConstraintPose);
 	GDREGISTER_CLASS(SpinePhysicsConstraint);
 	GDREGISTER_CLASS(SpinePhysicsConstraintPose);
+	GDREGISTER_CLASS(SpineSlider);
+	GDREGISTER_CLASS(SpineSliderData);
 	GDREGISTER_CLASS(SpineSliderPose);
 	GDREGISTER_CLASS(SpineTimeline);
 	GDREGISTER_CLASS(SpineConstant);

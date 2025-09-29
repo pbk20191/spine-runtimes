@@ -30,18 +30,30 @@
 #pragma once
 
 #include "SpineCommon.h"
-#include <spine/ConstraintData.h>
+#include "SpineSliderData.h"
+#include "SpineBone.h"
+#include <spine/Slider.h>
 
-class SpineSkeletonDataResource;
+class SpineSliderPose;
+class SpineSkeleton;
 
-class SpineConstraintData : public SpineSkeletonDataResourceOwnedObject<spine::ConstraintData> {
-	GDCLASS(SpineConstraintData, SpineObjectWrapper)
+class SpineSlider : public SpineSpriteOwnedObject<spine::Slider> {
+	GDCLASS(SpineSlider, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	String get_constraint_name();
+	void update(Ref<SpineSkeleton> skeleton, SpineConstant::Physics physics);
 
-	bool is_skin_required();
+	Ref<SpineSliderData> get_data();
+
+	Ref<SpineBone> get_bone();
+	void set_bone(Ref<SpineBone> v);
+
+	Ref<SpineSliderPose> get_pose();
+	Ref<SpineSliderPose> get_applied_pose();
+
+	bool is_active();
+	void set_active(bool v);
 };
