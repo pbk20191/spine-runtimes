@@ -46,7 +46,7 @@ protected:
 
 public:
 	void apply(Ref<SpineSkeleton> skeleton, float last_time, float time, Array events, float alpha, SpineConstant::MixBlend blend,
-			   SpineConstant::MixDirection direction);
+			   SpineConstant::MixDirection direction, bool applied_pose);
 
 	int get_frame_entries();
 

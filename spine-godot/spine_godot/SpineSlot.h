@@ -56,32 +56,6 @@ public:
 
 	Ref<SpineBone> get_bone();
 
-	Color get_color();
-
-	void set_color(Color v);
-
-	Color get_dark_color();
-
-	void set_dark_color(Color v);
-
-	bool has_dark_color();
-
-	Ref<SpineAttachment> get_attachment();
-
-	void set_attachment(Ref<SpineAttachment> v);
-
-	int get_attachment_state();
-
-	void set_attachment_state(int v);
-
-	Array get_deform();
-
-	void set_deform(Array v);
-
-	int get_sequence_index();
-
-	void set_sequence_index(int v);
-
 	Ref<SpineSlotPose> get_pose();
 
 	Ref<SpineSlotPose> get_applied_pose();

@@ -37,19 +37,6 @@ void SpineSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_to_setup_pose"), &SpineSlot::set_to_setup_pose);
 	ClassDB::bind_method(D_METHOD("get_data"), &SpineSlot::get_data);
 	ClassDB::bind_method(D_METHOD("get_bone"), &SpineSlot::get_bone);
-	ClassDB::bind_method(D_METHOD("get_color"), &SpineSlot::get_color);
-	ClassDB::bind_method(D_METHOD("set_color"), &SpineSlot::set_color);
-	ClassDB::bind_method(D_METHOD("get_dark_color"), &SpineSlot::get_dark_color);
-	ClassDB::bind_method(D_METHOD("set_dark_color", "v"), &SpineSlot::set_dark_color);
-	ClassDB::bind_method(D_METHOD("has_dark_color"), &SpineSlot::has_dark_color);
-	ClassDB::bind_method(D_METHOD("get_attachment"), &SpineSlot::get_attachment);
-	ClassDB::bind_method(D_METHOD("set_attachment", "v"), &SpineSlot::set_attachment);
-	ClassDB::bind_method(D_METHOD("get_attachment_state"), &SpineSlot::get_attachment_state);
-	ClassDB::bind_method(D_METHOD("set_attachment_state", "v"), &SpineSlot::set_attachment_state);
-	ClassDB::bind_method(D_METHOD("get_deform"), &SpineSlot::get_deform);
-	ClassDB::bind_method(D_METHOD("set_deform", "v"), &SpineSlot::set_deform);
-	ClassDB::bind_method(D_METHOD("get_sequence_index"), &SpineSlot::get_sequence_index);
-	ClassDB::bind_method(D_METHOD("set_sequence_index", "v"), &SpineSlot::set_sequence_index);
 	ClassDB::bind_method(D_METHOD("get_pose"), &SpineSlot::get_pose);
 	ClassDB::bind_method(D_METHOD("get_applied_pose"), &SpineSlot::get_applied_pose);
 }
@@ -83,88 +70,6 @@ Ref<SpineBone> SpineSlot::get_bone() {
 		_bone = bone_ref;
 		return bone_ref;
 	}
-}
-
-Color SpineSlot::get_color() {
-	SPINE_CHECK(get_spine_object(), Color(0, 0, 0, 0))
-	auto &color = get_spine_object()->getAppliedPose().getColor();
-	return Color(color.r, color.g, color.b, color.a);
-}
-
-void SpineSlot::set_color(Color v) {
-	SPINE_CHECK(get_spine_object(), )
-	auto &color = get_spine_object()->getPose().getColor();
-	color.set(v.r, v.g, v.b, v.a);
-}
-
-Color SpineSlot::get_dark_color() {
-	SPINE_CHECK(get_spine_object(), Color(0, 0, 0, 0))
-	auto &color = get_spine_object()->getAppliedPose().getDarkColor();
-	return Color(color.r, color.g, color.b, color.a);
-}
-
-void SpineSlot::set_dark_color(Color v) {
-	SPINE_CHECK(get_spine_object(), )
-	auto &color = get_spine_object()->getPose().getDarkColor();
-	color.set(v.r, v.g, v.b, v.a);
-}
-
-bool SpineSlot::has_dark_color() {
-	SPINE_CHECK(get_spine_object(), false)
-	return get_spine_object()->getAppliedPose().hasDarkColor();
-}
-
-Ref<SpineAttachment> SpineSlot::get_attachment() {
-	SPINE_CHECK(get_spine_object(), nullptr)
-	auto attachment = get_spine_object()->getAppliedPose().getAttachment();
-	if (!attachment) return nullptr;
-	Ref<SpineAttachment> attachment_ref(memnew(SpineAttachment));
-	attachment_ref->set_spine_object(*get_spine_owner()->get_skeleton_data_res(), attachment);
-	return attachment_ref;
-}
-
-void SpineSlot::set_attachment(Ref<SpineAttachment> v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setAttachment(v.is_valid() && v->get_spine_object() ? v->get_spine_object() : nullptr);
-}
-
-int SpineSlot::get_attachment_state() {
-	// TODO: attachmentState is no longer exposed in the new API
-	SPINE_CHECK(get_spine_object(), 0)
-	return 0;
-}
-
-void SpineSlot::set_attachment_state(int v){// TODO: attachmentState is no longer exposed in the new API
-											SPINE_CHECK(get_spine_object(), )}
-
-Array SpineSlot::get_deform() {
-	Array result;
-	SPINE_CHECK(get_spine_object(), result)
-	auto &deform = get_spine_object()->getAppliedPose().getDeform();
-	result.resize((int) deform.size());
-	for (int i = 0; i < (int) deform.size(); ++i) {
-		result[i] = deform[i];
-	}
-	return result;
-}
-
-void SpineSlot::set_deform(Array v) {
-	SPINE_CHECK(get_spine_object(), )
-	auto &deform = get_spine_object()->getPose().getDeform();
-	deform.setSize(v.size(), 0);
-	for (int i = 0; i < v.size(); ++i) {
-		deform[i] = v[i];
-	}
-}
-
-int SpineSlot::get_sequence_index() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getSequenceIndex();
-}
-
-void SpineSlot::set_sequence_index(int v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setSequenceIndex(v);
 }
 
 Ref<SpineSlotPose> SpineSlot::get_pose() {

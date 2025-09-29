@@ -27,32 +27,32 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#pragma once
+#include "SpineSliderPose.h"
+#include "SpineCommon.h"
 
-#include "SpineConstraintData.h"
-#include "SpineBoneData.h"
-#include <spine/IkConstraintData.h>
+void SpineSliderPose::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_time"), &SpineSliderPose::get_time);
+	ClassDB::bind_method(D_METHOD("set_time", "value"), &SpineSliderPose::set_time);
+	ClassDB::bind_method(D_METHOD("get_mix"), &SpineSliderPose::get_mix);
+	ClassDB::bind_method(D_METHOD("set_mix", "value"), &SpineSliderPose::set_mix);
+}
 
-class SpineIkConstraintPose;
+float SpineSliderPose::get_time() {
+	SPINE_CHECK(get_spine_object(), 0)
+	return get_spine_object()->getTime();
+}
 
-class SpineIkConstraintData : public SpineConstraintData {
-	GDCLASS(SpineIkConstraintData, SpineConstraintData)
+void SpineSliderPose::set_time(float value) {
+	SPINE_CHECK(get_spine_object(), )
+	get_spine_object()->setTime(value);
+}
 
-	spine::IkConstraintData *get_spine_constraint_data() {
-		return (spine::IkConstraintData *) get_spine_object();
-	}
+float SpineSliderPose::get_mix() {
+	SPINE_CHECK(get_spine_object(), 0)
+	return get_spine_object()->getMix();
+}
 
-protected:
-	static void _bind_methods();
-
-public:
-	Array get_bones();
-
-	Ref<SpineBoneData> get_target();
-	void set_target(Ref<SpineBoneData> v);
-
-	bool get_uniform();
-	void set_uniform(bool v);
-
-	Ref<SpineIkConstraintPose> get_setup_pose();
-};
+void SpineSliderPose::set_mix(float value) {
+	SPINE_CHECK(get_spine_object(), )
+	get_spine_object()->setMix(value);
+}

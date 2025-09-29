@@ -28,6 +28,7 @@
  *****************************************************************************/
 
 #include "SpinePathConstraintData.h"
+#include "SpinePathConstraintPose.h"
 #include "SpineCommon.h"
 #include "SpineSkeletonDataResource.h"
 
@@ -43,16 +44,7 @@ void SpinePathConstraintData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_rotate_mode", "v"), &SpinePathConstraintData::set_rotate_mode);
 	ClassDB::bind_method(D_METHOD("get_offset_rotation"), &SpinePathConstraintData::get_offset_rotation);
 	ClassDB::bind_method(D_METHOD("set_offset_rotation", "v"), &SpinePathConstraintData::set_offset_rotation);
-	ClassDB::bind_method(D_METHOD("get_position"), &SpinePathConstraintData::get_position);
-	ClassDB::bind_method(D_METHOD("set_position", "v"), &SpinePathConstraintData::set_position);
-	ClassDB::bind_method(D_METHOD("get_spacing"), &SpinePathConstraintData::get_spacing);
-	ClassDB::bind_method(D_METHOD("set_spacing", "v"), &SpinePathConstraintData::set_spacing);
-	ClassDB::bind_method(D_METHOD("get_mix_rotate"), &SpinePathConstraintData::get_mix_rotate);
-	ClassDB::bind_method(D_METHOD("set_mix_rotate", "v"), &SpinePathConstraintData::set_mix_rotate);
-	ClassDB::bind_method(D_METHOD("get_mix_x"), &SpinePathConstraintData::get_mix_x);
-	ClassDB::bind_method(D_METHOD("set_mix_x", "v"), &SpinePathConstraintData::set_mix_x);
-	ClassDB::bind_method(D_METHOD("get_mix_y"), &SpinePathConstraintData::get_mix_y);
-	ClassDB::bind_method(D_METHOD("set_mix_y", "v"), &SpinePathConstraintData::set_mix_y);
+	ClassDB::bind_method(D_METHOD("get_setup_pose"), &SpinePathConstraintData::get_setup_pose);
 }
 
 Array SpinePathConstraintData::get_bones() {
@@ -124,52 +116,10 @@ void SpinePathConstraintData::set_offset_rotation(float v) {
 	get_spine_constraint_data()->setOffsetRotation(v);
 }
 
-float SpinePathConstraintData::get_position() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getPosition();
-}
-
-void SpinePathConstraintData::set_position(float v) {
-	SPINE_CHECK(get_spine_constraint_data(), )
-	get_spine_constraint_data()->getSetupPose().setPosition(v);
-}
-
-float SpinePathConstraintData::get_spacing() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getSpacing();
-}
-
-void SpinePathConstraintData::set_spacing(float v) {
-	SPINE_CHECK(get_spine_constraint_data(), )
-	get_spine_constraint_data()->getSetupPose().setSpacing(v);
-}
-
-float SpinePathConstraintData::get_mix_rotate() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixRotate();
-}
-
-void SpinePathConstraintData::set_mix_rotate(float v) {
-	SPINE_CHECK(get_spine_constraint_data(), )
-	get_spine_constraint_data()->getSetupPose().setMixRotate(v);
-}
-
-float SpinePathConstraintData::get_mix_x() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixX();
-}
-
-void SpinePathConstraintData::set_mix_x(float v) {
-	SPINE_CHECK(get_spine_constraint_data(), )
-	get_spine_constraint_data()->getSetupPose().setMixX(v);
-}
-
-float SpinePathConstraintData::get_mix_y() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixY();
-}
-
-void SpinePathConstraintData::set_mix_y(float v) {
-	SPINE_CHECK(get_spine_constraint_data(), )
-	get_spine_constraint_data()->getSetupPose().setMixY(v);
+Ref<SpinePathConstraintPose> SpinePathConstraintData::get_setup_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &pose = get_spine_constraint_data()->getSetupPose();
+	Ref<SpinePathConstraintPose> pose_ref(memnew(SpinePathConstraintPose));
+	pose_ref->set_spine_object(get_spine_owner(), &pose);
+	return pose_ref;
 }

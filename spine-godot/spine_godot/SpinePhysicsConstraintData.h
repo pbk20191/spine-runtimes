@@ -33,6 +33,8 @@
 #include "SpineBoneData.h"
 #include <spine/PhysicsConstraintData.h>
 
+class SpinePhysicsConstraintPose;
+
 class SpinePhysicsConstraintData : public SpineConstraintData {
 	GDCLASS(SpinePhysicsConstraintData, SpineConstraintData)
 
@@ -60,20 +62,6 @@ public:
 
 	float get_step();
 
-	float get_inertia();
-
-	float get_strength();
-
-	float get_damping();
-
-	float get_mass_inverse();
-
-	float get_wind();
-
-	float get_gravity();
-
-	float get_mix();
-
 	bool is_inertia_global();
 
 	bool is_strength_global();
@@ -87,4 +75,6 @@ public:
 	bool is_gravity_global();
 
 	bool is_mix_global();
+
+	Ref<SpinePhysicsConstraintPose> get_setup_pose();
 };

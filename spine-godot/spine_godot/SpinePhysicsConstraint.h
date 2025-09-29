@@ -34,6 +34,8 @@
 #include "SpineBone.h"
 #include <spine/PhysicsConstraint.h>
 
+class SpinePhysicsConstraintPose;
+
 class SpinePhysicsConstraint : public SpineSpriteOwnedObject<spine::PhysicsConstraint> {
 	GDCLASS(SpinePhysicsConstraint, SpineObjectWrapper)
 
@@ -45,30 +47,11 @@ public:
 
 	Ref<SpinePhysicsConstraintData> get_data();
 
-	Ref<SpineBone> get_bone();
+	Ref<SpineBonePose> get_bone();
+	void set_bone(Ref<SpineBonePose> v);
 
-	void set_bone(Ref<SpineBone> v);
-
-	void set_inertia(float value);
-	float get_inertia();
-
-	void set_strength(float value);
-	float get_strength();
-
-	void set_damping(float value);
-	float get_damping();
-
-	void set_mass_inverse(float value);
-	float get_mass_inverse();
-
-	void set_wind(float value);
-	float get_wind();
-
-	void set_gravity(float value);
-	float get_gravity();
-
-	void set_mix(float value);
-	float get_mix();
+	Ref<SpinePhysicsConstraintPose> get_pose();
+	Ref<SpinePhysicsConstraintPose> get_applied_pose();
 
 	void reset(Ref<SpineSkeleton> skeleton);
 

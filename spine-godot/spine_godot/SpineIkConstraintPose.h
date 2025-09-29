@@ -29,30 +29,39 @@
 
 #pragma once
 
-#include "SpineConstraintData.h"
-#include "SpineBoneData.h"
-#include <spine/IkConstraintData.h>
+#include "SpineCommon.h"
+#include <spine/IkConstraintPose.h>
 
-class SpineIkConstraintPose;
+class SpineSprite;
 
-class SpineIkConstraintData : public SpineConstraintData {
-	GDCLASS(SpineIkConstraintData, SpineConstraintData)
-
-	spine::IkConstraintData *get_spine_constraint_data() {
-		return (spine::IkConstraintData *) get_spine_object();
-	}
+class SpineIkConstraintPose : public SpineObjectWrapper {
+	GDCLASS(SpineIkConstraintPose, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	Array get_bones();
+	// Can be used by both SpineSprite and SpineSkeletonDataResource
+	void set_spine_object(void *owner, spine::IkConstraintPose *object) {
+		_set_spine_object_internal(owner, object);
+	}
 
-	Ref<SpineBoneData> get_target();
-	void set_target(Ref<SpineBoneData> v);
+	spine::IkConstraintPose *get_spine_object() {
+		return (spine::IkConstraintPose *) _get_spine_object_internal();
+	}
 
-	bool get_uniform();
-	void set_uniform(bool v);
+	float get_mix();
+	void set_mix(float value);
 
-	Ref<SpineIkConstraintPose> get_setup_pose();
+	float get_softness();
+	void set_softness(float value);
+
+	int get_bend_direction();
+	void set_bend_direction(int value);
+
+	bool get_compress();
+	void set_compress(bool value);
+
+	bool get_stretch();
+	void set_stretch(bool value);
 };

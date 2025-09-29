@@ -29,30 +29,46 @@
 
 #pragma once
 
-#include "SpineConstraintData.h"
-#include "SpineBoneData.h"
-#include <spine/IkConstraintData.h>
+#include "SpineCommon.h"
+#include "spine-cpp/include/spine/PhysicsConstraintPose.h"
+#include <spine/PhysicsConstraintPose.h>
 
-class SpineIkConstraintPose;
+class SpineSprite;
 
-class SpineIkConstraintData : public SpineConstraintData {
-	GDCLASS(SpineIkConstraintData, SpineConstraintData)
-
-	spine::IkConstraintData *get_spine_constraint_data() {
-		return (spine::IkConstraintData *) get_spine_object();
-	}
+class SpinePhysicsConstraintPose : public SpineObjectWrapper {
+	GDCLASS(SpinePhysicsConstraintPose, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	Array get_bones();
+	// Can be used by both SpineSprite and SpineSkeletonDataResource
+	void set_spine_object(void *owner, spine::PhysicsConstraintPose *object) {
+		_set_spine_object_internal(owner, object);
+	}
 
-	Ref<SpineBoneData> get_target();
-	void set_target(Ref<SpineBoneData> v);
+	spine::PhysicsConstraintPose *get_spine_object() {
+		return (spine::PhysicsConstraintPose *) _get_spine_object_internal();
+	}
 
-	bool get_uniform();
-	void set_uniform(bool v);
+	float get_inertia();
+	void set_inertia(float value);
 
-	Ref<SpineIkConstraintPose> get_setup_pose();
+	float get_strength();
+	void set_strength(float value);
+
+	float get_damping();
+	void set_damping(float value);
+
+	float get_mass_inverse();
+	void set_mass_inverse(float value);
+
+	float get_wind();
+	void set_wind(float value);
+
+	float get_gravity();
+	void set_gravity(float value);
+
+	float get_mix();
+	void set_mix(float value);
 };

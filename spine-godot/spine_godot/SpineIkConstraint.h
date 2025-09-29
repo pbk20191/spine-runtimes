@@ -31,10 +31,11 @@
 
 #include "SpineIkConstraintData.h"
 #include <spine/IkConstraint.h>
-#include "SpineSkeleton.h"
 
 class SpineBone;
 class SpineSprite;
+class SpineSkeleton;
+class SpineIkConstraintPose;
 
 class SpineIkConstraint : public SpineSpriteOwnedObject<spine::IkConstraint> {
 	GDCLASS(SpineIkConstraint, SpineObjectWrapper)
@@ -53,25 +54,9 @@ public:
 
 	void set_target(Ref<SpineBone> v);
 
-	int get_bend_direction();
+	Ref<SpineIkConstraintPose> get_pose();
 
-	void set_bend_direction(int v);
-
-	bool get_compress();
-
-	void set_compress(bool v);
-
-	bool get_stretch();
-
-	void set_stretch(bool v);
-
-	float get_mix();
-
-	void set_mix(float v);
-
-	float get_softness();
-
-	void set_softness(float v);
+	Ref<SpineIkConstraintPose> get_applied_pose();
 
 	bool is_active();
 

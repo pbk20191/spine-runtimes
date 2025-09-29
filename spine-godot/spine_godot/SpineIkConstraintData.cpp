@@ -28,24 +28,16 @@
  *****************************************************************************/
 
 #include "SpineIkConstraintData.h"
+#include "SpineIkConstraintPose.h"
 #include "SpineCommon.h"
 
 void SpineIkConstraintData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_bones"), &SpineIkConstraintData::get_bones);
 	ClassDB::bind_method(D_METHOD("get_target"), &SpineIkConstraintData::get_target);
 	ClassDB::bind_method(D_METHOD("set_target", "v"), &SpineIkConstraintData::set_target);
-	ClassDB::bind_method(D_METHOD("get_bend_direction"), &SpineIkConstraintData::get_bend_direction);
-	ClassDB::bind_method(D_METHOD("set_bend_direction", "v"), &SpineIkConstraintData::set_bend_direction);
-	ClassDB::bind_method(D_METHOD("get_compress"), &SpineIkConstraintData::get_compress);
-	ClassDB::bind_method(D_METHOD("set_compress", "v"), &SpineIkConstraintData::set_compress);
-	ClassDB::bind_method(D_METHOD("get_stretch"), &SpineIkConstraintData::get_stretch);
-	ClassDB::bind_method(D_METHOD("set_stretch", "v"), &SpineIkConstraintData::set_stretch);
 	ClassDB::bind_method(D_METHOD("get_uniform"), &SpineIkConstraintData::get_uniform);
 	ClassDB::bind_method(D_METHOD("set_uniform", "v"), &SpineIkConstraintData::set_uniform);
-	ClassDB::bind_method(D_METHOD("get_mix"), &SpineIkConstraintData::get_mix);
-	ClassDB::bind_method(D_METHOD("set_mix", "v"), &SpineIkConstraintData::set_mix);
-	ClassDB::bind_method(D_METHOD("get_softness"), &SpineIkConstraintData::get_softness);
-	ClassDB::bind_method(D_METHOD("set_softness", "v"), &SpineIkConstraintData::set_softness);
+	ClassDB::bind_method(D_METHOD("get_setup_pose"), &SpineIkConstraintData::get_setup_pose);
 }
 
 Array SpineIkConstraintData::get_bones() {
@@ -77,36 +69,6 @@ void SpineIkConstraintData::set_target(Ref<SpineBoneData> v) {
 	}
 }
 
-int SpineIkConstraintData::get_bend_direction() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_constraint_data()->getSetupPose().getBendDirection();
-}
-
-void SpineIkConstraintData::set_bend_direction(int v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_constraint_data()->getSetupPose().setBendDirection(v);
-}
-
-bool SpineIkConstraintData::get_compress() {
-	SPINE_CHECK(get_spine_object(), false)
-	return get_spine_constraint_data()->getSetupPose().getCompress();
-}
-
-void SpineIkConstraintData::set_compress(bool v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_constraint_data()->getSetupPose().setCompress(v);
-}
-
-bool SpineIkConstraintData::get_stretch() {
-	SPINE_CHECK(get_spine_object(), false)
-	return get_spine_constraint_data()->getSetupPose().getStretch();
-}
-
-void SpineIkConstraintData::set_stretch(bool v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_constraint_data()->getSetupPose().setStretch(v);
-}
-
 bool SpineIkConstraintData::get_uniform() {
 	SPINE_CHECK(get_spine_object(), false)
 	return get_spine_constraint_data()->getUniform();
@@ -117,22 +79,10 @@ void SpineIkConstraintData::set_uniform(bool v) {
 	get_spine_constraint_data()->setUniform(v);
 }
 
-float SpineIkConstraintData::get_mix() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMix();
-}
-
-void SpineIkConstraintData::set_mix(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_constraint_data()->getSetupPose().setMix(v);
-}
-
-float SpineIkConstraintData::get_softness() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_constraint_data()->getSetupPose().getSoftness();
-}
-
-void SpineIkConstraintData::set_softness(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_constraint_data()->getSetupPose().setSoftness(v);
+Ref<SpineIkConstraintPose> SpineIkConstraintData::get_setup_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &pose = get_spine_constraint_data()->getSetupPose();
+	Ref<SpineIkConstraintPose> pose_ref(memnew(SpineIkConstraintPose));
+	pose_ref->set_spine_object(get_spine_owner(), &pose);
+	return pose_ref;
 }

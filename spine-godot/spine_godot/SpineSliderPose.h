@@ -29,30 +29,30 @@
 
 #pragma once
 
-#include "SpineConstraintData.h"
-#include "SpineBoneData.h"
-#include <spine/IkConstraintData.h>
+#include "SpineCommon.h"
+#include <spine/SliderPose.h>
 
-class SpineIkConstraintPose;
+class SpineSprite;
 
-class SpineIkConstraintData : public SpineConstraintData {
-	GDCLASS(SpineIkConstraintData, SpineConstraintData)
-
-	spine::IkConstraintData *get_spine_constraint_data() {
-		return (spine::IkConstraintData *) get_spine_object();
-	}
+class SpineSliderPose : public SpineObjectWrapper {
+	GDCLASS(SpineSliderPose, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	Array get_bones();
+	// Can be used by both SpineSprite and SpineSkeletonDataResource
+	void set_spine_object(void *owner, spine::SliderPose *object) {
+		_set_spine_object_internal(owner, object);
+	}
 
-	Ref<SpineBoneData> get_target();
-	void set_target(Ref<SpineBoneData> v);
+	spine::SliderPose *get_spine_object() {
+		return (spine::SliderPose *) _get_spine_object_internal();
+	}
 
-	bool get_uniform();
-	void set_uniform(bool v);
+	float get_time();
+	void set_time(float value);
 
-	Ref<SpineIkConstraintPose> get_setup_pose();
+	float get_mix();
+	void set_mix(float value);
 };

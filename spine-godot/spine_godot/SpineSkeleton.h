@@ -33,14 +33,15 @@
 #include "SpineSkeletonDataResource.h"
 #include "SpineBone.h"
 #include "SpineSlot.h"
-#include "SpineIkConstraint.h"
-#include "SpineTransformConstraint.h"
-#include "SpinePathConstraint.h"
-#include "SpinePhysicsConstraint.h"
 
 #include <unordered_map>
 
+// Forward declarations to avoid circular includes
 class SpineSprite;
+class SpineIkConstraint;
+class SpineTransformConstraint;
+class SpinePathConstraint;
+class SpinePhysicsConstraint;
 
 class SpineSkeleton : public REFCOUNTED {
 	GDCLASS(SpineSkeleton, REFCOUNTED);

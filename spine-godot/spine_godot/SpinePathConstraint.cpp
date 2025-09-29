@@ -28,22 +28,15 @@
  *****************************************************************************/
 
 #include "SpinePathConstraint.h"
+#include "SpinePathConstraintPose.h"
 #include "SpineBone.h"
 #include "SpineCommon.h"
 #include "SpineSprite.h"
 
 void SpinePathConstraint::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("update", "skeleton"), &SpinePathConstraint::update);
-	ClassDB::bind_method(D_METHOD("get_position"), &SpinePathConstraint::get_position);
-	ClassDB::bind_method(D_METHOD("set_position", "v"), &SpinePathConstraint::set_position);
-	ClassDB::bind_method(D_METHOD("get_spacing"), &SpinePathConstraint::get_spacing);
-	ClassDB::bind_method(D_METHOD("set_spacing", "v"), &SpinePathConstraint::set_spacing);
-	ClassDB::bind_method(D_METHOD("get_mix_rotate"), &SpinePathConstraint::get_mix_rotate);
-	ClassDB::bind_method(D_METHOD("set_mix_rotate", "v"), &SpinePathConstraint::set_mix_rotate);
-	ClassDB::bind_method(D_METHOD("get_mix_x"), &SpinePathConstraint::get_mix_x);
-	ClassDB::bind_method(D_METHOD("set_mix_x", "v"), &SpinePathConstraint::set_mix_x);
-	ClassDB::bind_method(D_METHOD("get_mix_y"), &SpinePathConstraint::get_mix_y);
-	ClassDB::bind_method(D_METHOD("set_mix_y", "v"), &SpinePathConstraint::set_mix_y);
+	ClassDB::bind_method(D_METHOD("get_pose"), &SpinePathConstraint::get_pose);
+	ClassDB::bind_method(D_METHOD("get_applied_pose"), &SpinePathConstraint::get_applied_pose);
 	ClassDB::bind_method(D_METHOD("get_bones"), &SpinePathConstraint::get_bones);
 	ClassDB::bind_method(D_METHOD("get_slot"), &SpinePathConstraint::get_slot);
 	ClassDB::bind_method(D_METHOD("set_slot", "v"), &SpinePathConstraint::set_slot);
@@ -57,54 +50,20 @@ void SpinePathConstraint::update(Ref<SpineSkeleton> skeleton) {
 	get_spine_object()->update(*skeleton->get_spine_object(), spine::Physics_Update);
 }
 
-float SpinePathConstraint::get_position() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getPosition();
+Ref<SpinePathConstraintPose> SpinePathConstraint::get_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &pose = get_spine_object()->getPose();
+	Ref<SpinePathConstraintPose> pose_ref(memnew(SpinePathConstraintPose));
+	pose_ref->set_spine_object(get_spine_owner(), &pose);
+	return pose_ref;
 }
 
-void SpinePathConstraint::set_position(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setPosition(v);
-}
-
-float SpinePathConstraint::get_spacing() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getSpacing();
-}
-
-void SpinePathConstraint::set_spacing(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setSpacing(v);
-}
-
-float SpinePathConstraint::get_mix_rotate() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getMixRotate();
-}
-
-void SpinePathConstraint::set_mix_rotate(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setMixRotate(v);
-}
-
-float SpinePathConstraint::get_mix_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getMixX();
-}
-
-void SpinePathConstraint::set_mix_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setMixX(v);
-}
-
-float SpinePathConstraint::get_mix_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getMixY();
-}
-
-void SpinePathConstraint::set_mix_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setMixY(v);
+Ref<SpinePathConstraintPose> SpinePathConstraint::get_applied_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &pose = get_spine_object()->getAppliedPose();
+	Ref<SpinePathConstraintPose> pose_ref(memnew(SpinePathConstraintPose));
+	pose_ref->set_spine_object(get_spine_owner(), &pose);
+	return pose_ref;
 }
 
 Array SpinePathConstraint::get_bones() {
@@ -114,7 +73,7 @@ Array SpinePathConstraint::get_bones() {
 	result.resize((int) bones.size());
 	for (int i = 0; i < bones.size(); ++i) {
 		auto bone = bones[i];
-		Ref<SpineBone> bone_ref(memnew(SpineBone));
+		Ref<SpineBonePose> bone_ref(memnew(SpineBonePose));
 		bone_ref->set_spine_object(get_spine_owner(), bone);
 		result[i] = bone_ref;
 	}

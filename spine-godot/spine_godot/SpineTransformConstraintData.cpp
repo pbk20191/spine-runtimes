@@ -28,23 +28,21 @@
  *****************************************************************************/
 
 #include "SpineTransformConstraintData.h"
+#include "SpineTransformConstraintPose.h"
 #include "SpineCommon.h"
 
 void SpineTransformConstraintData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_bones"), &SpineTransformConstraintData::get_bones);
-	ClassDB::bind_method(D_METHOD("get_target"), &SpineTransformConstraintData::get_target);
-	ClassDB::bind_method(D_METHOD("get_mix_rotate"), &SpineTransformConstraintData::get_mix_rotate);
-	ClassDB::bind_method(D_METHOD("get_mix_x"), &SpineTransformConstraintData::get_mix_x);
-	ClassDB::bind_method(D_METHOD("get_mix_y"), &SpineTransformConstraintData::get_mix_y);
-	ClassDB::bind_method(D_METHOD("get_mix_scale_x"), &SpineTransformConstraintData::get_mix_scale_x);
-	ClassDB::bind_method(D_METHOD("get_mix_scale_y"), &SpineTransformConstraintData::get_mix_scale_y);
-	ClassDB::bind_method(D_METHOD("get_mix_shear_y"), &SpineTransformConstraintData::get_mix_shear_y);
+	ClassDB::bind_method(D_METHOD("get_source"), &SpineTransformConstraintData::get_source);
 	ClassDB::bind_method(D_METHOD("get_offset_rotation"), &SpineTransformConstraintData::get_offset_rotation);
 	ClassDB::bind_method(D_METHOD("get_offset_x"), &SpineTransformConstraintData::get_offset_x);
 	ClassDB::bind_method(D_METHOD("get_offset_y"), &SpineTransformConstraintData::get_offset_y);
 	ClassDB::bind_method(D_METHOD("get_offset_scale_x"), &SpineTransformConstraintData::get_offset_scale_x);
 	ClassDB::bind_method(D_METHOD("get_offset_scale_y"), &SpineTransformConstraintData::get_offset_scale_y);
 	ClassDB::bind_method(D_METHOD("get_offset_shear_y"), &SpineTransformConstraintData::get_offset_shear_y);
+	ClassDB::bind_method(D_METHOD("is_relative"), &SpineTransformConstraintData::is_relative);
+	ClassDB::bind_method(D_METHOD("is_local"), &SpineTransformConstraintData::is_local);
+	ClassDB::bind_method(D_METHOD("get_setup_pose"), &SpineTransformConstraintData::get_setup_pose);
 }
 
 Array SpineTransformConstraintData::get_bones() {
@@ -60,43 +58,13 @@ Array SpineTransformConstraintData::get_bones() {
 	return result;
 }
 
-Ref<SpineBoneData> SpineTransformConstraintData::get_target() {
+Ref<SpineBoneData> SpineTransformConstraintData::get_source() {
 	SPINE_CHECK(get_spine_constraint_data(), nullptr)
-	auto bone = get_spine_constraint_data()->getTarget();
+	auto bone = &get_spine_constraint_data()->getSource();
 	if (!bone) return nullptr;
 	Ref<SpineBoneData> slot_ref(memnew(SpineBoneData));
 	slot_ref->set_spine_object(get_spine_owner(), bone);
 	return slot_ref;
-}
-
-float SpineTransformConstraintData::get_mix_rotate() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixRotate();
-}
-
-float SpineTransformConstraintData::get_mix_x() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixX();
-}
-
-float SpineTransformConstraintData::get_mix_y() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixY();
-}
-
-float SpineTransformConstraintData::get_mix_scale_x() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixScaleX();
-}
-
-float SpineTransformConstraintData::get_mix_scale_y() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixScaleY();
-}
-
-float SpineTransformConstraintData::get_mix_shear_y() {
-	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getSetupPose().getMixShearY();
 }
 
 float SpineTransformConstraintData::get_offset_rotation() {
@@ -127,4 +95,22 @@ float SpineTransformConstraintData::get_offset_scale_y() {
 float SpineTransformConstraintData::get_offset_shear_y() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
 	return get_spine_constraint_data()->getOffsetShearY();
+}
+
+bool SpineTransformConstraintData::is_relative() {
+	SPINE_CHECK(get_spine_constraint_data(), false)
+	return get_spine_constraint_data()->getRelative();
+}
+
+bool SpineTransformConstraintData::is_local() {
+	SPINE_CHECK(get_spine_constraint_data(), false)
+	return get_spine_constraint_data()->getLocal();
+}
+
+Ref<SpineTransformConstraintPose> SpineTransformConstraintData::get_setup_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &pose = get_spine_constraint_data()->getSetupPose();
+	Ref<SpineTransformConstraintPose> pose_ref(memnew(SpineTransformConstraintPose));
+	pose_ref->set_spine_object(get_spine_owner(), &pose);
+	return pose_ref;
 }

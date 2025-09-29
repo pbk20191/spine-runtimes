@@ -33,6 +33,8 @@
 #include "SpineBoneData.h"
 #include <spine/TransformConstraintData.h>
 
+class SpineTransformConstraintPose;
+
 class SpineTransformConstraintData : public SpineConstraintData {
 	GDCLASS(SpineTransformConstraintData, SpineConstraintData)
 
@@ -46,19 +48,7 @@ protected:
 public:
 	Array get_bones();
 
-	Ref<SpineBoneData> get_target();
-
-	float get_mix_rotate();
-
-	float get_mix_x();
-
-	float get_mix_y();
-
-	float get_mix_scale_x();
-
-	float get_mix_scale_y();
-
-	float get_mix_shear_y();
+	Ref<SpineBoneData> get_source();
 
 	float get_offset_rotation();
 
@@ -75,4 +65,6 @@ public:
 	bool is_relative();
 
 	bool is_local();
+
+	Ref<SpineTransformConstraintPose> get_setup_pose();
 };

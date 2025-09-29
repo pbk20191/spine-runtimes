@@ -29,30 +29,43 @@
 
 #pragma once
 
-#include "SpineConstraintData.h"
-#include "SpineBoneData.h"
-#include <spine/IkConstraintData.h>
+#include "SpineCommon.h"
+#include "spine-cpp/include/spine/TransformConstraintPose.h"
+#include <spine/TransformConstraintPose.h>
 
-class SpineIkConstraintPose;
+class SpineSprite;
 
-class SpineIkConstraintData : public SpineConstraintData {
-	GDCLASS(SpineIkConstraintData, SpineConstraintData)
-
-	spine::IkConstraintData *get_spine_constraint_data() {
-		return (spine::IkConstraintData *) get_spine_object();
-	}
+class SpineTransformConstraintPose : public SpineObjectWrapper {
+	GDCLASS(SpineTransformConstraintPose, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	Array get_bones();
+	// Can be used by both SpineSprite and SpineSkeletonDataResource
+	void set_spine_object(void *owner, spine::TransformConstraintPose *object) {
+		_set_spine_object_internal(owner, object);
+	}
 
-	Ref<SpineBoneData> get_target();
-	void set_target(Ref<SpineBoneData> v);
+	spine::TransformConstraintPose *get_spine_object() {
+		return (spine::TransformConstraintPose *) _get_spine_object_internal();
+	}
 
-	bool get_uniform();
-	void set_uniform(bool v);
+	float get_mix_rotate();
+	void set_mix_rotate(float value);
 
-	Ref<SpineIkConstraintPose> get_setup_pose();
+	float get_mix_x();
+	void set_mix_x(float value);
+
+	float get_mix_y();
+	void set_mix_y(float value);
+
+	float get_mix_scale_x();
+	void set_mix_scale_x(float value);
+
+	float get_mix_scale_y();
+	void set_mix_scale_y(float value);
+
+	float get_mix_shear_y();
+	void set_mix_shear_y(float value);
 };

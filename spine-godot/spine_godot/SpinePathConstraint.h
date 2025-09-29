@@ -33,6 +33,8 @@
 #include "SpineSlot.h"
 #include <spine/PathConstraint.h>
 
+class SpinePathConstraintPose;
+
 class SpinePathConstraint : public SpineSpriteOwnedObject<spine::PathConstraint> {
 	GDCLASS(SpinePathConstraint, SpineObjectWrapper)
 
@@ -42,25 +44,9 @@ protected:
 public:
 	void update(Ref<SpineSkeleton> skeleton);
 
-	float get_position();
+	Ref<SpinePathConstraintPose> get_pose();
 
-	void set_position(float v);
-
-	float get_spacing();
-
-	void set_spacing(float v);
-
-	float get_mix_rotate();
-
-	void set_mix_rotate(float v);
-
-	float get_mix_x();
-
-	void set_mix_x(float v);
-
-	float get_mix_y();
-
-	void set_mix_y(float v);
+	Ref<SpinePathConstraintPose> get_applied_pose();
 
 	Array get_bones();
 

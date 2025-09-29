@@ -629,7 +629,7 @@ Array SpineSkeletonDataResource::get_ik_constraints() const {
 	result.resize((int) constraints.size());
 	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
-		if (!constraints[i].getRtti().isExactly(spine::IkConstraintData::rtti)) continue;
+		if (!constraints[i]->getRTTI().isExactly(spine::IkConstraintData::rtti)) continue;
 		Ref<SpineIkConstraintData> constraint_ref(memnew(SpineIkConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
@@ -646,7 +646,7 @@ Array SpineSkeletonDataResource::get_transform_constraints() const {
 	result.resize((int) constraints.size());
 	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
-		if (!constraints[i].getRtti().isExactly(spine::TransformConstraintData::rtti)) continue;
+		if (!constraints[i]->getRTTI().isExactly(spine::TransformConstraintData::rtti)) continue;
 		Ref<SpineTransformConstraintData> constraint_ref(memnew(SpineTransformConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
@@ -663,7 +663,7 @@ Array SpineSkeletonDataResource::get_path_constraints() const {
 	result.resize((int) constraints.size());
 	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
-		if (!constraints[i].getRtti().isExactly(spine::PathConstraintData::rtti)) continue;
+		if (!constraints[i]->getRTTI().isExactly(spine::PathConstraintData::rtti)) continue;
 		Ref<SpinePathConstraintData> constraint_ref(memnew(SpinePathConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
@@ -680,7 +680,7 @@ Array SpineSkeletonDataResource::get_physics_constraints() const {
 	result.resize((int) constraints.size());
 	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
-		if (!constraints[i].getRtti().isExactly(spine::PhysicsConstraintData::rtti)) continue;
+		if (!constraints[i]->getRTTI().isExactly(spine::PhysicsConstraintData::rtti)) continue;
 		Ref<SpinePhysicsConstraintData> constraint_ref(memnew(SpinePhysicsConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;

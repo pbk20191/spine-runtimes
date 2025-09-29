@@ -35,6 +35,8 @@
 #include "SpineBone.h"
 #include <spine/TransformConstraint.h>
 
+class SpineTransformConstraintPose;
+
 class SpineTransformConstraint : public SpineSpriteOwnedObject<spine::TransformConstraint> {
 	GDCLASS(SpineTransformConstraint, SpineObjectWrapper)
 
@@ -48,33 +50,13 @@ public:
 
 	Array get_bones();
 
-	Ref<SpineBone> get_target();
+	Ref<SpineBone> get_source();
 
-	void set_target(Ref<SpineBone> v);
+	void set_source(Ref<SpineBone> v);
 
-	float get_mix_rotate();
+	Ref<SpineTransformConstraintPose> get_pose();
 
-	void set_mix_rotate(float v);
-
-	float get_mix_x();
-
-	void set_mix_x(float v);
-
-	float get_mix_y();
-
-	void set_mix_y(float v);
-
-	float get_mix_scale_x();
-
-	void set_mix_scale_x(float v);
-
-	float get_mix_scale_y();
-
-	void set_mix_scale_y(float v);
-
-	float get_mix_shear_y();
-
-	void set_mix_shear_y(float v);
+	Ref<SpineTransformConstraintPose> get_applied_pose();
 
 	bool is_active();
 
