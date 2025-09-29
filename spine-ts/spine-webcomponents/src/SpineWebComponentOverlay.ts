@@ -408,7 +408,7 @@ export class SpineWebComponentOverlay extends HTMLElement implements OverlayAttr
 		const index = this.widgets.findIndex(w => w === widget);
 		if (index === -1) return false;
 
-		this.widgets.splice(index);
+		this.widgets.splice(index, 1);
 		this.intersectionObserver?.unobserve(widget.getHostElement());
 		return true;
 	}

@@ -128,7 +128,7 @@
 
             deleteContainer.appendChild(div);
 
-            deleteAssetManager = (await div.firstElementChild.whenReady).overlay.assetManager;
+            deleteAssetManager = (await div.firstElementChild.whenReady).overlay.assetManager.cache;
 
             deleteWidgetCounter.innerText = deleteContainer.childNodes.length
             deleteSkeletonCounter.innerText = ` (${deleteSkeletonPath}): ${deleteAssetManager.assetsRefCount[deleteSkeletonPath]}`
