@@ -47,11 +47,11 @@ export class ManagedWebGLRenderingContext implements Disposable {
 		}
 	}
 
-	private contextLostHandler (e: Event) {
+	private contextLostHandler = (e: Event) => {
 		if (e) e.preventDefault();
 	}
 
-	private contextRestoredHandler () {
+	private contextRestoredHandler = () => {
 		for (let i = 0, n = this.restorables.length; i < n; i++)
 			this.restorables[i].restore();
 	}
