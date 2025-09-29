@@ -27,16 +27,16 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-import { Disposable, type Restorable } from "@esotericsoftware/spine-core";
+import type { Disposable, Restorable } from "@esotericsoftware/spine-core";
 
 export class ManagedWebGLRenderingContext implements Disposable {
 	public canvas: HTMLCanvasElement | OffscreenCanvas;
 	public gl: WebGLRenderingContext;
-	private restorables = new Array<Restorable>();
+	private restorables = [] as Restorable[];
 
-	constructor (canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, contextConfig: any = { alpha: "true" }) {
+	constructor (canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, contextConfig: WebGLContextAttributes = { alpha: true }) {
 		if (!((canvasOrContext instanceof WebGLRenderingContext) || (typeof WebGL2RenderingContext !== 'undefined' && canvasOrContext instanceof WebGL2RenderingContext))) {
-			let canvas: HTMLCanvasElement = canvasOrContext;
+			const canvas: HTMLCanvasElement = canvasOrContext;
 			this.gl = <WebGLRenderingContext>(canvas.getContext("webgl2", contextConfig) || canvas.getContext("webgl", contextConfig));
 			this.canvas = canvas;
 			canvas.addEventListener("webglcontextlost", this.contextLostHandler);
@@ -47,11 +47,11 @@ export class ManagedWebGLRenderingContext implements Disposable {
 		}
 	}
 
-	private contextLostHandler (e: Event) {
+	private contextLostHandler = (e: Event) => {
 		if (e) e.preventDefault();
 	}
 
-	private contextRestoredHandler (e: Event) {
+	private contextRestoredHandler = () => {
 		for (let i = 0, n = this.restorables.length; i < n; i++)
 			this.restorables[i].restore();
 	}
@@ -66,7 +66,7 @@ export class ManagedWebGLRenderingContext implements Disposable {
 	}
 
 	removeRestorable (restorable: Restorable) {
-		let index = this.restorables.indexOf(restorable);
+		const index = this.restorables.indexOf(restorable);
 		if (index > -1) this.restorables.splice(index, 1);
 	}
 
