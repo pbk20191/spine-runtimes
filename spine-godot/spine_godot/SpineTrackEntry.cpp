@@ -90,8 +90,7 @@ int SpineTrackEntry::get_track_index() {
 
 Ref<SpineAnimation> SpineTrackEntry::get_animation() {
 	SPINE_CHECK(get_spine_object(), nullptr)
-	auto animation = get_spine_object()->getAnimation();
-	if (!animation) return nullptr;
+	auto animation = &get_spine_object()->getAnimation();
 	Ref<SpineAnimation> animation_ref(memnew(SpineAnimation));
 	animation_ref->set_spine_object(*get_spine_owner()->get_skeleton_data_res(), animation);
 	return animation_ref;

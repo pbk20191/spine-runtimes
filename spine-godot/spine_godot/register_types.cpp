@@ -44,7 +44,10 @@
 #include "SpineEvent.h"
 #include "SpineTrackEntry.h"
 #include "SpineBoneData.h"
+#include "SpineBoneLocal.h"
+#include "SpineBonePose.h"
 #include "SpineSlotData.h"
+#include "SpineSlotPose.h"
 #include "SpineAttachment.h"
 #include "SpineConstraintData.h"
 #include "SpineSkin.h"
@@ -130,6 +133,7 @@ void register_spine_godot_types() {
 	GDREGISTER_CLASS(SpineEvent);
 	GDREGISTER_CLASS(SpineBoneData);
 	GDREGISTER_CLASS(SpineSlotData);
+	GDREGISTER_CLASS(SpineSlotPose);
 	GDREGISTER_CLASS(SpineAttachment);
 	GDREGISTER_CLASS(SpineSkinEntry);
 	GDREGISTER_CLASS(SpineConstraintData);
@@ -139,6 +143,8 @@ void register_spine_godot_types() {
 	GDREGISTER_CLASS(SpinePathConstraintData);
 	GDREGISTER_CLASS(SpinePhysicsConstraintData);
 	GDREGISTER_CLASS(SpineBone);
+	GDREGISTER_CLASS(SpineBoneLocal);
+	GDREGISTER_CLASS(SpineBonePose);
 	GDREGISTER_CLASS(SpineSlot);
 	GDREGISTER_CLASS(SpineIkConstraint);
 	GDREGISTER_CLASS(SpinePathConstraint);

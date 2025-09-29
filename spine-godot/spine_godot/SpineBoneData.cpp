@@ -36,22 +36,7 @@ void SpineBoneData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_parent"), &SpineBoneData::get_parent);
 	ClassDB::bind_method(D_METHOD("get_length"), &SpineBoneData::get_length);
 	ClassDB::bind_method(D_METHOD("set_length", "v"), &SpineBoneData::set_length);
-	ClassDB::bind_method(D_METHOD("get_x"), &SpineBoneData::get_x);
-	ClassDB::bind_method(D_METHOD("set_x", "v"), &SpineBoneData::set_x);
-	ClassDB::bind_method(D_METHOD("get_y"), &SpineBoneData::get_y);
-	ClassDB::bind_method(D_METHOD("set_y", "v"), &SpineBoneData::set_y);
-	ClassDB::bind_method(D_METHOD("get_rotation"), &SpineBoneData::get_rotation);
-	ClassDB::bind_method(D_METHOD("set_rotation", "v"), &SpineBoneData::set_rotation);
-	ClassDB::bind_method(D_METHOD("get_scale_x"), &SpineBoneData::get_scale_x);
-	ClassDB::bind_method(D_METHOD("set_scale_x", "v"), &SpineBoneData::set_scale_x);
-	ClassDB::bind_method(D_METHOD("get_scale_y"), &SpineBoneData::get_scale_y);
-	ClassDB::bind_method(D_METHOD("set_scale_y", "v"), &SpineBoneData::set_scale_y);
-	ClassDB::bind_method(D_METHOD("get_shear_x"), &SpineBoneData::get_shear_x);
-	ClassDB::bind_method(D_METHOD("set_shear_x", "v"), &SpineBoneData::set_shear_x);
-	ClassDB::bind_method(D_METHOD("get_shear_y"), &SpineBoneData::get_shear_y);
-	ClassDB::bind_method(D_METHOD("set_shear_y", "v"), &SpineBoneData::set_shear_y);
-	ClassDB::bind_method(D_METHOD("get_inherit"), &SpineBoneData::get_inherit);
-	ClassDB::bind_method(D_METHOD("set_inherit", "v"), &SpineBoneData::set_inherit);
+	ClassDB::bind_method(D_METHOD("get_setup_pose"), &SpineBoneData::get_setup_pose);
 	ClassDB::bind_method(D_METHOD("is_skin_required"), &SpineBoneData::is_skin_required);
 	ClassDB::bind_method(D_METHOD("set_skin_required", "v"), &SpineBoneData::set_skin_required);
 	ClassDB::bind_method(D_METHOD("get_color"), &SpineBoneData::get_color);
@@ -92,84 +77,12 @@ void SpineBoneData::set_length(float v) {
 	get_spine_object()->setLength(v);
 }
 
-float SpineBoneData::get_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getX();
-}
-
-void SpineBoneData::set_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setX(v);
-}
-
-float SpineBoneData::get_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getY();
-}
-
-void SpineBoneData::set_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setY(v);
-}
-
-float SpineBoneData::get_rotation() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getRotation();
-}
-
-void SpineBoneData::set_rotation(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setRotation(v);
-}
-
-float SpineBoneData::get_scale_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getScaleX();
-}
-
-void SpineBoneData::set_scale_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setScaleX(v);
-}
-
-float SpineBoneData::get_scale_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getScaleY();
-}
-
-void SpineBoneData::set_scale_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setScaleY(v);
-}
-
-float SpineBoneData::get_shear_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getShearX();
-}
-
-void SpineBoneData::set_shear_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setShearX(v);
-}
-
-float SpineBoneData::get_shear_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getSetupPose().getShearY();
-}
-
-void SpineBoneData::set_shear_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setShearY(v);
-}
-
-SpineConstant::Inherit SpineBoneData::get_inherit() {
-	SPINE_CHECK(get_spine_object(), SpineConstant::Inherit::Inherit_Normal)
-	return (SpineConstant::Inherit) get_spine_object()->getSetupPose().getInherit();
-}
-
-void SpineBoneData::set_inherit(SpineConstant::Inherit v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getSetupPose().setInherit((spine::Inherit) v);
+Ref<SpineBoneLocal> SpineBoneData::get_setup_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &setup_pose = get_spine_object()->getSetupPose();
+	Ref<SpineBoneLocal> pose_ref(memnew(SpineBoneLocal));
+	pose_ref->set_spine_object(get_spine_owner(), &setup_pose);
+	return pose_ref;
 }
 
 bool SpineBoneData::is_skin_required() {
@@ -184,7 +97,7 @@ void SpineBoneData::set_skin_required(bool v) {
 
 Color SpineBoneData::get_color() {
 	SPINE_CHECK(get_spine_object(), Color())
-	auto color = get_spine_object()->getColor();
+	auto &color = get_spine_object()->getColor();
 	return Color(color.r, color.g, color.b, color.a);
 }
 

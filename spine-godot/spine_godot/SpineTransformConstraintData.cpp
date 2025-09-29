@@ -45,14 +45,12 @@ void SpineTransformConstraintData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_offset_scale_x"), &SpineTransformConstraintData::get_offset_scale_x);
 	ClassDB::bind_method(D_METHOD("get_offset_scale_y"), &SpineTransformConstraintData::get_offset_scale_y);
 	ClassDB::bind_method(D_METHOD("get_offset_shear_y"), &SpineTransformConstraintData::get_offset_shear_y);
-	ClassDB::bind_method(D_METHOD("is_relative"), &SpineTransformConstraintData::is_relative);
-	ClassDB::bind_method(D_METHOD("is_local"), &SpineTransformConstraintData::is_local);
 }
 
 Array SpineTransformConstraintData::get_bones() {
 	Array result;
 	SPINE_CHECK(get_spine_constraint_data(), result)
-	auto bones = get_spine_constraint_data()->getBones();
+	auto &bones = get_spine_constraint_data()->getBones();
 	result.resize((int) bones.size());
 	for (int i = 0; i < (int) bones.size(); ++i) {
 		Ref<SpineBoneData> bone_ref(memnew(SpineBoneData));
@@ -73,32 +71,32 @@ Ref<SpineBoneData> SpineTransformConstraintData::get_target() {
 
 float SpineTransformConstraintData::get_mix_rotate() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getMixRotate();
+	return get_spine_constraint_data()->getSetupPose().getMixRotate();
 }
 
 float SpineTransformConstraintData::get_mix_x() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getMixX();
+	return get_spine_constraint_data()->getSetupPose().getMixX();
 }
 
 float SpineTransformConstraintData::get_mix_y() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getMixY();
+	return get_spine_constraint_data()->getSetupPose().getMixY();
 }
 
 float SpineTransformConstraintData::get_mix_scale_x() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getMixScaleX();
+	return get_spine_constraint_data()->getSetupPose().getMixScaleX();
 }
 
 float SpineTransformConstraintData::get_mix_scale_y() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getMixScaleY();
+	return get_spine_constraint_data()->getSetupPose().getMixScaleY();
 }
 
 float SpineTransformConstraintData::get_mix_shear_y() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
-	return get_spine_constraint_data()->getMixShearY();
+	return get_spine_constraint_data()->getSetupPose().getMixShearY();
 }
 
 float SpineTransformConstraintData::get_offset_rotation() {
@@ -129,14 +127,4 @@ float SpineTransformConstraintData::get_offset_scale_y() {
 float SpineTransformConstraintData::get_offset_shear_y() {
 	SPINE_CHECK(get_spine_constraint_data(), 0)
 	return get_spine_constraint_data()->getOffsetShearY();
-}
-
-bool SpineTransformConstraintData::is_relative() {
-	SPINE_CHECK(get_spine_constraint_data(), false)
-	return get_spine_constraint_data()->isRelative();
-}
-
-bool SpineTransformConstraintData::is_local() {
-	SPINE_CHECK(get_spine_constraint_data(), false)
-	return get_spine_constraint_data()->isLocal();
 }

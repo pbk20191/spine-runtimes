@@ -30,59 +30,81 @@
 #pragma once
 
 #include "SpineCommon.h"
-#include "SpineSlotData.h"
-#include "SpineAttachment.h"
-#include "SpineBone.h"
-#include "SpineSlotPose.h"
-#include <spine/Slot.h>
+#include "SpineConstant.h"
+#include <spine/BonePose.h>
 
-class SpineSkeleton;
 class SpineSprite;
 
-class SpineSlot : public SpineSpriteOwnedObject<spine::Slot> {
-	GDCLASS(SpineSlot, SpineObjectWrapper)
-
-private:
-	Ref<SpineBone> _bone;
-	Ref<SpineSlotData> _data;
+class SpineBonePose : public SpineObjectWrapper {
+	GDCLASS(SpineBonePose, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	void set_to_setup_pose();
+	// Can be used by both SpineSprite and SpineSkeletonDataResource
+	void set_spine_object(void *owner, spine::BonePose *object) {
+		_set_spine_object_internal(owner, object);
+	}
 
-	Ref<SpineSlotData> get_data();
+	spine::BonePose *get_spine_object() {
+		return (spine::BonePose *) _get_spine_object_internal();
+	}
+	// BoneLocal properties (inherited)
+	float get_x();
+	void set_x(float v);
 
-	Ref<SpineBone> get_bone();
+	float get_y();
+	void set_y(float v);
 
-	Color get_color();
+	float get_rotation();
+	void set_rotation(float v);
 
-	void set_color(Color v);
+	float get_scale_x();
+	void set_scale_x(float v);
 
-	Color get_dark_color();
+	float get_scale_y();
+	void set_scale_y(float v);
 
-	void set_dark_color(Color v);
+	float get_shear_x();
+	void set_shear_x(float v);
 
-	bool has_dark_color();
+	float get_shear_y();
+	void set_shear_y(float v);
 
-	Ref<SpineAttachment> get_attachment();
+	SpineConstant::Inherit get_inherit();
+	void set_inherit(SpineConstant::Inherit inherit);
 
-	void set_attachment(Ref<SpineAttachment> v);
+	// BonePose specific properties
+	float get_a();
+	void set_a(float v);
 
-	int get_attachment_state();
+	float get_b();
+	void set_b(float v);
 
-	void set_attachment_state(int v);
+	float get_c();
+	void set_c(float v);
 
-	Array get_deform();
+	float get_d();
+	void set_d(float v);
 
-	void set_deform(Array v);
+	float get_world_x();
+	void set_world_x(float v);
 
-	int get_sequence_index();
+	float get_world_y();
+	void set_world_y(float v);
 
-	void set_sequence_index(int v);
+	float get_world_rotation_x();
+	float get_world_rotation_y();
+	float get_world_scale_x();
+	float get_world_scale_y();
 
-	Ref<SpineSlotPose> get_pose();
-
-	Ref<SpineSlotPose> get_applied_pose();
+	// Transformation methods
+	Vector2 world_to_local(Vector2 world_position);
+	Vector2 local_to_world(Vector2 local_position);
+	Vector2 world_to_parent(Vector2 world_position);
+	Vector2 parent_to_world(Vector2 parent_position);
+	float world_to_local_rotation(float world_rotation);
+	float local_to_world_rotation(float local_rotation);
+	void rotate_world(float degrees);
 };

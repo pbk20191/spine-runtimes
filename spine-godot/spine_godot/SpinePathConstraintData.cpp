@@ -58,7 +58,7 @@ void SpinePathConstraintData::_bind_methods() {
 Array SpinePathConstraintData::get_bones() {
 	Array result;
 	SPINE_CHECK(get_spine_constraint_data(), result)
-	auto bones = get_spine_constraint_data()->getBones();
+	auto &bones = get_spine_constraint_data()->getBones();
 	result.resize((int) bones.size());
 	for (int i = 0; i < bones.size(); ++i) {
 		Ref<SpineBoneData> bone_ref(memnew(SpineBoneData));

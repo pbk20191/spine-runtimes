@@ -289,7 +289,7 @@ void SpineSkeletonDataResource::load_resources(spine::Atlas *atlas, const String
 
 	spine::SkeletonData *data;
 	if (!EMPTY(json)) {
-		spine::SkeletonJson skeletonJson(atlas);
+		spine::SkeletonJson skeletonJson(*atlas);
 		data = skeletonJson.readSkeletonData(json.utf8());
 		if (!data) {
 			ERR_PRINT(String("Error while loading skeleton data: ") + get_path());
@@ -297,7 +297,7 @@ void SpineSkeletonDataResource::load_resources(spine::Atlas *atlas, const String
 			return;
 		}
 	} else {
-		spine::SkeletonBinary skeletonBinary(atlas);
+		spine::SkeletonBinary skeletonBinary(*atlas);
 		data = skeletonBinary.readSkeletonData(binary.ptr(), binary.size());
 		if (!data) {
 			ERR_PRINT(String("Error while loading skeleton data: ") + get_path());
@@ -306,7 +306,7 @@ void SpineSkeletonDataResource::load_resources(spine::Atlas *atlas, const String
 		}
 	}
 	skeleton_data = data;
-	animation_state_data = new spine::AnimationStateData(data);
+	animation_state_data = new spine::AnimationStateData(*data);
 	update_mixes();
 }
 
@@ -339,7 +339,7 @@ void SpineSkeletonDataResource::get_animation_names(Vector<String> &animation_na
 #endif
 	animation_names.clear();
 	if (!is_skeleton_data_loaded()) return;
-	auto animations = skeleton_data->getAnimations();
+	auto &animations = skeleton_data->getAnimations();
 	for (size_t i = 0; i < animations.size(); ++i) {
 		auto animation = animations[i];
 		String name;
@@ -355,7 +355,7 @@ void SpineSkeletonDataResource::get_skin_names(Vector<String> &skin_names) const
 #endif
 	skin_names.clear();
 	if (!is_skeleton_data_loaded()) return;
-	auto skins = skeleton_data->getSkins();
+	auto &skins = skeleton_data->getSkins();
 	for (size_t i = 0; i < skins.size(); ++i) {
 		auto skin = skins[i];
 		String name;
@@ -371,7 +371,7 @@ void SpineSkeletonDataResource::get_slot_names(Vector<String> &slot_names) {
 #endif
 	slot_names.clear();
 	if (!is_skeleton_data_loaded()) return;
-	auto slots = skeleton_data->getSlots();
+	auto &slots = skeleton_data->getSlots();
 	for (size_t i = 0; i < slots.size(); ++i) {
 		auto slot = slots[i];
 		String name;
@@ -387,7 +387,7 @@ void SpineSkeletonDataResource::get_bone_names(Vector<String> &bone_names) {
 #endif
 	bone_names.clear();
 	if (!is_skeleton_data_loaded()) return;
-	auto bones = skeleton_data->getBones();
+	auto &bones = skeleton_data->getBones();
 	for (size_t i = 0; i < bones.size(); ++i) {
 		auto bone = bones[i];
 		String name;
@@ -442,7 +442,7 @@ void SpineSkeletonDataResource::update_mixes() {
 							  from, to, to));
 			continue;
 		}
-		animation_state_data->setMix(from, to, mix->get_mix());
+		animation_state_data->setMix(*from, *to, mix->get_mix());
 	}
 }
 
@@ -499,7 +499,7 @@ Ref<SpineEventData> SpineSkeletonDataResource::find_event(const String &event_da
 Ref<SpineIkConstraintData> SpineSkeletonDataResource::find_ik_constraint(const String &constraint_name) const {
 	SPINE_CHECK(skeleton_data, nullptr)
 	if (EMPTY(constraint_name)) return nullptr;
-	auto constraint = skeleton_data->findIkConstraint(SPINE_STRING_TMP(constraint_name));
+	auto constraint = skeleton_data->findConstraint<spine::IkConstraintData>(SPINE_STRING_TMP(constraint_name));
 	if (!constraint) return nullptr;
 	Ref<SpineIkConstraintData> constraint_ref(memnew(SpineIkConstraintData));
 	constraint_ref->set_spine_object(this, constraint);
@@ -509,7 +509,7 @@ Ref<SpineIkConstraintData> SpineSkeletonDataResource::find_ik_constraint(const S
 Ref<SpineTransformConstraintData> SpineSkeletonDataResource::find_transform_constraint(const String &constraint_name) const {
 	SPINE_CHECK(skeleton_data, nullptr)
 	if (EMPTY(constraint_name)) return nullptr;
-	auto constraint = skeleton_data->findTransformConstraint(SPINE_STRING_TMP(constraint_name));
+	auto constraint = skeleton_data->findConstraint<spine::TransformConstraintData>(SPINE_STRING_TMP(constraint_name));
 	if (!constraint) return nullptr;
 	Ref<SpineTransformConstraintData> constraint_ref(memnew(SpineTransformConstraintData));
 	constraint_ref->set_spine_object(this, constraint);
@@ -519,7 +519,7 @@ Ref<SpineTransformConstraintData> SpineSkeletonDataResource::find_transform_cons
 Ref<SpinePathConstraintData> SpineSkeletonDataResource::find_path_constraint(const String &constraint_name) const {
 	SPINE_CHECK(skeleton_data, nullptr)
 	if (EMPTY(constraint_name)) return nullptr;
-	auto constraint = skeleton_data->findPathConstraint(SPINE_STRING_TMP(constraint_name));
+	auto constraint = skeleton_data->findConstraint<spine::PathConstraintData>(SPINE_STRING_TMP(constraint_name));
 	if (constraint == nullptr) return nullptr;
 	Ref<SpinePathConstraintData> constraint_ref(memnew(SpinePathConstraintData));
 	constraint_ref->set_spine_object(this, constraint);
@@ -529,7 +529,7 @@ Ref<SpinePathConstraintData> SpineSkeletonDataResource::find_path_constraint(con
 Ref<SpinePhysicsConstraintData> SpineSkeletonDataResource::find_physics_constraint(const String &constraint_name) const {
 	SPINE_CHECK(skeleton_data, nullptr)
 	if (EMPTY(constraint_name)) return nullptr;
-	auto constraint = skeleton_data->findPhysicsConstraint(SPINE_STRING_TMP(constraint_name));
+	auto constraint = skeleton_data->findConstraint<spine::PhysicsConstraintData>(SPINE_STRING_TMP(constraint_name));
 	if (constraint == nullptr) return nullptr;
 	Ref<SpinePhysicsConstraintData> constraint_ref(memnew(SpinePhysicsConstraintData));
 	constraint_ref->set_spine_object(this, constraint);
@@ -546,7 +546,7 @@ String SpineSkeletonDataResource::get_skeleton_name() const {
 Array SpineSkeletonDataResource::get_bones() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto bones = skeleton_data->getBones();
+	auto &bones = skeleton_data->getBones();
 	result.resize((int) bones.size());
 	for (int i = 0; i < bones.size(); ++i) {
 		Ref<SpineBoneData> bone_ref(memnew(SpineBoneData));
@@ -559,7 +559,7 @@ Array SpineSkeletonDataResource::get_bones() const {
 Array SpineSkeletonDataResource::get_slots() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto slots = skeleton_data->getSlots();
+	auto &slots = skeleton_data->getSlots();
 	result.resize((int) slots.size());
 	for (int i = 0; i < slots.size(); ++i) {
 		Ref<SpineSlotData> slot_ref(memnew(SpineSlotData));
@@ -572,7 +572,7 @@ Array SpineSkeletonDataResource::get_slots() const {
 Array SpineSkeletonDataResource::get_skins() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto skins = skeleton_data->getSkins();
+	auto &skins = skeleton_data->getSkins();
 	result.resize((int) skins.size());
 	for (int i = 0; i < skins.size(); ++i) {
 		Ref<SpineSkin> skin_ref(memnew(SpineSkin));
@@ -599,7 +599,7 @@ void SpineSkeletonDataResource::set_default_skin(Ref<SpineSkin> skin) {
 Array SpineSkeletonDataResource::get_events() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto events = skeleton_data->getEvents();
+	auto &events = skeleton_data->getEvents();
 	result.resize((int) events.size());
 	for (int i = 0; i < events.size(); ++i) {
 		Ref<SpineEventData> event_ref(memnew(SpineEventData));
@@ -612,7 +612,7 @@ Array SpineSkeletonDataResource::get_events() const {
 Array SpineSkeletonDataResource::get_animations() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto animations = skeleton_data->getAnimations();
+	auto &animations = skeleton_data->getAnimations();
 	result.resize((int) animations.size());
 	for (int i = 0; i < animations.size(); ++i) {
 		Ref<SpineAnimation> animation_ref(memnew(SpineAnimation));
@@ -625,52 +625,68 @@ Array SpineSkeletonDataResource::get_animations() const {
 Array SpineSkeletonDataResource::get_ik_constraints() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto constraints = skeleton_data->getIkConstraints();
+	auto &constraints = skeleton_data->getConstraints();
 	result.resize((int) constraints.size());
+	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
+		if (!constraints[i].getRtti().isExactly(spine::IkConstraintData::rtti)) continue;
 		Ref<SpineIkConstraintData> constraint_ref(memnew(SpineIkConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
+		size++;
 	}
+	result.resize(size);
 	return result;
 }
 
 Array SpineSkeletonDataResource::get_transform_constraints() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto constraints = skeleton_data->getTransformConstraints();
+	auto &constraints = skeleton_data->getConstraints();
 	result.resize((int) constraints.size());
+	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
+		if (!constraints[i].getRtti().isExactly(spine::TransformConstraintData::rtti)) continue;
 		Ref<SpineTransformConstraintData> constraint_ref(memnew(SpineTransformConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
+		size++;
 	}
+	result.resize(size);
 	return result;
 }
 
 Array SpineSkeletonDataResource::get_path_constraints() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto constraints = skeleton_data->getPathConstraints();
+	auto &constraints = skeleton_data->getConstraints();
 	result.resize((int) constraints.size());
+	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
+		if (!constraints[i].getRtti().isExactly(spine::PathConstraintData::rtti)) continue;
 		Ref<SpinePathConstraintData> constraint_ref(memnew(SpinePathConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
+		size++;
 	}
+	result.resize(size);
 	return result;
 }
 
 Array SpineSkeletonDataResource::get_physics_constraints() const {
 	Array result;
 	SPINE_CHECK(skeleton_data, result)
-	auto constraints = skeleton_data->getPhysicsConstraints();
+	auto &constraints = skeleton_data->getConstraints();
 	result.resize((int) constraints.size());
+	int size = 0;
 	for (int i = 0; i < constraints.size(); ++i) {
+		if (!constraints[i].getRtti().isExactly(spine::PhysicsConstraintData::rtti)) continue;
 		Ref<SpinePhysicsConstraintData> constraint_ref(memnew(SpinePhysicsConstraintData));
 		constraint_ref->set_spine_object(this, constraints[i]);
 		result[i] = constraint_ref;
+		size++;
 	}
+	result.resize(size);
 	return result;
 }
 

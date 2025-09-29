@@ -31,6 +31,8 @@
 
 #include "SpineCommon.h"
 #include "SpineBoneData.h"
+#include "SpineBoneLocal.h"
+#include "SpineBonePose.h"
 #include "SpineConstant.h"
 #ifdef SPINE_GODOT_EXTENSION
 #include <godot_cpp/classes/node2d.hpp>
@@ -69,101 +71,13 @@ public:
 
 	Array get_children();
 
-	float get_x();
+	Ref<SpineBoneLocal> get_pose();
 
-	void set_x(float v);
-
-	float get_y();
-
-	void set_y(float v);
-
-	float get_rotation();
-
-	void set_rotation(float v);
-
-	float get_scale_x();
-
-	void set_scale_x(float v);
-
-	float get_scale_y();
-
-	void set_scale_y(float v);
-
-	float get_shear_x();
-
-	void set_shear_x(float v);
-
-	float get_shear_y();
-
-	void set_shear_y(float v);
-
-	float get_applied_rotation();
-
-	void set_applied_rotation(float v);
-
-	float get_a_x();
-
-	void set_a_x(float v);
-
-	float get_a_y();
-
-	void set_a_y(float v);
-
-	float get_a_scale_x();
-
-	void set_a_scale_x(float v);
-
-	float get_a_scale_y();
-
-	void set_a_scale_y(float v);
-
-	float get_a_shear_x();
-
-	void set_a_shear_x(float v);
-
-	float get_a_shear_y();
-
-	void set_a_shear_y(float v);
-
-	float get_a();
-
-	void set_a(float v);
-
-	float get_b();
-
-	void set_b(float v);
-
-	float get_c();
-
-	void set_c(float v);
-
-	float get_d();
-
-	void set_d(float v);
-
-	float get_world_x();
-
-	void set_world_x(float v);
-
-	float get_world_y();
-
-	void set_world_y(float v);
-
-	float get_world_rotation_x();
-
-	float get_world_rotation_y();
-
-	float get_world_scale_x();
-
-	float get_world_scale_y();
+	Ref<SpineBonePose> get_applied_pose();
 
 	bool is_active();
 
 	void set_active(bool v);
-
-	SpineConstant::Inherit get_inherit();
-
-	void set_inherit(SpineConstant::Inherit inherit);
 
 	// External feature functions
 	void apply_world_transform_2d(const Variant &o);

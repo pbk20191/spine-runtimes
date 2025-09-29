@@ -197,7 +197,7 @@ void SpineAnimationTrack::setup_animation_player() {
 	animation_player->add_animation_library("", animation_library);
 #endif
 	for (int i = 0; i < (int) animations.size(); i++) {
-		auto &animation = animations[i];
+		auto animation = animations[i];
 		Ref<Animation> animation_ref = create_animation(animation, false);
 		Ref<Animation> animation_looped_ref = create_animation(animation, true);
 #if VERSION_MAJOR > 3
@@ -285,7 +285,7 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 			AnimationTreeEditor *tree_editor = AnimationTreeEditor::get_singleton();
 			// When the animation tree dock is no longer visible, bail.
 			if (!tree_editor->is_visible_in_tree()) {
-				skeleton->setToSetupPose();
+				skeleton->setupPose();
 				animation_state->clearTracks();
 				animation_state->setTimeScale(1);
 				return;
@@ -293,22 +293,22 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 			auto current_entry = animation_state->getCurrent(track_index);
 			bool should_set_mix = mix_duration >= 0;
 			String other_name;
-			if (current_entry) other_name.parse_utf8(current_entry->getAnimation()->getName().buffer());
+			if (current_entry) other_name.parse_utf8(current_entry->getAnimation().getName().buffer());
 			bool should_set_animation = !current_entry || (animation_name != other_name || current_entry->getLoop() != loop);
 
 			if (should_set_animation) {
 				if (!EMPTY(animation_name)) {
-					auto entry = animation_state->setAnimation(track_index, SPINE_STRING(animation_name), loop);
-					if (should_set_mix) entry->setMixDuration(mix_duration);
+					auto &entry = animation_state->setAnimation(track_index, SPINE_STRING(animation_name), loop);
+					if (should_set_mix) entry.setMixDuration(mix_duration);
 
-					entry->setHoldPrevious(hold_previous);
-					entry->setReverse(reverse);
-					entry->setShortestRotation(shortest_rotation);
-					entry->setTimeScale(time_scale);
-					entry->setAlpha(alpha);
-					entry->setMixAttachmentThreshold(mix_attachment_threshold);
-					entry->setMixDrawOrderThreshold(mix_draw_order_threshold);
-					entry->setMixBlend((spine::MixBlend) mix_blend);
+					entry.setHoldPrevious(hold_previous);
+					entry.setReverse(reverse);
+					entry.setShortestRotation(shortest_rotation);
+					entry.setTimeScale(time_scale);
+					entry.setAlpha(alpha);
+					entry.setMixAttachmentThreshold(mix_attachment_threshold);
+					entry.setMixDrawOrderThreshold(mix_draw_order_threshold);
+					entry.setMixBlend((spine::MixBlend) mix_blend);
 
 					if (debug)
 						print_line(String("Setting animation {0} with mix_duration {1} on track {2} on {3}")
@@ -317,8 +317,8 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 									   .ptr());
 				} else {
 					if (!current_entry || (String("<empty>") != other_name)) {
-						auto entry = animation_state->setEmptyAnimation(track_index, should_set_mix ? mix_duration : 0);
-						entry->setTrackEnd(FLT_MAX);
+						auto &entry = animation_state->setEmptyAnimation(track_index, should_set_mix ? mix_duration : 0);
+						entry.setTrackEnd(FLT_MAX);
 						if (debug)
 							print_line(String("Setting empty animation with mix_duration {0} on track {1} on {2}")
 										   .format(varray(mix_duration, track_index, sprite->get_name()))
@@ -338,7 +338,7 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 		auto player_editor = AnimationPlayerEditor::singleton;
 #endif
 		if (!player_editor->is_visible_in_tree()) {
-			skeleton->setToSetupPose();
+			skeleton->setupPose();
 			animation_state->clearTracks();
 			animation_state->setTimeScale(1);
 			return;
@@ -348,7 +348,7 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 		// for us.
 		Ref<Animation> edited_animation = player_editor->get_track_editor()->get_current_animation();
 		if (!edited_animation.is_valid()) {
-			skeleton->setToSetupPose();
+			skeleton->setupPose();
 			animation_state->clearTracks();
 			animation_state->setTimeScale(1);
 			return;
@@ -370,7 +370,7 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 		// setting track times manually. Also, kill anything
 		// currently in the track.
 		if (track_index == 0) {
-			skeleton->setToSetupPose();
+			skeleton->setupPose();
 			animation_state->setTimeScale(0);
 		}
 		animation_state->clearTrack(track_index);
@@ -411,40 +411,40 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 		// properties.
 		float track_time = (playback_position - key_time) * time_scale;
 		if (track_time < 0) track_time = 0;
-		auto entry = animation_state->setAnimation(track_index, SPINE_STRING(animation_name), loop);
-		entry->setMixDuration(0);
-		entry->setTrackTime(track_time);
+		auto &entry = animation_state->setAnimation(track_index, SPINE_STRING(animation_name), loop);
+		entry.setMixDuration(0);
+		entry.setTrackTime(track_time);
 
-		entry->setHoldPrevious(hold_previous);
-		entry->setReverse(reverse);
-		entry->setShortestRotation(shortest_rotation);
-		entry->setAlpha(alpha);
-		entry->setMixAttachmentThreshold(mix_attachment_threshold);
-		entry->setMixDrawOrderThreshold(mix_draw_order_threshold);
-		entry->setMixBlend((spine::MixBlend) mix_blend);
+		entry.setHoldPrevious(hold_previous);
+		entry.setReverse(reverse);
+		entry.setShortestRotation(shortest_rotation);
+		entry.setAlpha(alpha);
+		entry.setMixAttachmentThreshold(mix_attachment_threshold);
+		entry.setMixDrawOrderThreshold(mix_draw_order_threshold);
+		entry.setMixBlend((spine::MixBlend) mix_blend);
 #endif
 	} else {
 		if (animation_player->is_playing()) {
 			auto current_entry = animation_state->getCurrent(track_index);
 			bool should_set_mix = mix_duration >= 0;
 			String other_name;
-			if (current_entry) other_name.parse_utf8(current_entry->getAnimation()->getName().buffer());
+			if (current_entry) other_name.parse_utf8(current_entry->getAnimation().getName().buffer());
 			bool should_set_animation = !current_entry || (animation_name != other_name || current_entry->getLoop() != loop) || animation_changed;
 			animation_changed = false;
 
 			if (should_set_animation) {
 				if (!EMPTY(animation_name)) {
-					auto entry = animation_state->setAnimation(track_index, SPINE_STRING(animation_name), loop);
-					if (should_set_mix) entry->setMixDuration(mix_duration);
+					auto &entry = animation_state->setAnimation(track_index, SPINE_STRING(animation_name), loop);
+					if (should_set_mix) entry.setMixDuration(mix_duration);
 
-					entry->setHoldPrevious(hold_previous);
-					entry->setReverse(reverse);
-					entry->setShortestRotation(shortest_rotation);
-					entry->setTimeScale(time_scale);
-					entry->setAlpha(alpha);
-					entry->setMixAttachmentThreshold(mix_attachment_threshold);
-					entry->setMixDrawOrderThreshold(mix_draw_order_threshold);
-					entry->setMixBlend((spine::MixBlend) mix_blend);
+					entry.setHoldPrevious(hold_previous);
+					entry.setReverse(reverse);
+					entry.setShortestRotation(shortest_rotation);
+					entry.setTimeScale(time_scale);
+					entry.setAlpha(alpha);
+					entry.setMixAttachmentThreshold(mix_attachment_threshold);
+					entry.setMixDrawOrderThreshold(mix_draw_order_threshold);
+					entry.setMixBlend((spine::MixBlend) mix_blend);
 
 					if (debug)
 						print_line(String("Setting animation {0} with mix_duration {1} on track {2} on {3}")
@@ -453,8 +453,8 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 									   .ptr());
 				} else {
 					if (!current_entry || (String("<empty>") != other_name)) {
-						auto entry = animation_state->setEmptyAnimation(track_index, should_set_mix ? mix_duration : 0);
-						entry->setTrackEnd(FLT_MAX);
+						auto &entry = animation_state->setEmptyAnimation(track_index, should_set_mix ? mix_duration : 0);
+						entry.setTrackEnd(FLT_MAX);
 						if (debug)
 							print_line(String("Setting empty animation with mix_duration {0} on track {1} on {2}")
 										   .format(varray(mix_duration, track_index, sprite->get_name()))

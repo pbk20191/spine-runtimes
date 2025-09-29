@@ -30,59 +30,33 @@
 #pragma once
 
 #include "SpineCommon.h"
-#include "SpineSlotData.h"
 #include "SpineAttachment.h"
-#include "SpineBone.h"
-#include "SpineSlotPose.h"
-#include <spine/Slot.h>
+#include <spine/SlotPose.h>
 
-class SpineSkeleton;
 class SpineSprite;
 
-class SpineSlot : public SpineSpriteOwnedObject<spine::Slot> {
-	GDCLASS(SpineSlot, SpineObjectWrapper)
-
-private:
-	Ref<SpineBone> _bone;
-	Ref<SpineSlotData> _data;
+class SpineSlotPose : public SpineSpriteOwnedObject<spine::SlotPose> {
+	GDCLASS(SpineSlotPose, SpineObjectWrapper)
 
 protected:
 	static void _bind_methods();
 
 public:
-	void set_to_setup_pose();
-
-	Ref<SpineSlotData> get_data();
-
-	Ref<SpineBone> get_bone();
-
 	Color get_color();
-
 	void set_color(Color v);
 
 	Color get_dark_color();
-
 	void set_dark_color(Color v);
 
 	bool has_dark_color();
+	void set_has_dark_color(bool v);
 
 	Ref<SpineAttachment> get_attachment();
-
 	void set_attachment(Ref<SpineAttachment> v);
 
-	int get_attachment_state();
-
-	void set_attachment_state(int v);
-
-	Array get_deform();
-
-	void set_deform(Array v);
-
 	int get_sequence_index();
-
 	void set_sequence_index(int v);
 
-	Ref<SpineSlotPose> get_pose();
-
-	Ref<SpineSlotPose> get_applied_pose();
+	Array get_deform();
+	void set_deform(const Array &v);
 };

@@ -168,7 +168,7 @@ Array SpineSkin::get_attachments() {
 Array SpineSkin::get_bones() {
 	Array result;
 	SPINE_CHECK(get_spine_object(), result)
-	auto bones = get_spine_object()->getBones();
+	auto &bones = get_spine_object()->getBones();
 	result.resize((int) bones.size());
 	for (int i = 0; i < bones.size(); ++i) {
 		Ref<SpineBoneData> bone_ref(memnew(SpineBoneData));
@@ -181,7 +181,7 @@ Array SpineSkin::get_bones() {
 Array SpineSkin::get_constraints() {
 	Array result;
 	SPINE_CHECK(get_spine_object(), result)
-	auto constraints = get_spine_object()->getConstraints();
+	auto &constraints = get_spine_object()->getConstraints();
 	result.resize((int) constraints.size());
 	for (int i = 0; i < constraints.size(); ++i) {
 		Ref<SpineConstraintData> constraint_ref(memnew(SpineConstraintData));

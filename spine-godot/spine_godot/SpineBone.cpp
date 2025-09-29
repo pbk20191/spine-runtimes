@@ -44,54 +44,10 @@ void SpineBone::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_data"), &SpineBone::get_data);
 	ClassDB::bind_method(D_METHOD("get_parent"), &SpineBone::get_parent);
 	ClassDB::bind_method(D_METHOD("get_children"), &SpineBone::get_children);
-	ClassDB::bind_method(D_METHOD("get_x"), &SpineBone::get_x);
-	ClassDB::bind_method(D_METHOD("set_x", "v"), &SpineBone::set_x);
-	ClassDB::bind_method(D_METHOD("get_y"), &SpineBone::get_y);
-	ClassDB::bind_method(D_METHOD("set_y", "v"), &SpineBone::set_y);
-	ClassDB::bind_method(D_METHOD("get_rotation"), &SpineBone::get_rotation);
-	ClassDB::bind_method(D_METHOD("set_rotation", "v"), &SpineBone::set_rotation);
-	ClassDB::bind_method(D_METHOD("get_scale_x"), &SpineBone::get_scale_x);
-	ClassDB::bind_method(D_METHOD("set_scale_x", "v"), &SpineBone::set_scale_x);
-	ClassDB::bind_method(D_METHOD("get_scale_y"), &SpineBone::get_scale_y);
-	ClassDB::bind_method(D_METHOD("set_scale_y", "v"), &SpineBone::set_scale_y);
-	ClassDB::bind_method(D_METHOD("get_shear_x"), &SpineBone::get_shear_x);
-	ClassDB::bind_method(D_METHOD("set_shear_x", "v"), &SpineBone::set_shear_x);
-	ClassDB::bind_method(D_METHOD("get_shear_y"), &SpineBone::get_shear_y);
-	ClassDB::bind_method(D_METHOD("set_shear_y", "v"), &SpineBone::set_shear_y);
-	ClassDB::bind_method(D_METHOD("get_applied_rotation"), &SpineBone::get_applied_rotation);
-	ClassDB::bind_method(D_METHOD("set_applied_rotation", "v"), &SpineBone::set_applied_rotation);
-	ClassDB::bind_method(D_METHOD("get_a_x"), &SpineBone::get_a_x);
-	ClassDB::bind_method(D_METHOD("set_a_x", "v"), &SpineBone::set_a_x);
-	ClassDB::bind_method(D_METHOD("get_a_y"), &SpineBone::get_a_y);
-	ClassDB::bind_method(D_METHOD("set_a_y", "v"), &SpineBone::set_a_y);
-	ClassDB::bind_method(D_METHOD("get_a_scale_x"), &SpineBone::get_a_scale_x);
-	ClassDB::bind_method(D_METHOD("set_a_scale_x", "v"), &SpineBone::set_a_scale_x);
-	ClassDB::bind_method(D_METHOD("get_a_scale_y"), &SpineBone::get_a_scale_y);
-	ClassDB::bind_method(D_METHOD("set_a_scale_y", "v"), &SpineBone::set_a_scale_y);
-	ClassDB::bind_method(D_METHOD("get_a_shear_x"), &SpineBone::get_a_shear_x);
-	ClassDB::bind_method(D_METHOD("set_a_shear_x", "v"), &SpineBone::set_a_shear_x);
-	ClassDB::bind_method(D_METHOD("get_a_shear_y"), &SpineBone::get_a_shear_y);
-	ClassDB::bind_method(D_METHOD("set_a_shear_y", "v"), &SpineBone::set_a_shear_y);
-	ClassDB::bind_method(D_METHOD("get_a"), &SpineBone::get_a);
-	ClassDB::bind_method(D_METHOD("set_a", "v"), &SpineBone::set_a);
-	ClassDB::bind_method(D_METHOD("get_b"), &SpineBone::get_b);
-	ClassDB::bind_method(D_METHOD("set_b", "v"), &SpineBone::set_b);
-	ClassDB::bind_method(D_METHOD("get_c"), &SpineBone::get_c);
-	ClassDB::bind_method(D_METHOD("set_c", "v"), &SpineBone::set_c);
-	ClassDB::bind_method(D_METHOD("get_d"), &SpineBone::get_d);
-	ClassDB::bind_method(D_METHOD("set_d", "v"), &SpineBone::set_d);
-	ClassDB::bind_method(D_METHOD("get_world_x"), &SpineBone::get_world_x);
-	ClassDB::bind_method(D_METHOD("set_world_x", "v"), &SpineBone::set_world_x);
-	ClassDB::bind_method(D_METHOD("get_world_y"), &SpineBone::get_world_y);
-	ClassDB::bind_method(D_METHOD("set_world_y", "v"), &SpineBone::set_world_y);
-	ClassDB::bind_method(D_METHOD("get_world_rotation_x"), &SpineBone::get_world_rotation_x);
-	ClassDB::bind_method(D_METHOD("get_world_rotation_y"), &SpineBone::get_world_rotation_y);
-	ClassDB::bind_method(D_METHOD("get_world_scale_x"), &SpineBone::get_world_scale_x);
-	ClassDB::bind_method(D_METHOD("get_world_scale_y"), &SpineBone::get_world_scale_y);
+	ClassDB::bind_method(D_METHOD("get_pose"), &SpineBone::get_pose);
+	ClassDB::bind_method(D_METHOD("get_applied_pose"), &SpineBone::get_applied_pose);
 	ClassDB::bind_method(D_METHOD("is_active"), &SpineBone::is_active);
 	ClassDB::bind_method(D_METHOD("set_active", "v"), &SpineBone::set_active);
-	ClassDB::bind_method(D_METHOD("set_inherit", "v"), &SpineBone::set_inherit);
-	ClassDB::bind_method(D_METHOD("get_inherit"), &SpineBone::get_inherit);
 	ClassDB::bind_method(D_METHOD("get_transform"), &SpineBone::get_transform);
 	ClassDB::bind_method(D_METHOD("set_transform", "local_transform"), &SpineBone::set_transform);
 	ClassDB::bind_method(D_METHOD("get_global_transform"), &SpineBone::get_global_transform);
@@ -161,7 +117,7 @@ Ref<SpineBone> SpineBone::get_parent() {
 Array SpineBone::get_children() {
 	Array result;
 	SPINE_CHECK(get_spine_object(), result)
-	auto children = get_spine_object()->getChildren();
+	auto &children = get_spine_object()->getChildren();
 	result.resize((int) children.size());
 	for (int i = 0; i < children.size(); ++i) {
 		auto child = children[i];
@@ -172,225 +128,20 @@ Array SpineBone::get_children() {
 	return result;
 }
 
-float SpineBone::get_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getX();
+Ref<SpineBoneLocal> SpineBone::get_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &pose = get_spine_object()->getPose();
+	Ref<SpineBoneLocal> pose_ref(memnew(SpineBoneLocal));
+	pose_ref->set_spine_object(get_spine_owner(), &pose);
+	return pose_ref;
 }
 
-void SpineBone::set_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setX(v);
-}
-
-float SpineBone::get_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getY();
-}
-
-void SpineBone::set_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setY(v);
-}
-
-float SpineBone::get_rotation() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getRotation();
-}
-
-void SpineBone::set_rotation(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setRotation(v);
-}
-
-float SpineBone::get_scale_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getScaleX();
-}
-
-void SpineBone::set_scale_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setScaleX(v);
-}
-
-float SpineBone::get_scale_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getScaleY();
-}
-
-void SpineBone::set_scale_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setScaleY(v);
-}
-
-float SpineBone::get_shear_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getShearX();
-}
-
-void SpineBone::set_shear_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setShearX(v);
-}
-
-float SpineBone::get_shear_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getPose().getShearY();
-}
-
-void SpineBone::set_shear_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getPose().setShearY(v);
-}
-
-float SpineBone::get_applied_rotation() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getRotation();
-}
-
-void SpineBone::set_applied_rotation(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setRotation(v);
-}
-
-float SpineBone::get_a_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getX();
-}
-
-void SpineBone::set_a_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setX(v);
-}
-
-float SpineBone::get_a_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getY();
-}
-
-void SpineBone::set_a_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setY(v);
-}
-
-float SpineBone::get_a_scale_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getScaleX();
-}
-
-void SpineBone::set_a_scale_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setScaleX(v);
-}
-
-float SpineBone::get_a_scale_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getScaleY();
-}
-
-void SpineBone::set_a_scale_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setScaleY(v);
-}
-
-float SpineBone::get_a_shear_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getShearX();
-}
-
-void SpineBone::set_a_shear_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setShearX(v);
-}
-
-float SpineBone::get_a_shear_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getShearY();
-}
-
-void SpineBone::set_a_shear_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setShearY(v);
-}
-
-float SpineBone::get_a() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getA();
-}
-
-void SpineBone::set_a(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setA(v);
-}
-
-float SpineBone::get_b() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getB();
-}
-
-void SpineBone::set_b(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setB(v);
-}
-
-float SpineBone::get_c() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getC();
-}
-
-void SpineBone::set_c(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setC(v);
-}
-
-float SpineBone::get_d() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getD();
-}
-
-void SpineBone::set_d(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setD(v);
-}
-
-float SpineBone::get_world_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getWorldX();
-}
-
-void SpineBone::set_world_x(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setWorldX(v);
-}
-
-float SpineBone::get_world_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getWorldY();
-}
-
-void SpineBone::set_world_y(float v) {
-	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->getAppliedPose().setWorldY(v);
-}
-
-float SpineBone::get_world_rotation_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getWorldRotationX();
-}
-
-float SpineBone::get_world_rotation_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getWorldRotationY();
-}
-
-
-float SpineBone::get_world_scale_x() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getWorldScaleX();
-}
-
-float SpineBone::get_world_scale_y() {
-	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAppliedPose().getWorldScaleY();
+Ref<SpineBonePose> SpineBone::get_applied_pose() {
+	SPINE_CHECK(get_spine_object(), nullptr)
+	auto &applied_pose = get_spine_object()->getAppliedPose();
+	Ref<SpineBonePose> pose_ref(memnew(SpineBonePose));
+	pose_ref->set_spine_object(get_spine_owner(), &applied_pose);
+	return pose_ref;
 }
 
 bool SpineBone::is_active() {
@@ -402,22 +153,13 @@ void SpineBone::set_active(bool v) {
 	get_spine_object()->setActive(v);
 }
 
-SpineConstant::Inherit SpineBone::get_inherit() {
-	SPINE_CHECK(get_spine_object(), SpineConstant::Inherit_Normal);
-	return (SpineConstant::Inherit) get_spine_object()->getPose().getInherit();
-}
-
-void SpineBone::set_inherit(SpineConstant::Inherit inherit) {
-	SPINE_CHECK(get_spine_object(), );
-	get_spine_object()->getPose().setInherit((spine::Inherit) inherit);
-}
-
 Transform2D SpineBone::get_transform() {
 	SPINE_CHECK(get_spine_object(), Transform2D())
 	Transform2D transform;
-	transform.rotate(spine::MathUtil::Deg_Rad * get_rotation());
-	transform.scale(Size2(get_scale_x(), get_scale_y()));
-	transform.set_origin(Vector2(get_x(), get_y()));
+	auto &pose = get_spine_object()->getPose();
+	transform.rotate(spine::MathUtil::Deg_Rad * pose.getRotation());
+	transform.scale(Size2(pose.getScaleX(), pose.getScaleY()));
+	transform.set_origin(Vector2(pose.getX(), pose.getY()));
 	return transform;
 }
 
@@ -427,11 +169,12 @@ void SpineBone::set_transform(Transform2D transform) {
 	float rotation = spine::MathUtil::Rad_Deg * transform.get_rotation();
 	Vector2 scale = transform.get_scale();
 
-	set_x(position.x);
-	set_y(position.y);
-	set_rotation(rotation);
-	set_scale_x(scale.x);
-	set_scale_y(scale.y);
+	auto &pose = get_spine_object()->getPose();
+	pose.setX(position.x);
+	pose.setY(position.y);
+	pose.setRotation(rotation);
+	pose.setScaleX(scale.x);
+	pose.setScaleY(scale.y);
 
 	get_spine_owner()->set_modified_bones();
 }
@@ -441,9 +184,10 @@ Transform2D SpineBone::get_global_transform() {
 	if (!get_spine_owner()) return get_transform();
 	if (!get_spine_owner()->is_visible_in_tree()) return get_transform();
 	Transform2D local;
-	local.rotate(spine::MathUtil::Deg_Rad * get_world_rotation_x());
-	local.scale(Vector2(get_world_scale_x(), get_world_scale_y()));
-	local.set_origin(Vector2(get_world_x(), get_world_y()));
+	auto &applied_pose = get_spine_object()->getAppliedPose();
+	local.rotate(spine::MathUtil::Deg_Rad * applied_pose.getWorldRotationX());
+	local.scale(Vector2(applied_pose.getWorldScaleX(), applied_pose.getWorldScaleY()));
+	local.set_origin(Vector2(applied_pose.getWorldX(), applied_pose.getWorldY()));
 	return get_spine_owner()->get_global_transform() * local;
 }
 

@@ -94,8 +94,8 @@ private:
 public:
 	Ref<CanvasItemMaterial> default_materials[4] = {};
 	int sprite_count;
-	spine::Vector<unsigned short> quad_indices;
-	spine::Vector<float> scratch_vertices;
+	spine::Array<unsigned short> quad_indices;
+	spine::Array<float> scratch_vertices;
 #ifdef SPINE_GODOT_EXTENSION
 	PackedVector2Array scratch_points;
 #else
@@ -598,7 +598,7 @@ void SpineSprite::generate_meshes_for_slots(Ref<SpineSkeleton> skeleton_ref) {
 		mesh_instance->set_draw_behind_parent(true);
 		add_child(mesh_instance);
 		mesh_instances.push_back(mesh_instance);
-		slot_nodes.add(spine::Vector<SpineSlotNode *>());
+		slot_nodes.add(spine::Array<SpineSlotNode *>());
 	}
 }
 
@@ -616,7 +616,7 @@ void SpineSprite::sort_slot_nodes() {
 		slot_nodes[i].setSize(0, nullptr);
 	}
 
-	auto draw_order = skeleton->get_spine_object()->getDrawOrder();
+	auto &draw_order = skeleton->get_spine_object()->getDrawOrder();
 	for (int i = 0; i < get_child_count(); i++) {
 		auto child = cast_to<Node2D>(get_child(i));
 		if (!child) continue;
@@ -633,7 +633,7 @@ void SpineSprite::sort_slot_nodes() {
 	for (int i = 0; i < (int) draw_order.size(); i++) {
 		int slot_index = draw_order[i]->getData().getIndex();
 		int mesh_index = mesh_instances[i]->get_index();
-		spine::Vector<SpineSlotNode *> &nodes = slot_nodes[slot_index];
+		spine::Array<SpineSlotNode *> &nodes = slot_nodes[slot_index];
 		for (int j = 0; j < (int) nodes.size(); j++) {
 			auto node = nodes[j];
 			move_child(node, mesh_index + 1);
@@ -832,7 +832,7 @@ void SpineSprite::update_meshes(Ref<SpineSkeleton> skeleton_ref) {
 	spine::Skeleton *skeleton = skeleton_ref->get_spine_object();
 	for (int i = 0, n = (int) skeleton->getSlots().size(); i < n; ++i) {
 		spine::Slot *slot = skeleton->getDrawOrder()[i];
-		spine::Attachment *attachment = slot->getAttachment();
+		spine::Attachment *attachment = slot->getAppliedPose().getAttachment();
 		SpineMesh2D *mesh_instance = mesh_instances[i];
 		mesh_instance->renderer_object = nullptr;
 
@@ -846,16 +846,16 @@ void SpineSprite::update_meshes(Ref<SpineSkeleton> skeleton_ref) {
 		}
 
 		spine::Color skeleton_color = skeleton->getColor();
-		spine::Color slot_color = slot->getColor();
+		spine::Color slot_color = slot->getAppliedPose().getColor();
 		spine::Color tint(skeleton_color.r * slot_color.r, skeleton_color.g * slot_color.g, skeleton_color.b * slot_color.b,
 						  skeleton_color.a * slot_color.a);
 		SpineRendererObject *renderer_object;
-		spine::Vector<float> *vertices = &statics.scratch_vertices;
-		spine::Vector<float> *uvs;
-		spine::Vector<unsigned short> *indices;
+		spine::Array<float> *vertices = &statics.scratch_vertices;
+		spine::Array<float> *uvs;
+		spine::Array<unsigned short> *indices;
 
 		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti)) {
-			auto *region = (spine::RegionAttachment *) attachment;
+			auto region = (spine::RegionAttachment *) attachment;
 
 			vertices->setSize(8, 0);
 			region->computeWorldVertices(*slot, *vertices, 0);
@@ -863,28 +863,28 @@ void SpineSprite::update_meshes(Ref<SpineSkeleton> skeleton_ref) {
 			uvs = &region->getUVs();
 			indices = &statics.quad_indices;
 
-			auto attachment_color = region->getColor();
+			auto &attachment_color = region->getColor();
 			tint.r *= attachment_color.r;
 			tint.g *= attachment_color.g;
 			tint.b *= attachment_color.b;
 			tint.a *= attachment_color.a;
 		} else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti)) {
-			auto *mesh = (spine::MeshAttachment *) attachment;
+			auto mesh = (spine::MeshAttachment *) attachment;
 
 			vertices->setSize(mesh->getWorldVerticesLength(), 0);
-			mesh->computeWorldVertices(*slot, *vertices);
+			mesh->computeWorldVertices(*skeleton, *slot, *vertices);
 			renderer_object = (SpineRendererObject *) ((spine::AtlasRegion *) mesh->getRegion())->page->texture;
 			uvs = &mesh->getUVs();
 			indices = &mesh->getTriangles();
 
-			auto attachment_color = mesh->getColor();
+			auto &attachment_color = mesh->getColor();
 			tint.r *= attachment_color.r;
 			tint.g *= attachment_color.g;
 			tint.b *= attachment_color.b;
 			tint.a *= attachment_color.a;
 		} else if (attachment->getRTTI().isExactly(spine::ClippingAttachment::rtti)) {
 			auto clip = (spine::ClippingAttachment *) attachment;
-			skeleton_clipper->clipStart(*slot, clip);
+			skeleton_clipper->clipStart(*skeleton, *slot, clip);
 			continue;
 		} else {
 			skeleton_clipper->clipEnd(*slot);
@@ -994,9 +994,9 @@ void SpineSprite::update_meshes(Ref<SpineSkeleton> skeleton_ref) {
 }
 
 #ifdef SPINE_GODOT_EXTENSION
-void createLinesFromMesh(PackedVector2Array &scratch_points, spine::Vector<unsigned short> &triangles, spine::Vector<float> *vertices) {
+void createLinesFromMesh(PackedVector2Array &scratch_points, spine::Array<unsigned short> &triangles, spine::Array<float> *vertices) {
 #else
-void createLinesFromMesh(Vector<Vector2> &scratch_points, spine::Vector<unsigned short> &triangles, spine::Vector<float> *vertices) {
+void createLinesFromMesh(Vector<Vector2> &scratch_points, spine::Array<unsigned short> &triangles, spine::Array<float> *vertices) {
 #endif
 	scratch_points.resize(0);
 	for (int i = 0; i < triangles.size(); i += 3) {
@@ -1019,7 +1019,7 @@ void SpineSprite::draw() {
 	if (!animation_state.is_valid() && !skeleton.is_valid()) return;
 	if (!Engine::get_singleton()->is_editor_hint() && !get_tree()->is_debugging_collisions_hint()) return;
 
-	auto statics = SpineSpriteStatics::instance();
+	auto &statics = SpineSpriteStatics::instance();
 
 #if VERSION_MAJOR > 3
 	RS::get_singleton()->canvas_item_clear(this->get_canvas_item());
@@ -1034,13 +1034,13 @@ void SpineSprite::draw() {
 		draw_set_transform(Vector2(0, 0), 0, Vector2(1, 1));
 		auto &draw_order = skeleton->get_spine_object()->getDrawOrder();
 		for (int i = 0; i < (int) draw_order.size(); i++) {
-			auto *slot = draw_order[i];
+			auto slot = draw_order[i];
 			if (!slot->getBone().isActive()) continue;
-			auto *attachment = slot->getAttachment();
+			auto attachment = slot->getAppliedPose().getAttachment();
 			if (!attachment) continue;
 			if (!attachment->getRTTI().isExactly(spine::RegionAttachment::rtti)) continue;
-			auto *region = (spine::RegionAttachment *) attachment;
-			auto *vertices = &statics.scratch_vertices;
+			auto region = (spine::RegionAttachment *) attachment;
+			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(8, 0);
 			region->computeWorldVertices(*slot, *vertices, 0);
 
@@ -1077,7 +1077,7 @@ void SpineSprite::draw() {
 		for (int i = 0; i < (int) draw_order.size(); i++) {
 			auto *slot = draw_order[i];
 			if (!slot->getBone().isActive()) continue;
-			auto *attachment = slot->getAttachment();
+			auto *attachment = slot->getAppliedPose().getAttachment();
 			if (!attachment) continue;
 			if (!attachment->getRTTI().isExactly(spine::MeshAttachment::rtti)) continue;
 			auto *mesh = (spine::MeshAttachment *) attachment;
@@ -1115,13 +1115,13 @@ void SpineSprite::draw() {
 		draw_set_transform(Vector2(0, 0), 0, Vector2(1, 1));
 		auto &draw_order = skeleton->get_spine_object()->getDrawOrder();
 		for (int i = 0; i < (int) draw_order.size(); i++) {
-			auto *slot = draw_order[i];
+			auto slot = draw_order[i];
 			if (!slot->getBone().isActive()) continue;
-			auto *attachment = slot->getAttachment();
+			auto attachment = slot->getAppliedPose().getAttachment();
 			if (!attachment) continue;
 			if (!attachment->getRTTI().isExactly(spine::BoundingBoxAttachment::rtti)) continue;
-			auto *bounding_box = (spine::BoundingBoxAttachment *) attachment;
-			auto *vertices = &statics.scratch_vertices;
+			auto bounding_box = (spine::BoundingBoxAttachment *) attachment;
+			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(bounding_box->getWorldVerticesLength(), 0);
 			bounding_box->computeWorldVertices(*slot, *vertices);
 			size_t num_vertices = vertices->size() / 2;
@@ -1136,13 +1136,13 @@ void SpineSprite::draw() {
 		draw_set_transform(Vector2(0, 0), 0, Vector2(1, 1));
 		auto &draw_order = skeleton->get_spine_object()->getDrawOrder();
 		for (int i = 0; i < (int) draw_order.size(); i++) {
-			auto *slot = draw_order[i];
+			auto slot = draw_order[i];
 			if (!slot->getBone().isActive()) continue;
-			auto *attachment = slot->getAttachment();
+			auto attachment = slot->getAppliedPose().getAttachment();
 			if (!attachment) continue;
 			if (!attachment->getRTTI().isExactly(spine::ClippingAttachment::rtti)) continue;
-			auto *clipping = (spine::ClippingAttachment *) attachment;
-			auto *vertices = &statics.scratch_vertices;
+			auto clipping = (spine::ClippingAttachment *) attachment;
+			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(clipping->getWorldVerticesLength(), 0);
 			clipping->computeWorldVertices(*slot, *vertices);
 			size_t num_vertices = vertices->size() / 2;
@@ -1168,8 +1168,8 @@ void SpineSprite::draw() {
 		statics.scratch_points.set(2, Vector2(bone_length, 0));
 		statics.scratch_points.set(3, Vector2(0, -debug_bones_thickness));
 		statics.scratch_points.set(4, Vector2(-debug_bones_thickness, 0));
-		Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getWorldRotationX(), Vector2(bone->getWorldX(), bone->getWorldY()));
-		bone_transform.scale_basis(Vector2(bone->getWorldScaleX(), bone->getWorldScaleY()));
+		Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(), Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()));
+		bone_transform.scale_basis(Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 		auto mouse_local_position = bone_transform.affine_inverse().xform(mouse_position);
 #ifdef SPINE_GODOT_EXTENSION
 		if (GEOMETRY2D::get_singleton()->is_point_in_polygon(mouse_local_position, statics.scratch_points)) {
@@ -1183,7 +1183,7 @@ void SpineSprite::draw() {
 	if (debug_bones) {
 		auto &bones = skeleton->get_spine_object()->getBones();
 		for (int i = 0; i < (int) bones.size(); i++) {
-			auto *bone = bones[i];
+			auto bone = bones[i];
 			if (!bone->isActive()) continue;
 			draw_bone(bone, debug_bones_color);
 
@@ -1196,8 +1196,8 @@ void SpineSprite::draw() {
 			statics.scratch_points.set(2, Vector2(bone_length, 0));
 			statics.scratch_points.set(3, Vector2(0, -debug_bones_thickness));
 			statics.scratch_points.set(4, Vector2(-debug_bones_thickness, 0));
-			Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getWorldRotationX(), Vector2(bone->getWorldX(), bone->getWorldY()));
-			bone_transform.scale_basis(Vector2(bone->getWorldScaleX(), bone->getWorldScaleY()));
+			Transform2D bone_transform(spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(), Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()));
+			bone_transform.scale_basis(Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 			auto mouse_local_position = bone_transform.affine_inverse().xform(mouse_position);
 #ifdef SPINE_GODOT_EXTENSION
 			if (GEOMETRY2D::get_singleton()->is_point_in_polygon(mouse_local_position, statics.scratch_points)) {

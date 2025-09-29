@@ -30,6 +30,7 @@
 #pragma once
 
 #include "SpineCommon.h"
+#include "SpineBoneLocal.h"
 #include "SpineConstant.h"
 #include <spine/BoneData.h>
 
@@ -52,37 +53,7 @@ public:
 
 	void set_length(float v);
 
-	float get_x();
-
-	void set_x(float v);
-
-	float get_y();
-
-	void set_y(float v);
-
-	float get_rotation();
-
-	void set_rotation(float v);
-
-	float get_scale_x();
-
-	void set_scale_x(float v);
-
-	float get_scale_y();
-
-	void set_scale_y(float v);
-
-	float get_shear_x();
-
-	void set_shear_x(float v);
-
-	float get_shear_y();
-
-	void set_shear_y(float v);
-
-	SpineConstant::Inherit get_inherit();
-
-	void set_inherit(SpineConstant::Inherit v);
+	Ref<SpineBoneLocal> get_setup_pose();
 
 	bool is_skin_required();
 
