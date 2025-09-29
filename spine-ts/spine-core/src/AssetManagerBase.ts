@@ -176,7 +176,7 @@ export class AssetManagerBase implements Disposable {
 					return blob ? createImageBitmap(blob, { premultiplyAlpha: "none", colorSpaceConversion: "none" }) : null;
 				}).then((bitmap) => {
 					if (bitmap) {
-						const texture = this.textureLoader(bitmap);
+						const texture = this.createTexture(path, bitmap);
 						this.success(success, path, texture);
 						resolve(texture);
 					};
@@ -185,7 +185,7 @@ export class AssetManagerBase implements Disposable {
 				let image = new Image();
 				image.crossOrigin = "anonymous";
 				image.onload = () => {
-					const texture = this.textureLoader(image);
+					const texture = this.createTexture(path, image);
 					this.success(success, path, texture);
 					resolve(texture);
 				};
@@ -214,7 +214,7 @@ export class AssetManagerBase implements Disposable {
 		this.cache.assetsLoaded[path] = new Promise<any>((resolve, reject) => {
 			this.downloader.downloadText(path, (atlasText: string): void => {
 				try {
-					let atlas = new TextureAtlas(atlasText);
+					const atlas = this.createTextureAtlas(path, atlasText);
 					let toLoad = atlas.pages.length, abort = false;
 					for (let page of atlas.pages) {
 						this.loadTexture(!fileAlias ? parent + page.name : fileAlias[page.name!],
@@ -262,7 +262,7 @@ export class AssetManagerBase implements Disposable {
 		this.cache.assetsLoaded[path] = new Promise<any>((resolve, reject) => {
 			this.downloader.downloadText(path, (atlasText: string): void => {
 				try {
-					const atlas = new TextureAtlas(atlasText);
+					const atlas = this.createTextureAtlas(path, atlasText);
 					this.success(success, path, atlas);
 					resolve(atlas);
 				} catch (e) {
@@ -378,9 +378,12 @@ export class AssetManagerBase implements Disposable {
 
 	// dispose asset only if it's not used by others
 	disposeAsset (path: string) {
-		if (--this.cache.assetsRefCount[path] === 0) {
-			this.remove(path)
+		const asset = this.cache.assets[path];
+		if (asset instanceof TextureAtlas) {
+			asset.dispose();
+			return;
 		}
+		this.disposeAssetInternal(path);
 	}
 
 	hasErrors () {
@@ -389,6 +392,33 @@ export class AssetManagerBase implements Disposable {
 
 	getErrors () {
 		return this.errors;
+	}
+
+	private disposeAssetInternal (path: string) {
+		if (this.cache.assetsRefCount[path] > 0 && --this.cache.assetsRefCount[path] === 0) {
+			return this.remove(path);
+		}
+	}
+
+	private createTextureAtlas (path: string, atlasText: string): TextureAtlas {
+		const atlas = new TextureAtlas(atlasText);
+		atlas.dispose = () => {
+			if (this.cache.assetsRefCount[path] <= 0) return;
+			this.disposeAssetInternal(path);
+			for (const page of atlas.pages) {
+				page.texture?.dispose();
+			}
+		}
+		return atlas;
+	}
+
+	private createTexture (path: string, image: HTMLImageElement | ImageBitmap): Texture {
+		const texture = this.textureLoader(image);
+		const textureDispose = texture.dispose.bind(texture);
+		texture.dispose = () => {
+			if (this.disposeAssetInternal(path)) textureDispose();
+		}
+		return texture;
 	}
 }
 

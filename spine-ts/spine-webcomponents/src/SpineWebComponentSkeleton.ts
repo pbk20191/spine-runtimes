@@ -32,27 +32,27 @@ import {
 	AnimationState,
 	AnimationStateData,
 	AtlasAttachmentLoader,
+	Bone,
 	Disposable,
 	LoadingScreen,
+	MeshAttachment,
 	MixBlend,
 	MixDirection,
+	NumberArrayLike,
 	Physics,
+	RegionAttachment,
+	Skeleton,
 	SkeletonBinary,
 	SkeletonData,
 	SkeletonJson,
-	Skeleton,
-	TextureAtlas,
-	Vector2,
-	Utils,
-	NumberArrayLike,
-	Slot,
-	RegionAttachment,
-	MeshAttachment,
-	Bone,
 	Skin,
+	Slot,
+	TextureAtlas,
+	Utils,
+	Vector2,
 } from "@esotericsoftware/spine-webgl";
-import { AttributeTypes, castValue, isBase64, Rectangle } from "./wcUtils.js";
 import { SpineWebComponentOverlay } from "./SpineWebComponentOverlay.js";
+import { AttributeTypes, castValue, isBase64, Rectangle } from "./wcUtils.js";
 
 type UpdateSpineWidgetFunction = (delta: number, skeleton: Skeleton, state: AnimationState) => void;
 
@@ -1318,7 +1318,6 @@ export class SpineWebComponentSkeleton extends HTMLElement implements Disposable
 		const { assetManager } = this.overlay;
 		if (this.lastAtlasPath) assetManager.disposeAsset(this.lastAtlasPath);
 		if (this.lastSkelPath) assetManager.disposeAsset(this.lastSkelPath);
-		for (const texturePath of this.lastTexturePaths) assetManager.disposeAsset(texturePath);
 	}
 
 }
