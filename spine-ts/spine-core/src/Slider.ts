@@ -28,11 +28,11 @@
  *****************************************************************************/
 
 import { isConstraintTimeline, isSlotTimeline, MixBlend, MixDirection, PhysicsConstraintTimeline } from "./Animation.js";
-import { Bone } from "./Bone.js";
+import type { Bone } from "./Bone.js";
 import { Constraint } from "./Constraint.js";
-import { Physics } from "./Physics.js";
-import { Skeleton } from "./Skeleton.js";
-import { SliderData } from "./SliderData.js";
+import type { Physics } from "./Physics.js";
+import type { Skeleton } from "./Skeleton.js";
+import type { SliderData } from "./SliderData.js";
 import { SliderPose } from "./SliderPose.js";
 
 /** Stores the setup pose for a {@link PhysicsConstraint}.
@@ -106,7 +106,7 @@ export class Slider extends Constraint<Slider, SliderData, SliderPose> {
 			if (isSlotTimeline(t))
 				skeleton.constrained(slots[t.slotIndex]);
 			else if (t instanceof PhysicsConstraintTimeline) {
-				if (t.constraintIndex == -1) {
+				if (t.constraintIndex === -1) {
 					for (let ii = 0; ii < physicsCount; ii++)
 						skeleton.constrained(physics[ii]);
 				} else

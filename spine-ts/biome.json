@@ -6,6 +6,9 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "correctness": {
+        "noUnusedFunctionParameters": "off"
+      },
       "suspicious": {
         "noAssignInExpressions": "off"
       }
