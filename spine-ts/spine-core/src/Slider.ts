@@ -111,8 +111,10 @@ export class Slider extends Constraint<Slider, SliderData, SliderPose> {
 						skeleton.constrained(physics[ii]);
 				} else
 					skeleton.constrained(constraints[t.constraintIndex]);
-			} else if (isConstraintTimeline(t)) //
-				skeleton.constrained(constraints[t.constraintIndex]);
+			} else if (isConstraintTimeline(t)) {
+				const constraintIndex = t.constraintIndex;
+				if (constraintIndex !== -1) skeleton.constrained(constraints[constraintIndex]);
+			}
 		}
 	}
 }

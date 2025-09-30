@@ -28,19 +28,19 @@
  *****************************************************************************/
 
 import { VertexAttachment, Attachment } from "./attachments/Attachment.js";
-import { PathConstraint } from "./PathConstraint.js";
-import { Skeleton } from "./Skeleton.js";
-import { Slot } from "./Slot.js";
-import { StringSet, Utils, MathUtils, NumberArrayLike } from "./Utils.js";
-import { Event } from "./Event.js";
 import { HasTextureRegion } from "./attachments/HasTextureRegion.js";
 import { SequenceMode, SequenceModeValues } from "./attachments/Sequence.js";
-import { PhysicsConstraint } from "./PhysicsConstraint.js";
-import { PhysicsConstraintData } from "./PhysicsConstraintData.js";
 import { Inherit } from "./BoneData.js";
 import { BoneLocal } from "./BoneLocal.js";
-import { SlotPose } from "./SlotPose.js";
+import { Event } from "./Event.js";
+import { PathConstraint } from "./PathConstraint.js";
+import { PhysicsConstraint } from "./PhysicsConstraint.js";
+import { PhysicsConstraintData } from "./PhysicsConstraintData.js";
 import { PhysicsConstraintPose } from "./PhysicsConstraintPose.js";
+import { Skeleton } from "./Skeleton.js";
+import { Slot } from "./Slot.js";
+import { SlotPose } from "./SlotPose.js";
+import { MathUtils, NumberArrayLike, StringSet, Utils } from "./Utils.js";
 
 /** A simple container for a list of timelines and a name. */
 export class Animation {
@@ -1801,7 +1801,8 @@ export class DrawOrderTimeline extends Timeline {
 }
 
 export interface ConstraintTimeline {
-	/** The index of the constraint in {@link Skeleton.constraints} that will be changed when this timeline is applied. */
+	/** The index of the constraint in {@link Skeleton.constraints} that will be changed when this timeline is applied, or
+	 * -1 if a specific constraint will not be changed. */
 	readonly constraintIndex: number;
 }
 
