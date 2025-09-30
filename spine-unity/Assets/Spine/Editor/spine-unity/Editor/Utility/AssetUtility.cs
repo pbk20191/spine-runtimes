@@ -92,6 +92,7 @@ namespace Spine.Unity.Editor {
 		/// This leads to MissingReferenceException and other errors.
 		public static readonly List<ScriptableObject> protectFromStackGarbageCollection = new List<ScriptableObject>();
 		public static HashSet<string> assetsImportedInWrongState = new HashSet<string>();
+		public static bool isFirstPMAWorkflowMismatch = true;
 
 		public static void HandleOnPostprocessAllAssets (string[] imported, List<string> texturesWithoutMetaFile) {
 			// In case user used "Assets -> Reimport All", during the import process,
@@ -340,7 +341,8 @@ namespace Spine.Unity.Editor {
 
 		public static void ImportSpineContent (string[] imported, List<string> texturesWithoutMetaFile,
 			bool reimport = false) {
-
+			
+			isFirstPMAWorkflowMismatch = true;
 			List<string> atlasPaths = new List<string>();
 			List<string> imagePaths = new List<string>();
 			List<PathAndProblemInfo> skeletonPaths = new List<PathAndProblemInfo>();
@@ -389,7 +391,6 @@ namespace Spine.Unity.Editor {
 				}
 				}
 			}
-
 			AddDependentAtlasIfImageChanged(atlasPaths, imagePaths);
 
 			// Import atlases first.
@@ -652,12 +653,12 @@ namespace Spine.Unity.Editor {
 
 			List<Material> vestigialMaterials = new List<Material>();
 
-			bool isFirstImport;
+			bool isNewAtlas;
 			if (atlasAsset == null) {
-				isFirstImport = true;
+				isNewAtlas = true;
 				atlasAsset = SpineAtlasAsset.CreateInstance<SpineAtlasAsset>();
 			} else {
-				isFirstImport = false;
+				isNewAtlas = false;
 				foreach (Material m in atlasAsset.materials)
 					vestigialMaterials.Add(m);
 			}
@@ -670,7 +671,9 @@ namespace Spine.Unity.Editor {
 			if (atlas != null) {
 				foreach (AtlasPage page in atlas.Pages)
 					pageFiles.Add(page.name);
-				IssuePMAWarnings(isFirstImport, atlas, atlasAsset);
+				bool isUserAtlas = !atlasPath.Contains("Spine Examples");
+				if (isUserAtlas)
+					IssueAtlasWorkflowWarnings(isNewAtlas, atlas, atlasAsset);
 			}
 			bool atlasHasCustomMaterials = HasCustomMaterialsAssigned(vestigialMaterials, primaryName, pageFiles);
 
@@ -772,7 +775,7 @@ namespace Spine.Unity.Editor {
 			return loadedAtlas != null ? loadedAtlas : atlasAsset;
 		}
 
-		static void IssuePMAWarnings (bool isFirstImport, Atlas atlas, SpineAtlasAsset atlasAsset) {
+		static void IssueAtlasWorkflowWarnings (bool isNewAtlas, Atlas atlas, SpineAtlasAsset atlasAsset) {
 			bool isPMA = atlas.Pages.Count > 0 && atlas.Pages[0].pma;
 			if (QualitySettings.activeColorSpace == ColorSpace.Linear && isPMA) {
 				bool wasFixed = false;
@@ -785,10 +788,11 @@ namespace Spine.Unity.Editor {
 					+ "b) switch to Gamma color space via\nProject Settings - Player - Other Settings - Color Space.\n",
 					atlasAsset.name), atlasAsset);
 				}
-			} else if (isFirstImport && SpineEditorUtilities.Preferences.UsesPMAWorkflow != isPMA) {
+			} else if (isNewAtlas && SpineEditorUtilities.Preferences.UsesPMAWorkflow != isPMA) {
 				bool wasFixed = false;
-				if (SpineEditorUtilities.Preferences.ShowWorkflowMismatchDialog)
+				if (SpineEditorUtilities.Preferences.ShowWorkflowMismatchDialog && isFirstPMAWorkflowMismatch)
 					wasFixed = ShowWorkflowMismatchDialog(atlasAsset, isLinearPMAMismatch: false, atlasIsPMA: isPMA);
+				isFirstPMAWorkflowMismatch = wasFixed;
 				if (!wasFixed) {
 					if (isPMA)
 						Debug.LogWarning(string.Format("{0} :: Atlas was exported as PMA but Spine Preferences are set " +

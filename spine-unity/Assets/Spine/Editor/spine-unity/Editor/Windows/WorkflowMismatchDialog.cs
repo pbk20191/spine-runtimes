@@ -42,7 +42,7 @@ namespace Spine.Unity.Editor {
 			None = -1,
 			Switch = 0,
 			ReexportInstructions = 1,
-			Cancel = 2
+			Ignore = 2
 		}
 
 		const string REEXPORT_INSTRUCTIONS_URL = "https://esotericsoftware.com/spine-unity-assets#Correct-Texture-Packer-export";
@@ -110,7 +110,7 @@ namespace Spine.Unity.Editor {
 			None = -1,
 			Switch = 0,
 			ReexportInstructions = 1,
-			Cancel = 2
+			Ignore = 2
 		}
 
 		const string REEXPORT_INSTRUCTIONS_URL = "https://esotericsoftware.com/spine-unity-assets#Correct-Texture-Packer-export";
@@ -225,8 +225,8 @@ namespace Spine.Unity.Editor {
 				Close();
 			}
 			GUILayout.Space(5);
-			if (GUILayout.Button("Cancel", GUILayout.Width(75), GUILayout.Height(24))) {
-				dialogResult = DialogResult.Cancel;
+			if (GUILayout.Button("Ignore", GUILayout.Width(75), GUILayout.Height(24))) {
+				dialogResult = DialogResult.Ignore;
 				currentWindow = null;
 				Close();
 			}
@@ -293,8 +293,8 @@ namespace Spine.Unity.Editor {
 				Close();
 			}
 			GUILayout.Space(5);
-			if (GUILayout.Button("Cancel", GUILayout.Width(75), GUILayout.Height(24))) {
-				dialogResult = DialogResult.Cancel;
+			if (GUILayout.Button("Ignore", GUILayout.Width(75), GUILayout.Height(24))) {
+				dialogResult = DialogResult.Ignore;
 				currentWindow = null;
 				Close();
 			}
@@ -304,7 +304,7 @@ namespace Spine.Unity.Editor {
 			if (currentWindow == this) {
 				currentWindow = null;
 				if (dialogResult == DialogResult.None)
-					dialogResult = DialogResult.Cancel;
+					dialogResult = DialogResult.Ignore;
 			}
 		}
 	}
