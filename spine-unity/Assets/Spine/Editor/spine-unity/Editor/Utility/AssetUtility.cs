@@ -341,7 +341,7 @@ namespace Spine.Unity.Editor {
 
 		public static void ImportSpineContent (string[] imported, List<string> texturesWithoutMetaFile,
 			bool reimport = false) {
-			
+
 			isFirstPMAWorkflowMismatch = true;
 			List<string> atlasPaths = new List<string>();
 			List<string> imagePaths = new List<string>();
@@ -391,17 +391,20 @@ namespace Spine.Unity.Editor {
 				}
 				}
 			}
-			AddDependentAtlasIfImageChanged(atlasPaths, imagePaths);
+			List<string> dependentAtlasPaths = new List<string>();
+			AddDependentAtlasIfImageChanged(dependentAtlasPaths, imagePaths);
+			atlasPaths.AddRange(dependentAtlasPaths);
 
 			// Import atlases first.
 			List<AtlasAssetBase> newAtlases = new List<AtlasAssetBase>();
-			foreach (string ap in atlasPaths) {
+			foreach (string atlasPath in atlasPaths) {
 #if PROBLEMATIC_PACKAGE_ASSET_MODIFICATION
 				if (ap.StartsWith("Packages"))
 					continue;
 #endif
-				TextAsset atlasText = AssetDatabase.LoadAssetAtPath<TextAsset>(ap);
-				AtlasAssetBase atlas = IngestSpineAtlas(atlasText, texturesWithoutMetaFile);
+				TextAsset atlasText = AssetDatabase.LoadAssetAtPath<TextAsset>(atlasPath);
+				bool isExistingAtlas = dependentAtlasPaths.Contains(atlasPath);
+				AtlasAssetBase atlas = IngestSpineAtlas(atlasText, texturesWithoutMetaFile, isExistingAtlas);
 				newAtlases.Add(atlas);
 			}
 			AddDependentSkeletonIfAtlasChanged(skeletonPaths, atlasPaths);
@@ -638,7 +641,9 @@ namespace Spine.Unity.Editor {
 			return arr;
 		}
 
-		static AtlasAssetBase IngestSpineAtlas (TextAsset atlasText, List<string> texturesWithoutMetaFile) {
+		static AtlasAssetBase IngestSpineAtlas (TextAsset atlasText, List<string> texturesWithoutMetaFile,
+			bool isExistingAtlas) {
+
 			if (atlasText == null) {
 				Debug.LogWarning("Atlas source cannot be null!");
 				return null;
@@ -650,15 +655,12 @@ namespace Spine.Unity.Editor {
 			string atlasPath = assetPath + "/" + primaryName + AtlasSuffix + ".asset";
 
 			SpineAtlasAsset atlasAsset = (SpineAtlasAsset)AssetDatabase.LoadAssetAtPath(atlasPath, typeof(SpineAtlasAsset));
+			bool isNewAtlas = !isExistingAtlas && atlasAsset == null;
 
 			List<Material> vestigialMaterials = new List<Material>();
-
-			bool isNewAtlas;
 			if (atlasAsset == null) {
-				isNewAtlas = true;
 				atlasAsset = SpineAtlasAsset.CreateInstance<SpineAtlasAsset>();
 			} else {
-				isNewAtlas = false;
 				foreach (Material m in atlasAsset.materials)
 					vestigialMaterials.Add(m);
 			}
