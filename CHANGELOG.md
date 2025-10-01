@@ -1,9 +1,129 @@
 # 4.3
 
+## C
+
+- **Additions**
+  - Added `spine_slider` and `spine_slider_data` types for slider constraints
+  - Added `spine_slider_timeline` and `spine_slider_mix_timeline` for animating sliders
+  - Added new pose system with `spine_bone_local`, `spine_bone_pose`, and related types
+  - Added `spine_pose`, `spine_posed`, and `spine_posed_active` base types
+
+- **Breaking changes**
+  - **IMPORTANT**: The C runtime has been completely rewritten as an auto-generated wrapper around the C++ runtime. This is a major breaking change. Users must update their code to use the new API. See https://esotericsoftware.com/spine-c
+  - All types, functions, and headers have been restructured
+  - The new runtime provides full feature parity with C++ through automatic code generation, has nullability annotations and documentation, and supports lightweight RTTI, allowing language specific wrappers to be built around it that expose the full type hierarchy idiomatically. See spine-ios and spine-flutter for examples.
+  - Renamed setup pose functions:
+    - `spSkeleton_setToSetupPose()` → `spine_skeleton_setup_pose()`
+    - `spSkeleton_setBonesToSetupPose()` → `spine_skeleton_setup_pose_bones()`
+    - `spSkeleton_setSlotsToSetupPose()` → `spine_skeleton_setup_pose_slots()`
+
+### SFML
+
+- **Restructuring**
+  - Reorganized directory structure - merged with C++ SFML into unified structure
+
+- **Breaking changes**
+  - Updated to use new C runtime API
+
+### SDL
+
+- **Additions**
+  - Added CMakePresets.json for modern CMake configuration
+  - Updated examples with improved rendering
+
+- **Restructuring**
+  - Simplified build system with build.sh script
+
+- **Breaking changes**
+  - Updated to use new C runtime API
+  - `spSkeletonDrawable_update()` now takes additional `spine_physics` parameter
+
+### GLFW
+
+- **Additions**
+  - Added CMakePresets.json for modern CMake configuration
+  - Added physics example (physics.cpp)
+  - Added IK following example (ik-following.cpp)
+
+- **Restructuring**
+  - Renamed main-cpp-lite.cpp to main-c.cpp
+  - Simplified build system with build.sh script
+
+- **Breaking changes**
+  - Updated to use new C runtime API
+
+## C++
+
+- **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system with `BoneLocal`, `BonePose`, and related classes for improved transform handling
+  - Added `Pose`, `Posed`, and `PosedActive` base classes for unified pose management
+  - Added `ConstraintTimeline` interface for unified constraint timeline indexing
+  - Added `Animation::getBones()` to get bone indices used by an animation
+  - Added template method `SkeletonData::findConstraint<T>()` for type-safe constraint queries
+  - Added `SkeletonRenderer` class with `RenderCommand` for batched rendering
+  - Added `HasRendererObject` interface for attachments with renderer-specific data
+
+- **Breaking changes**
+  - Headers reorganized from `spine-cpp/spine-cpp/include/spine/` to `spine-cpp/include/spine/`
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+  - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
+  - Renamed timeline constraint index methods to use unified `getConstraintIndex()`
+  - Changed timeline class hierarchy with new base classes `BoneTimeline`, `SlotCurveTimeline`, and `ConstraintTimeline`
+  - Renamed setup pose methods:
+    - `Skeleton::setToSetupPose()` → `Skeleton::setupPose()`
+    - `Skeleton::setBonesToSetupPose()` → `Skeleton::setupPoseBones()`
+    - `Skeleton::setSlotsToSetupPose()` → `Skeleton::setupPoseSlots()`
+
+### Cocos2d-x
+- The runtime has been removed, as Cocos2d-x has not been maintained in years, and the latest version no longer compiles out of the box on macOS, iOS, and other platforms.
+
+### SFML
+
+- **Restructuring**
+  - Reorganized directory structure - merged C and C++ examples into a single structure
+  - Moved from `spine-sfml/c/` and `spine-sfml/cpp/` to unified `spine-sfml/` structure
+  - Added CMakePresets.json for modern CMake configuration
+  - Simplified example structure with single main.cpp
+
+- **Breaking changes**
+  - Updated to use new C++ runtime with all breaking changes above
+
+### UE
+
+- **Breaking changes**
+  - Updated to use new C++ runtime with all breaking changes above
+
+### Godot
+
+- **Additions**
+  - Added `SpineSlider` and `SpineSliderData` classes for slider constraints
+  - Added `SpineBoneLocal` and `SpineBonePose` classes for new pose system
+  - Added pose classes for constraints: `SpineIkConstraintPose`, `SpinePathConstraintPose`, `SpinePhysicsConstraintPose`, `SpineSliderPose`, `SpineTransformConstraintPose`
+
+- **Breaking changes**
+  - Updated to use new C++ pose system with all breaking changes above
+
 ## C#
 
 - **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system with `BoneLocal`, `BonePose`, and related classes
+  - Added `IPose`, `Posed`, and `PosedActive` base classes for unified pose management
+  - Added `ConstraintTimeline` interface for unified constraint timeline indexing
+  - Added `Animation.Bones` property to get bone indices used by an animation
+
 - **Breaking changes**
+  - Timeline `Apply()` methods now take an additional `appliedPose` parameter
+  - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
+  - Reorganized timeline class hierarchy with new base classes
+  - Renamed timeline constraint index methods to use unified `ConstraintIndex` property
+  - Renamed setup pose methods:
+    - `Skeleton.SetToSetupPose()` → `Skeleton.SetupPose()`
+    - `Skeleton.SetBonesToSetupPose()` → `Skeleton.SetupPoseBones()`
+    - `Skeleton.SetSlotsToSetupPose()` → `Skeleton.SetupPoseSlots()`
 
 ### Unity
 
@@ -15,6 +135,7 @@
 
 - **Breaking changes**
   - Example skeletons in Spine Examples are now using straight alpha textures and materials for better compatibility with Linear colorspace.
+  - Updated to use new C# runtime with all breaking changes above
 
 - **Changes of default values**
   - Changed default atlas texture workflow from PMA to straight alpha textures. This move was done because straight alpha textures are compatible with both Gamma and Linear color space, with the latter being the default for quite some time now in Unity. Note that `PMA Vertex Color` is unaffected and shall be enabled as usual to allow for single-pass additive rendering.
@@ -23,6 +144,179 @@
 
 - **Restructuring (Non-Breaking)**
   - Spine Examples have been moved and are now part of the main spine-unity UPM package. To import, select the `spine-unity Runtime` package in the Package Manager window, and in the `Samples` tab and hit `Import`.
+
+### MonoGame
+
+- **Breaking changes**
+  - Updated to use new C# runtime with all breaking changes above
+
+## Dart
+
+- **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system with `BoneLocal`, `BonePose`, and related classes
+  - Added `Pose`, `Posed`, and `PosedActive` base classes for unified pose management
+
+- **Breaking changes**
+  - The Dart runtime is now fully auto-generated from the C runtime, maintaining the full C++ type hierarchy with proper nullability annotations
+  - All properties are now exposed as getters and setters instead of methods
+  - API changes to match C++ naming conventions:
+    - `AnimationState.getData()` → `AnimationState.data` (property)
+    - `AnimationState.setAnimationByName()` → `AnimationState.setAnimation()`
+    - `AnimationState.addAnimationByName()` → `AnimationState.addAnimation()`
+    - `AnimationState.getCurrent()` → `AnimationState.getCurrent()`
+    - `Skeleton.setSkinByName()` → `Skeleton.setSkin()`
+    - `Skeleton.setSkin()` → `Skeleton.setSkin2()`
+    - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
+    - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
+    - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+
+### Flutter
+
+- **Breaking changes**
+  - Updated to use the new auto-generated Dart runtime with all the Dart API changes above
+
+## Haxe
+
+- **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system classes matching the Java implementation
+
+- **Breaking changes**
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+  - Updated to use new pose system architecture
+  - Renamed setup pose methods:
+    - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
+    - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
+    - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+
+## Java
+
+- **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system with `BoneLocal`, `BonePose`, and related classes
+  - Added `Pose`, `Posed`, and `PosedActive` base classes for unified pose management
+  - Added `ConstraintTimeline` interface for unified constraint timeline indexing
+  - Added `Animation.getBones()` to get bone indices used by an animation
+  - Added `SequenceTimeline` for sequence animation
+
+- **Breaking changes**
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+  - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
+  - Reorganized timeline class hierarchy with `BoneTimeline1`, `BoneTimeline2`, and `SlotCurveTimeline` base classes
+  - Renamed timeline constraint index methods to use unified `getConstraintIndex()`
+  - `Bone` constructor no longer takes `Skeleton` parameter
+  - Renamed setup pose methods:
+    - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
+    - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
+    - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+
+### libGDX
+
+- **Breaking changes**
+  - Updated to use new pose system from Java runtime
+
+### Android
+
+- **Breaking changes**
+  - Updated to use new Java runtime with all breaking changes above
+
+## Swift
+
+- **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system with `BoneLocal`, `BonePose`, and related classes
+  - Added `Pose`, `Posed`, and `PosedActive` base classes for unified pose management
+
+- **Breaking changes**
+  - The Swift runtime is now fully auto-generated from the C runtime, maintaining the full C++ type hierarchy with proper nullability annotations
+  - All properties are now exposed as getters and setters instead of methods
+  - API changes to match C++ naming conventions:
+    - `AnimationState.setAnimationByName()` → `AnimationState.setAnimation()`
+    - `AnimationState.addAnimationByName()` → `AnimationState.addAnimation()`
+    - `AnimationState.getCurrent()` → `AnimationState.getCurrent()`
+    - `Skeleton.findSlot(slotName:)` → `Skeleton.findSlot()`
+    - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
+    - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
+    - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+
+### iOS
+
+- **Breaking changes**
+  - Updated to use the new auto-generated Swift runtime with all the Swift API changes above
+
+## TypeScript/JavaScript
+
+- **Additions**
+  - Added `Slider` and `SliderData` classes for slider constraints
+  - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
+  - Added new pose system classes matching the Java implementation
+
+- **Breaking changes**
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+  - Updated to use new pose system architecture
+  - Renamed setup pose methods:
+    - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
+    - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
+    - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+
+### WebGL backend
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Canvas backend
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### CanvasKit backend
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+  - Simplified rendering implementation
+
+### Three.js backend
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Player
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Pixi v7
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Pixi v8
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Phaser v3
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Phaser v4
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+
+### Web Components
+
+- **Breaking changes**
+  - Updated to use new TypeScript/JavaScript runtime
+  - Updated skeleton and overlay component implementations
 
 # 4.2
 
@@ -218,7 +512,7 @@
   - Fixed SkeletonRootMotion components ignoring parent bone scale when set by transform constraints. Using applied scale of parent bone now. If you need the old behaviour, comment out the line `#define USE_APPLIED_PARENT_SCALE` in SkeletonRootMotionBase.cs.
   - Fixed SkeletonUtility callback update order when used with SkeletonRootMotion components so that the position when following a bone is updated after SkeletonRootMotion clears root-bone position. The order of SkeletonUtilityBone callbacks is changed to be later to achieve this. This is a breaking change in the unlikely case that you are using SkeletonRootMotion together with SkeletonUtility and subscribed to `UpdateLocal`, `UpdateWorld` or `UpdateComplete` yourself and relied on a certain callback order. One solution is to then resubscribe your own callback events accordingly by calling
   `.UpdateLocal -= Callback; .UpdateLocal += Callback;`.
-  
+
 - **Changes of default values**
 
 - **Deprecated**
