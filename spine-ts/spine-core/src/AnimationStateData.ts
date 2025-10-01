@@ -49,19 +49,29 @@ export class AnimationStateData {
 
 	/** Sets a mix duration by animation name.
 	 *
-	 * See {@link #setMixWith()}. */
-	setMix (fromName: string, toName: string, duration: number) {
-		let from = this.skeletonData.findAnimation(fromName);
-		if (!from) throw new Error("Animation not found: " + fromName);
-		let to = this.skeletonData.findAnimation(toName);
-		if (!to) throw new Error("Animation not found: " + toName);
-		this.setMixWith(from, to, duration);
-	}
+	 * See {@link #setMix()}. */
+	setMix (fromName: string, to: string, duration: number): any;
 
 	/** Sets the mix duration when changing from the specified animation to the other.
 	 *
 	 * See {@link TrackEntry#mixDuration}. */
-	setMixWith (from: Animation, to: Animation, duration: number) {
+	setMix (from: Animation, to: Animation, duration: number): any;
+
+	setMix (from: string | Animation, to: string | Animation, duration: number) {
+		if (typeof from === "string")
+			return this.setMix1(from, to as string, duration);
+		return this.setMix2(from, to as Animation, duration);
+	}
+
+	private setMix1 (fromName: string, toName: string, duration: number) {
+		let from = this.skeletonData.findAnimation(fromName);
+		if (!from) throw new Error("Animation not found: " + fromName);
+		let to = this.skeletonData.findAnimation(toName);
+		if (!to) throw new Error("Animation not found: " + toName);
+		this.setMix2(from, to, duration);
+	}
+
+	private setMix2 (from: Animation, to: Animation, duration: number) {
 		if (!from) throw new Error("from cannot be null.");
 		if (!to) throw new Error("to cannot be null.");
 		let key = from.name + "." + to.name;
