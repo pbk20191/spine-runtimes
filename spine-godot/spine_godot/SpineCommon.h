@@ -100,8 +100,8 @@ using namespace godot;
 		return ret;                                                                                                                                  \
 	}
 
-#define SPINE_STRING(x) spine::String((x).utf8())
-#define SPINE_STRING_TMP(x) spine::String((x).utf8(), true, false)
+#define SPINE_STRING(x) spine::String((x).utf8().ptr())
+#define SPINE_STRING_TMP(x) spine::String((x).utf8().ptr(), true, false)
 
 // Can't do template classes with Godot's object model :(
 class SpineObjectWrapper : public REFCOUNTED {
