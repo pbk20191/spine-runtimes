@@ -34,6 +34,7 @@
 #include <spine/BonePose.h>
 
 class SpineSprite;
+class SpineSkeleton;
 
 class SpineBonePose : public SpineObjectWrapper {
 	GDCLASS(SpineBonePose, SpineObjectWrapper)
@@ -107,4 +108,8 @@ public:
 	float world_to_local_rotation(float world_rotation);
 	float local_to_world_rotation(float local_rotation);
 	void rotate_world(float degrees);
+
+	// Update methods
+	void update_world_transform(Ref<SpineSkeleton> skeleton);
+	void update_local_transform(Ref<SpineSkeleton> skeleton);
 };

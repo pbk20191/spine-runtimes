@@ -48,6 +48,7 @@ void SpineBone::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_applied_pose"), &SpineBone::get_applied_pose);
 	ClassDB::bind_method(D_METHOD("is_active"), &SpineBone::is_active);
 	ClassDB::bind_method(D_METHOD("set_active", "v"), &SpineBone::set_active);
+	ClassDB::bind_method(D_METHOD("update", "skeleton", "physics"), &SpineBone::update);
 	ClassDB::bind_method(D_METHOD("get_transform"), &SpineBone::get_transform);
 	ClassDB::bind_method(D_METHOD("set_transform", "local_transform"), &SpineBone::set_transform);
 	ClassDB::bind_method(D_METHOD("get_global_transform"), &SpineBone::get_global_transform);
@@ -217,4 +218,10 @@ void SpineBone::set_global_transform(Transform2D transform) {
 	bone->getPose().setScaleY(local_scale.y);
 
 	get_spine_owner()->set_modified_bones();
+}
+
+void SpineBone::update(Ref<SpineSkeleton> skeleton, SpineConstant::Physics physics) {
+	SPINE_CHECK(get_spine_object(), )
+	SPINE_CHECK(skeleton.is_valid() && skeleton->get_spine_object(), )
+	get_spine_object()->update(*skeleton->get_spine_object(), (spine::Physics)physics);
 }

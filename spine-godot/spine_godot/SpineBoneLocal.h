@@ -75,4 +75,9 @@ public:
 
 	SpineConstant::Inherit get_inherit();
 	void set_inherit(SpineConstant::Inherit inherit);
+
+	// Convenience methods
+	void set_position(float x, float y);
+	void set_scale(float scale_x, float scale_y);
+	void set_scale_uniform(float scale);
 };

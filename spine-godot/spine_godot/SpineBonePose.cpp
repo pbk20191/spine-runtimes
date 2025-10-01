@@ -29,6 +29,7 @@
 
 #include "SpineBonePose.h"
 #include "SpineCommon.h"
+#include "SpineSkeleton.h"
 
 void SpineBonePose::_bind_methods() {
 	// BoneLocal methods
@@ -75,6 +76,10 @@ void SpineBonePose::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("world_to_local_rotation", "world_rotation"), &SpineBonePose::world_to_local_rotation);
 	ClassDB::bind_method(D_METHOD("local_to_world_rotation", "local_rotation"), &SpineBonePose::local_to_world_rotation);
 	ClassDB::bind_method(D_METHOD("rotate_world", "degrees"), &SpineBonePose::rotate_world);
+
+	// Update methods
+	ClassDB::bind_method(D_METHOD("update_world_transform", "skeleton"), &SpineBonePose::update_world_transform);
+	ClassDB::bind_method(D_METHOD("update_local_transform", "skeleton"), &SpineBonePose::update_local_transform);
 }
 
 // BoneLocal properties
@@ -281,4 +286,16 @@ float SpineBonePose::local_to_world_rotation(float local_rotation) {
 void SpineBonePose::rotate_world(float degrees) {
 	SPINE_CHECK(get_spine_object(), )
 	get_spine_object()->rotateWorld(degrees);
+}
+
+void SpineBonePose::update_world_transform(Ref<SpineSkeleton> skeleton) {
+	SPINE_CHECK(get_spine_object(), )
+	SPINE_CHECK(skeleton.is_valid() && skeleton->get_spine_object(), )
+	get_spine_object()->updateWorldTransform(*skeleton->get_spine_object());
+}
+
+void SpineBonePose::update_local_transform(Ref<SpineSkeleton> skeleton) {
+	SPINE_CHECK(get_spine_object(), )
+	SPINE_CHECK(skeleton.is_valid() && skeleton->get_spine_object(), )
+	get_spine_object()->updateLocalTransform(*skeleton->get_spine_object());
 }

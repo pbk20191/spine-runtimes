@@ -47,6 +47,11 @@ void SpineBoneLocal::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_shear_y", "v"), &SpineBoneLocal::set_shear_y);
 	ClassDB::bind_method(D_METHOD("get_inherit"), &SpineBoneLocal::get_inherit);
 	ClassDB::bind_method(D_METHOD("set_inherit", "v"), &SpineBoneLocal::set_inherit);
+
+	// Convenience methods
+	ClassDB::bind_method(D_METHOD("set_position", "x", "y"), &SpineBoneLocal::set_position);
+	ClassDB::bind_method(D_METHOD("set_scale", "scale_x", "scale_y"), &SpineBoneLocal::set_scale);
+	ClassDB::bind_method(D_METHOD("set_scale_uniform", "scale"), &SpineBoneLocal::set_scale_uniform);
 }
 
 float SpineBoneLocal::get_x() {
@@ -127,4 +132,19 @@ SpineConstant::Inherit SpineBoneLocal::get_inherit() {
 void SpineBoneLocal::set_inherit(SpineConstant::Inherit inherit) {
 	SPINE_CHECK(get_spine_object(), )
 	get_spine_object()->setInherit((spine::Inherit) inherit);
+}
+
+void SpineBoneLocal::set_position(float x, float y) {
+	SPINE_CHECK(get_spine_object(), )
+	get_spine_object()->setPosition(x, y);
+}
+
+void SpineBoneLocal::set_scale(float scale_x, float scale_y) {
+	SPINE_CHECK(get_spine_object(), )
+	get_spine_object()->setScale(scale_x, scale_y);
+}
+
+void SpineBoneLocal::set_scale_uniform(float scale) {
+	SPINE_CHECK(get_spine_object(), )
+	get_spine_object()->setScale(scale);
 }

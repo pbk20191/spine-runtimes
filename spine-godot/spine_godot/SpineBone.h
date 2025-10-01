@@ -79,6 +79,8 @@ public:
 
 	void set_active(bool v);
 
+	void update(Ref<SpineSkeleton> skeleton, SpineConstant::Physics physics);
+
 	// External feature functions
 	void apply_world_transform_2d(const Variant &o);
 
