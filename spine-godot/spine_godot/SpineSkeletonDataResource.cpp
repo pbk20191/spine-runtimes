@@ -33,11 +33,15 @@
 #ifdef SPINE_GODOT_EXTENSION
 #include <godot_cpp/classes/encoded_object_as_id.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#ifdef TOOLS_ENABLED
 #include <godot_cpp/classes/editor_interface.hpp>
+#endif
 #else
 #if VERSION_MAJOR > 3
 #include "core/config/engine.h"
+#ifdef TOOLS_ENABLED
 #include "editor/editor_interface.h"
+#endif
 #else
 #include "core/engine.h"
 #endif

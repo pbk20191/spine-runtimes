@@ -41,7 +41,9 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/classes/mesh.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
+#ifdef TOOLS_ENABLED
 #include <godot_cpp/classes/editor_interface.hpp>
+#endif
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -60,7 +62,7 @@
 #include "scene/resources/mesh.h"
 #include "servers/rendering_server.h"
 #include "scene/resources/canvas_item_material.h"
-#if VERSION_MINOR > 0
+#if VERSION_MINOR > 0 && defined(TOOLS_ENABLED)
 #include "editor/editor_interface.h"
 #endif
 #else
