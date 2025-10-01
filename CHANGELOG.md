@@ -265,6 +265,12 @@
     - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
     - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
     - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+  - API changes to match reference runtime naming conventions:
+    - `addAnimationWith()` → `addAnimation()`
+    - `setAnimationWith()` → `setAnimation()`
+    - `setMixWith()` → `setMix()`
+    - `setSkinByName()` → `setSkin()`
+    - `getAttachmentByName()` → `getAttachment()`
 
 ### WebGL backend
 
