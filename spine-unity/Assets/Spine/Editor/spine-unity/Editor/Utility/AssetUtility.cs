@@ -393,6 +393,7 @@ namespace Spine.Unity.Editor {
 			}
 			List<string> dependentAtlasPaths = new List<string>();
 			AddDependentAtlasIfImageChanged(dependentAtlasPaths, imagePaths);
+			dependentAtlasPaths.RemoveAll(dependentAtlas => atlasPaths.Contains(dependentAtlas));
 			atlasPaths.AddRange(dependentAtlasPaths);
 
 			// Import atlases first.
