@@ -112,19 +112,45 @@
   - Added `SliderTimeline` and `SliderMixTimeline` for animating sliders
   - Added new pose system with `BoneLocal`, `BonePose`, and related classes
   - Added `IPose`, `Posed`, and `PosedActive` base classes for unified pose management
-  - Added `ConstraintTimeline` interface for unified constraint timeline indexing
+  - Added `IConstraintTimeline` interface for unified constraint timeline indexing
   - Added `Animation.Bones` property to get bone indices used by an animation
 
 - **Breaking changes**
+  - Color properties `.R` `.G` `.B` `.A` are replaced by `.GetColor()` and `.SetColor()`
+  - Dark color properties `.R2` `.G2` `.B2` are replaced by `.GetDarkColor()` and `.SetDarkColor()`.
   - Timeline `Apply()` methods now take an additional `appliedPose` parameter
+  - Attachment `ComputeWorldVertices()` methods now take an additional `skeleton` parameter
   - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
-  - Reorganized timeline class hierarchy with new base classes
+  - `Bone` properties are moved to poses:
+    - Local `Bone` properties moved to `Bone.Pose`:
+      - `Bone.Rotation` → `Bone.Pose.Rotation`
+      - `Bone.X` → `Bone.Pose.X`
+      - `Bone.ScaleX` → `Bone.Pose.ScaleX`
+    - World and applied properties moved to `Bone.AppliedPose`:
+      - `Bone.WorldRotationX` → `Bone.AppliedPose.WorldRotationX`
+      - `Bone.AppliedRotation` → `Bone.AppliedPose.Rotation`
+      - `Bone.AX` → `Bone.AppliedPose.X`
+      - `Bone.AScaleX` → `Bone.AppliedPose.ScaleX`
+  - `Slot` properties moved to `SlotPose`, i.e. `slot.AppliedPose`:
+    - `slot.Attachment` → `slot.AppliedPose.Attachment`
+    - `slot.R` `.G` `.B` `.A` → `slot.AppliedPose.GetColor()` and `slot.AppliedPose.SetColor()`
+    - `slot.R2` `.G2` `.B2` → `slot.AppliedPose.GetDarkColor()` and `slot.AppliedPose.SetDarkColor()`
+  - `Constraint` properties moved to `Constraint.Pose`
+    - `ikConstraint.Mix` → `ikConstraint.Pose.Mix`
+  - `ConstraintData` properties moved to `ConstraintData.GetSetupPose()`
+    - `ikConstraintData.Mix` → `ikConstraintData.GetSetupPose().Mix`
+  - `SkeletonData` Constraints now provide a unified list of `IConstraintData` via `SkeletonData.Constraints` instead of named properties for each type
+    - List by type: `skeletonData.ikConstraints` → `skeletonData.Constraints.OfType<IkConstraintData>()`
+    - Access by type and name: `skeletonData.FindIkConstraint()` → `skeletonData.FindConstraint<T>()`.
   - Renamed timeline constraint index methods to use unified `ConstraintIndex` property
+  - Reorganized timeline class hierarchy with new base classes
   - Renamed setup pose methods:
     - `Skeleton.SetToSetupPose()` → `Skeleton.SetupPose()`
     - `Skeleton.SetBonesToSetupPose()` → `Skeleton.SetupPoseBones()`
     - `Skeleton.SetSlotsToSetupPose()` → `Skeleton.SetupPoseSlots()`
-
+  - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace
+    - `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
+  
 ### Unity
 
 - **Officially supported Unity versions are 2017.1-6000.1**.
@@ -136,7 +162,9 @@
 - **Breaking changes**
   - Example skeletons in Spine Examples are now using straight alpha textures and materials for better compatibility with Linear colorspace.
   - Updated to use new C# runtime with all breaking changes above
-
+  - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace, thus might clash with `UnityEngine.Physics`.
+    - Spine Physics: `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
+    - UnityEngine Physics: `Physics.gravity` → `UnityEngine.Physics.gravity`.
 - **Changes of default values**
   - Changed default atlas texture workflow from PMA to straight alpha textures. This move was done because straight alpha textures are compatible with both Gamma and Linear color space, with the latter being the default for quite some time now in Unity. Note that `PMA Vertex Color` is unaffected and shall be enabled as usual to allow for single-pass additive rendering.
 
