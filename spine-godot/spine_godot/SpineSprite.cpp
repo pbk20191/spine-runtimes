@@ -1124,7 +1124,8 @@ void SpineSprite::draw() {
 			auto bounding_box = (spine::BoundingBoxAttachment *) attachment;
 			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(bounding_box->getWorldVerticesLength(), 0);
-			bounding_box->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, bounding_box->getWorldVerticesLength(), vertices->buffer(), 0, 2);
+			bounding_box->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, bounding_box->getWorldVerticesLength(), vertices->buffer(), 0,
+											   2);
 			size_t num_vertices = vertices->size() / 2;
 			statics.scratch_points.resize((int) num_vertices);
 			memcpy(statics.scratch_points.ptrw(), vertices->buffer(), num_vertices * 2 * sizeof(float));
@@ -1220,11 +1221,11 @@ void SpineSprite::draw() {
 	Vector<String> hover_text_lines;
 	if (hovered_slot) {
 		String name;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			name = String::utf8(hovered_slot->getData().getName().buffer());
-		#else
-			name.parse_utf8(hovered_slot->getData().getName().buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(hovered_slot->getData().getName().buffer());
+#else
+		name.parse_utf8(hovered_slot->getData().getName().buffer());
+#endif
 		hover_text_lines.push_back(String("Slot: ") + name);
 	}
 
@@ -1234,11 +1235,11 @@ void SpineSprite::draw() {
 		draw_bone(hovered_bone, Color(debug_bones_color.r, debug_bones_color.g, debug_bones_color.b, 1));
 		debug_bones_thickness = thickness;
 		String name;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			name = String::utf8(hovered_bone->getData().getName().buffer());
-		#else
-			name.parse_utf8(hovered_bone->getData().getName().buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(hovered_bone->getData().getName().buffer());
+#else
+		name.parse_utf8(hovered_bone->getData().getName().buffer());
+#endif
 		hover_text_lines.push_back(String("Bone: ") + name);
 	}
 
@@ -1297,7 +1298,8 @@ void SpineSprite::draw() {
 }
 
 void SpineSprite::draw_bone(spine::Bone *bone, const Color &color) {
-	draw_set_transform(Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()), spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
+	draw_set_transform(Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()),
+					   spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
 					   Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 	float bone_length = bone->getData().getLength();
 	if (bone_length == 0) bone_length = debug_bones_thickness * 2;

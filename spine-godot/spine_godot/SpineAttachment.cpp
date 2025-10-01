@@ -42,11 +42,11 @@ SpineAttachment::~SpineAttachment() {
 String SpineAttachment::get_attachment_name() {
 	SPINE_CHECK(get_spine_object(), "")
 	String name;
-	#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5) 
-		name = String::utf8(get_spine_object()->getName().buffer());
-	#else 
-		name.parse_utf8(get_spine_object()->getName().buffer());
-	#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+	name = String::utf8(get_spine_object()->getName().buffer());
+#else
+	name.parse_utf8(get_spine_object()->getName().buffer());
+#endif
 	return name;
 }
 

@@ -48,7 +48,7 @@
 #ifdef SPINE_GODOT_EXTENSION
 #include <godot_cpp/classes/editor_file_system.hpp>
 #else
-#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5) 
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
 #include "editor/file_system/editor_file_system.h"
 #else
 #include "editor/editor_file_system.h"
@@ -347,11 +347,11 @@ void SpineSkeletonDataResource::get_animation_names(Vector<String> &animation_na
 	for (size_t i = 0; i < animations.size(); ++i) {
 		auto animation = animations[i];
 		String name;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			name = String::utf8(animation->getName().buffer());
-		#else
-			name.parse_utf8(animation->getName().buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(animation->getName().buffer());
+#else
+		name.parse_utf8(animation->getName().buffer());
+#endif
 		animation_names.push_back(name);
 	}
 }
@@ -367,11 +367,11 @@ void SpineSkeletonDataResource::get_skin_names(Vector<String> &skin_names) const
 	for (size_t i = 0; i < skins.size(); ++i) {
 		auto skin = skins[i];
 		String name;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			name = String::utf8(skin->getName().buffer());
-		#else
-			name.parse_utf8(skin->getName().buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(skin->getName().buffer());
+#else
+		name.parse_utf8(skin->getName().buffer());
+#endif
 		skin_names.push_back(name);
 	}
 }
@@ -387,11 +387,11 @@ void SpineSkeletonDataResource::get_slot_names(Vector<String> &slot_names) {
 	for (size_t i = 0; i < slots.size(); ++i) {
 		auto slot = slots[i];
 		String name;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			name = String::utf8(slot->getName().buffer());
-		#else
-			name.parse_utf8(slot->getName().buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(slot->getName().buffer());
+#else
+		name.parse_utf8(slot->getName().buffer());
+#endif
 		slot_names.push_back(name);
 	}
 }
@@ -407,11 +407,11 @@ void SpineSkeletonDataResource::get_bone_names(Vector<String> &bone_names) {
 	for (size_t i = 0; i < bones.size(); ++i) {
 		auto bone = bones[i];
 		String name;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			name = String::utf8(bone->getName().buffer());
-		#else
-			name.parse_utf8(bone->getName().buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(bone->getName().buffer());
+#else
+		name.parse_utf8(bone->getName().buffer());
+#endif
 		bone_names.push_back(name);
 	}
 }
@@ -559,11 +559,11 @@ Ref<SpinePhysicsConstraintData> SpineSkeletonDataResource::find_physics_constrai
 String SpineSkeletonDataResource::get_skeleton_name() const {
 	SPINE_CHECK(skeleton_data, "")
 	String name;
-	#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-		name = String::utf8(skeleton_data->getName().buffer());
-	#else
-		name.parse_utf8(skeleton_data->getName().buffer());
-	#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+	name = String::utf8(skeleton_data->getName().buffer());
+#else
+	name.parse_utf8(skeleton_data->getName().buffer());
+#endif
 	return name;
 }
 

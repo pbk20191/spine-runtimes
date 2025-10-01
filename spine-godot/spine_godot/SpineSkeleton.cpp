@@ -378,7 +378,7 @@ Array SpineSkeleton::get_sliders() {
 		auto constraint = constraints[i];
 		if (!constraint->getRTTI().isExactly(spine::Slider::rtti) == false) continue;
 		Ref<SpineSlider> slider_ref(memnew(SpineSlider));
-		slider_ref->set_spine_object(sprite, (spine::Slider *)constraint);
+		slider_ref->set_spine_object(sprite, (spine::Slider *) constraint);
 		result.append(slider_ref);
 	}
 	return result;

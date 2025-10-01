@@ -51,7 +51,7 @@
 #ifdef SPINE_GODOT_EXTENSION
 #include <godot_cpp/classes/editor_file_system.hpp>
 #else
-#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5) 
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
 #include "editor/file_system/editor_file_system.h"
 #else
 #include "editor/editor_file_system.h"
@@ -150,11 +150,11 @@ public:
 
 	void load(spine::AtlasPage &page, const spine::String &path) override {
 		String fixed_path;
-		#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
-			fixed_path = String::utf8(path.buffer());
-		#else
-			fixed_path.parse_utf8(path.buffer());
-		#endif
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		fixed_path = String::utf8(path.buffer());
+#else
+		fixed_path.parse_utf8(path.buffer());
+#endif
 		bool is_resource = fix_path(fixed_path);
 
 		import_image_resource(fixed_path);
