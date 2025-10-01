@@ -30,6 +30,7 @@
 package spine.animation;
 
 interface ConstraintTimeline {
-	/** The index of the constraint in spine.Skeleton.constraints that will be changed when this timeline is applied. */
+	/** The index of the constraint in spine.Skeleton.constraints that will be changed when this timeline is applied, or
+	 * -1 if a specific constraint will not be changed. */
 	public function getConstraintIndex():Int;
 }
