@@ -399,7 +399,7 @@ namespace Spine.Unity.Editor {
 			List<AtlasAssetBase> newAtlases = new List<AtlasAssetBase>();
 			foreach (string atlasPath in atlasPaths) {
 #if PROBLEMATIC_PACKAGE_ASSET_MODIFICATION
-				if (ap.StartsWith("Packages"))
+				if (atlasPath.StartsWith("Packages"))
 					continue;
 #endif
 				TextAsset atlasText = AssetDatabase.LoadAssetAtPath<TextAsset>(atlasPath);
