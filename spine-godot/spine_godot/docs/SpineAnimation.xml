@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SpineAnimation" inherits="SpineObjectWrapper" version="3.4">
 	<brief_description>
-		Stores a list of timelines to animate a skeleton's pose over time. The timelines can not be modified through GDScript.
+		Stores a list of timelines to animate a skeleton's pose over time.
 	</brief_description>
 	<description>
-		Stores a list of timelines to animate a skeleton's pose over time. The timelines can not be modified through GDScript.
+		Stores a list of timelines to animate a skeleton's pose over time. An animation modifies the skeleton's pose based on time, using timelines to control bone transforms, slot colors, attachment visibility, events, draw order, and more.
 	</description>
 	<tutorials>
 	</tutorials>
