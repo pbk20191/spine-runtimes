@@ -125,91 +125,91 @@
     - Local `Bone` properties moved to `Bone.Pose`:
       ||||
       |-----|-|-----|
-      | `Bone.X`        |→| `Bone.Pose.X` |
-      | `Bone.Y`        |→| `Bone.Pose.Y` |
-      | `Bone.Rotation` |→| `Bone.Pose.Rotation` |
-      | `Bone.ScaleX`   |→| `Bone.Pose.ScaleX` |
-      | `Bone.ScaleY`   |→| `Bone.Pose.ScaleY` |
-      | `Bone.ShearX`   |→| `Bone.Pose.ShearX` |
-      | `Bone.ShearY`   |→| `Bone.Pose.ShearY` |
+      | Bone.X        |→| Bone.Pose.X |
+      | Bone.Y        |→| Bone.Pose.Y |
+      | Bone.Rotation |→| Bone.Pose.Rotation |
+      | Bone.ScaleX   |→| Bone.Pose.ScaleX |
+      | Bone.ScaleY   |→| Bone.Pose.ScaleY |
+      | Bone.ShearX   |→| Bone.Pose.ShearX |
+      | Bone.ShearY   |→| Bone.Pose.ShearY |
     - World and applied `Bone` properties moved to `Bone.AppliedPose`:
       ||||
       |-----|-|-----|
-      | `Bone.AX`             |→| `Bone.AppliedPose.X` |
-      | `Bone.AY`             |→| `Bone.AppliedPose.Y` |
-      | `Bone.ARotation`      |→| `Bone.AppliedPose.Rotation` |
-      | `Bone.AScaleX`        |→| `Bone.AppliedPose.ScaleX` |
-      | `Bone.AScaleY`        |→| `Bone.AppliedPose.ScaleY` |
-      | `Bone.AShearX`        |→| `Bone.AppliedPose.ShearX` |
-      | `Bone.AShearY`        |→| `Bone.AppliedPose.ShearY` |
-      | `Bone.WorldX`         |→| `Bone.AppliedPose.WorldX` |
-      | `Bone.WorldY`         |→| `Bone.AppliedPose.WorldY` |
-      | `Bone.WorldRotationX` |→| `Bone.AppliedPose.WorldRotationX` |
-      | `Bone.WorldRotationY` |→| `Bone.AppliedPose.WorldRotationY` |
+      | Bone.AX             |→| Bone.AppliedPose.X |
+      | Bone.AY             |→| Bone.AppliedPose.Y |
+      | Bone.ARotation      |→| Bone.AppliedPose.Rotation |
+      | Bone.AScaleX        |→| Bone.AppliedPose.ScaleX |
+      | Bone.AScaleY        |→| Bone.AppliedPose.ScaleY |
+      | Bone.AShearX        |→| Bone.AppliedPose.ShearX |
+      | Bone.AShearY        |→| Bone.AppliedPose.ShearY |
+      | Bone.WorldX         |→| Bone.AppliedPose.WorldX |
+      | Bone.WorldY         |→| Bone.AppliedPose.WorldY |
+      | Bone.WorldRotationX |→| Bone.AppliedPose.WorldRotationX |
+      | Bone.WorldRotationY |→| Bone.AppliedPose.WorldRotationY |
   - `Bone` no longer provides a `Bone.Skeleton` property, constructor no longer takes a `skeleton` parameter
   - `Slot` properties moved to `SlotPose`, i.e. `Slot.AppliedPose`:
     ||||
     |-----|-|-----|
-    | `Slot.Attachment`       |→| `Slot.AppliedPose.Attachment` |
-    | `Slot.R` `.G` `.B` `.A` |→| `Slot.AppliedPose.GetColor()` and `Slot.AppliedPose.SetColor()` |
-    | `Slot.R2` `.G2` `.B2`   |→| `Slot.AppliedPose.GetDarkColor()` and `Slot.AppliedPose.SetDarkColor()` |
-    | `Slot.HasSecondColor`   |→| `Slot.AppliedPose.HasSecondColor` |
-    | `Slot.Deform`           |→| `Slot.AppliedPose.Deform` |
-    | `Slot.SequenceIndex`    |→| `Slot.AppliedPose.SequenceIndex` |
+    | Slot.Attachment       |→| Slot.AppliedPose.Attachment |
+    | Slot.R .G .B .A       |→| Slot.AppliedPose.GetColor() and Slot.AppliedPose.SetColor() |
+    | Slot.R2 .G2 .B2       |→| Slot.AppliedPose.GetDarkColor() and Slot.AppliedPose.SetDarkColor() |
+    | Slot.HasSecondColor   |→| Slot.AppliedPose.HasSecondColor |
+    | Slot.Deform           |→| Slot.AppliedPose.Deform |
+    | Slot.SequenceIndex    |→| Slot.AppliedPose.SequenceIndex |
   - `Constraint` properties moved to `Constraint.Pose`:
       ||||
       |-----|-|-----|
-      | `IkConstraint.Mix`            |→| `IkConstraint.Pose.Mix` |
-      | `IkConstraint.Softness`       |→| `IkConstraint.Pose.Softness` |
-      | `IkConstraint.BendDirection`  |→| `IkConstraint.Pose.BendDirection` |
-      | `IkConstraint.Compress`       |→| `IkConstraint.Pose.Compress` |
-      | `IkConstraint.Stretch`        |→| `IkConstraint.Pose.Stretch` |
+      | IkConstraint.Mix            |→| IkConstraint.Pose.Mix |
+      | IkConstraint.Softness       |→| IkConstraint.Pose.Softness |
+      | IkConstraint.BendDirection  |→| IkConstraint.Pose.BendDirection |
+      | IkConstraint.Compress       |→| IkConstraint.Pose.Compress |
+      | IkConstraint.Stretch        |→| IkConstraint.Pose.Stretch |
 
       ||||
       |-----|-|-----|
-      | `TransformConstraint.MixRotate` |→| `TransformConstraint.Pose.MixRotate` |
-      | `TransformConstraint.MixX`      |→| `TransformConstraint.Pose.MixX` |
-      | `TransformConstraint.MixY`      |→| `TransformConstraint.Pose.MixY` |
-      | `TransformConstraint.MixScaleX` |→| `TransformConstraint.Pose.MixScaleX` |
-      | `TransformConstraint.MixScaleY` |→| `TransformConstraint.Pose.MixScaleY` |
-      | `TransformConstraint.MixShearY` |→| `TransformConstraint.Pose.MixShearY` |
+      | TransformConstraint.MixRotate |→| TransformConstraint.Pose.MixRotate |
+      | TransformConstraint.MixX      |→| TransformConstraint.Pose.MixX |
+      | TransformConstraint.MixY      |→| TransformConstraint.Pose.MixY |
+      | TransformConstraint.MixScaleX |→| TransformConstraint.Pose.MixScaleX |
+      | TransformConstraint.MixScaleY |→| TransformConstraint.Pose.MixScaleY |
+      | TransformConstraint.MixShearY |→| TransformConstraint.Pose.MixShearY |
 
       ||||
       |-----|-|-----|
-      | `PathConstraint.Position`   |→| `PathConstraint.Pose.Position` |
-      | `PathConstraint.Spacing`    |→| `PathConstraint.Pose.Spacing` |
-      | `PathConstraint.MixRotate`  |→| `PathConstraint.Pose.MixRotate` |
-      | `PathConstraint.MixX`       |→| `PathConstraint.Pose.MixX` |
-      | `PathConstraint.MixY`       |→| `PathConstraint.Pose.MixY` |
+      | PathConstraint.Position   |→| PathConstraint.Pose.Position |
+      | PathConstraint.Spacing    |→| PathConstraint.Pose.Spacing |
+      | PathConstraint.MixRotate  |→| PathConstraint.Pose.MixRotate |
+      | PathConstraint.MixX       |→| PathConstraint.Pose.MixX |
+      | PathConstraint.MixY       |→| PathConstraint.Pose.MixY |
 
       ||||
       |-----|-|-----|
-      | `PhysicsConstraint.Mix`         |→| `PhysicsConstraint.Pose.Mix` |
-      | `PhysicsConstraint.Gravity`     |→| `PhysicsConstraint.Pose.Gravity` |
-      | `PhysicsConstraint.Strength`    |→| `PhysicsConstraint.Pose.Strength` |
-      | `PhysicsConstraint.Damping`     |→| `PhysicsConstraint.Pose.Damping` |
-      | `PhysicsConstraint.MassInverse` |→| `PhysicsConstraint.Pose.MassInverse` |
-      | `PhysicsConstraint.Wind`        |→| `PhysicsConstraint.Pose.Wind` |
+      | PhysicsConstraint.Mix         |→| PhysicsConstraint.Pose.Mix |
+      | PhysicsConstraint.Gravity     |→| PhysicsConstraint.Pose.Gravity |
+      | PhysicsConstraint.Strength    |→| PhysicsConstraint.Pose.Strength |
+      | PhysicsConstraint.Damping     |→| PhysicsConstraint.Pose.Damping |
+      | PhysicsConstraint.MassInverse |→| PhysicsConstraint.Pose.MassInverse |
+      | PhysicsConstraint.Wind        |→| PhysicsConstraint.Pose.Wind |
   - `ConstraintData` properties moved to `ConstraintData.GetSetupPose()`
     - `IkConstraintData.Mix` → `IkConstraintData.GetSetupPose().Mix`
   - `SkeletonData` now provides a single `IConstraintData` list `SkeletonData.Constraints` instead of separate lists per constraint type
     - List by type:
       ||||
       |-----|-|-----|
-      | `SkeletonData.IkConstraints`        |→| `SkeletonData.Constraints.OfType<IkConstraintData>()` |
-      | `SkeletonData.TransformConstraints` |→| `SkeletonData.Constraints.OfType<TransformConstraintData>()` |
-      | `SkeletonData.PathConstraints`      |→| `SkeletonData.Constraints.OfType<PathConstraintData>()` |
-      | `SkeletonData.PhysicsConstraints`   |→| `SkeletonData.Constraints.OfType<PhysicsConstraintData>()` |
+      | SkeletonData.IkConstraints        |→| SkeletonData.Constraints.OfType<IkConstraintData>() |
+      | SkeletonData.TransformConstraints |→| SkeletonData.Constraints.OfType<TransformConstraintData>() |
+      | SkeletonData.PathConstraints      |→| SkeletonData.Constraints.OfType<PathConstraintData>() |
+      | SkeletonData.PhysicsConstraints   |→| SkeletonData.Constraints.OfType<PhysicsConstraintData>() |
     - Access by type and name: `SkeletonData.FindIkConstraint()` → `SkeletonData.FindConstraint<IkConstraint>()`
   - Renamed setup pose methods:
     ||||
     |-----|-|-----|
-    | `Skeleton.SetToSetupPose()`       |→| `Skeleton.SetupPose()` |
-    | `Skeleton.SetBonesToSetupPose()`  |→| `Skeleton.SetupPoseBones()` |
-    | `Skeleton.SetSlotsToSetupPose()`  |→| `Skeleton.SetupPoseSlots()` |
-    | `Bone.SetToSetupPose()`           |→| `Bone.SetupPose()` |
-    | `Slot.SetToSetupPose()`           |→| `Slot.SetupPose()` |
-    | `IkConstraint.SetToSetupPose()`   |→| `IkConstraint.SetupPose()` |
+    | Skeleton.SetToSetupPose()       |→| Skeleton.SetupPose() |
+    | Skeleton.SetBonesToSetupPose()  |→| Skeleton.SetupPoseBones() |
+    | Skeleton.SetSlotsToSetupPose()  |→| Skeleton.SetupPoseSlots() |
+    | Bone.SetToSetupPose()           |→| Bone.SetupPose() |
+    | Slot.SetToSetupPose()           |→| Slot.SetupPose() |
+    | IkConstraint.SetToSetupPose()   |→| IkConstraint.SetupPose() |
   - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace
     - `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
   - Timeline `Apply()` methods now take an additional `appliedPose` parameter
