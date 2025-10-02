@@ -304,18 +304,143 @@
   - Added `Pose`, `Posed`, and `PosedActive` base classes for unified pose management
   - Added `ConstraintTimeline` interface for unified constraint timeline indexing
   - Added `Animation.getBones()` to get bone indices used by an animation
+  - Added `Skeleton` methods `getGravityX()`, `getGravityY()`, `getWindX()`, `getWindY()` to allow rotating physics force directions
   - Added `SequenceTimeline` for sequence animation
 
 - **Breaking changes**
-  - Timeline `apply()` methods now take an additional `appliedPose` parameter
   - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
-  - Reorganized timeline class hierarchy with `BoneTimeline1`, `BoneTimeline2`, and `SlotCurveTimeline` base classes
-  - Renamed timeline constraint index methods to use unified `getConstraintIndex()`
-  - `Bone` constructor no longer takes `Skeleton` parameter
+  - `Bone` local transform methods moved to `bone.getPose()`:
+    ||||
+    |---------------|-|-------------|
+    | bone.getX()             |→| bone.getPose().getX() |
+    | bone.getY()             |→| bone.getPose().getY() |
+    | bone.getRotation()      |→| bone.getPose().getRotation() |
+    | bone.getScaleX()        |→| bone.getPose().getScaleX() |
+    | bone.getScaleY()        |→| bone.getPose().getScaleY() |
+    | bone.getShearX()        |→| bone.getPose().getShearX() |
+    | bone.getShearY()        |→| bone.getPose().getShearY() |
+    | bone.setX(value)        |→| bone.getPose().setX(value) |
+    | bone.setY(value)        |→| bone.getPose().setY(value) |
+    | bone.setRotation(value) |→| bone.getPose().setRotation(value) |
+    | bone.setScaleX(value)   |→| bone.getPose().setScaleX(value) |
+    | bone.setScaleY(value)   |→| bone.getPose().setScaleY(value) |
+    | bone.setShearX(value)   |→| bone.getPose().setShearX(value) |
+    | bone.setShearY(value)   |→| bone.getPose().setShearY(value) |
+  - `Bone` world and applied transform methods moved to `bone.getAppliedPose()`:
+    ||||
+    |---------------------|-|--------------------|
+    | bone.getAX()             |→| bone.getAppliedPose().getX() |
+    | bone.getAY()             |→| bone.getAppliedPose().getY() |
+    | bone.getARotation()      |→| bone.getAppliedPose().getRotation() |
+    | bone.getAScaleX()        |→| bone.getAppliedPose().getScaleX() |
+    | bone.getAScaleY()        |→| bone.getAppliedPose().getScaleY() |
+    | bone.getAShearX()        |→| bone.getAppliedPose().getShearX() |
+    | bone.getAShearY()        |→| bone.getAppliedPose().getShearY() |
+    | bone.getWorldX()         |→| bone.getAppliedPose().getWorldX() |
+    | bone.getWorldY()         |→| bone.getAppliedPose().getWorldY() |
+    | bone.getWorldRotationX() |→| bone.getAppliedPose().getWorldRotationX() |
+    | bone.getWorldRotationY() |→| bone.getAppliedPose().getWorldRotationY() |
+  - `Bone` no longer provides a `getSkeleton()` method, constructor no longer takes a `skeleton` parameter
+  - `Slot` methods moved to `slot.getAppliedPose()`:
+    ||||
+    |-----------------------|-|-----------------------------|
+    | slot.getAttachment()          |→| slot.getAppliedPose().getAttachment() |
+    | slot.setAttachment(value)     |→| slot.getAppliedPose().setAttachment(value) |
+    | slot.getDeform()              |→| slot.getAppliedPose().getDeform() |
+    | slot.setDeform(value)         |→| slot.getAppliedPose().setDeform(value) |
+    | slot.getSequenceIndex()       |→| slot.getAppliedPose().getSequenceIndex() |
+    | slot.setSequenceIndex(value)  |→| slot.getAppliedPose().setSequenceIndex(value) |
+  - `Constraint` methods moved to `constraint.getPose()`:
+    ||||
+    |-----------------------------|-|-----------------------|
+    | ikConstraint.getMix()                 |→| ikConstraint.getPose().getMix() |
+    | ikConstraint.setMix(value)            |→| ikConstraint.getPose().setMix(value) |
+    | ikConstraint.getSoftness()            |→| ikConstraint.getPose().getSoftness() |
+    | ikConstraint.setSoftness(value)       |→| ikConstraint.getPose().setSoftness(value) |
+    | ikConstraint.getBendDirection()       |→| ikConstraint.getPose().getBendDirection() |
+    | ikConstraint.setBendDirection(value)  |→| ikConstraint.getPose().setBendDirection(value) |
+    | ikConstraint.getCompress()            |→| ikConstraint.getPose().getCompress() |
+    | ikConstraint.setCompress(value)       |→| ikConstraint.getPose().setCompress(value) |
+    | ikConstraint.getStretch()             |→| ikConstraint.getPose().getStretch() |
+    | ikConstraint.setStretch(value)        |→| ikConstraint.getPose().setStretch(value) |
+
+    ||||
+    |------------------------------------------|-|--------------------------------------------------|
+    | transformConstraint.getMixRotate()      |→| transformConstraint.getPose().getMixRotate()    |
+    | transformConstraint.setMixRotate(value) |→| transformConstraint.getPose().setMixRotate(value) |
+    | transformConstraint.getMixX()           |→| transformConstraint.getPose().getMixX()         |
+    | transformConstraint.setMixX(value)      |→| transformConstraint.getPose().setMixX(value)    |
+    | transformConstraint.getMixY()           |→| transformConstraint.getPose().getMixY()         |
+    | transformConstraint.setMixY(value)      |→| transformConstraint.getPose().setMixY(value)    |
+    | transformConstraint.getMixScaleX()      |→| transformConstraint.getPose().getMixScaleX()    |
+    | transformConstraint.setMixScaleX(value) |→| transformConstraint.getPose().setMixScaleX(value) |
+    | transformConstraint.getMixScaleY()      |→| transformConstraint.getPose().getMixScaleY()    |
+    | transformConstraint.setMixScaleY(value) |→| transformConstraint.getPose().setMixScaleY(value) |
+    | transformConstraint.getMixShearY()      |→| transformConstraint.getPose().getMixShearY()    |
+    | transformConstraint.setMixShearY(value) |→| transformConstraint.getPose().setMixShearY(value) |
+
+    ||||
+    |-------------------------------------|-|-----------------------------------------------|
+    | pathConstraint.getPosition()       |→| pathConstraint.getPose().getPosition()       |
+    | pathConstraint.setPosition(value)  |→| pathConstraint.getPose().setPosition(value)  |
+    | pathConstraint.getSpacing()        |→| pathConstraint.getPose().getSpacing()        |
+    | pathConstraint.setSpacing(value)   |→| pathConstraint.getPose().setSpacing(value)   |
+    | pathConstraint.getMixRotate()      |→| pathConstraint.getPose().getMixRotate()      |
+    | pathConstraint.setMixRotate(value) |→| pathConstraint.getPose().setMixRotate(value) |
+    | pathConstraint.getMixX()           |→| pathConstraint.getPose().getMixX()           |
+    | pathConstraint.setMixX(value)      |→| pathConstraint.getPose().setMixX(value)      |
+    | pathConstraint.getMixY()           |→| pathConstraint.getPose().getMixY()           |
+    | pathConstraint.setMixY(value)      |→| pathConstraint.getPose().setMixY(value)      |
+
+    ||||
+    |------------------------------------------|-|---------------------------------------------------|
+    | physicsConstraint.getMix()              |→| physicsConstraint.getPose().getMix()             |
+    | physicsConstraint.setMix(value)         |→| physicsConstraint.getPose().setMix(value)        |
+    | physicsConstraint.getGravity()          |→| physicsConstraint.getPose().getGravity()         |
+    | physicsConstraint.setGravity(value)     |→| physicsConstraint.getPose().setGravity(value)    |
+    | physicsConstraint.getStrength()         |→| physicsConstraint.getPose().getStrength()        |
+    | physicsConstraint.setStrength(value)    |→| physicsConstraint.getPose().setStrength(value)   |
+    | physicsConstraint.getDamping()          |→| physicsConstraint.getPose().getDamping()         |
+    | physicsConstraint.setDamping(value)     |→| physicsConstraint.getPose().setDamping(value)    |
+    | physicsConstraint.getMassInverse()      |→| physicsConstraint.getPose().getMassInverse()     |
+    | physicsConstraint.setMassInverse(value) |→| physicsConstraint.getPose().setMassInverse(value) |
+    | physicsConstraint.getWind()             |→| physicsConstraint.getPose().getWind()            |
+    | physicsConstraint.setWind(value)        |→| physicsConstraint.getPose().setWind(value)       |
+  - `ConstraintData` methods moved to `constraintData.getSetupPose()`:
+    ||||
+    |-----|-|-----|
+    | ikConstraintData.getMix() |→| ikConstraintData.getSetupPose().getMix() |
+    | ...| |...|
+
+  - `SkeletonData` now provides a single `ConstraintData` list `getConstraints()` instead of separate lists per constraint type
+    ||||
+    |-----|-|-----|
+    | SkeletonData.getIkConstraints()        |→| Filter SkeletonData.getConstraints() for IkConstraintData instances |
+    | SkeletonData.getTransformConstraints() |→| Filter SkeletonData.getConstraints() for TransformConstraintData instances |
+    | SkeletonData.getPathConstraints()      |→| Filter SkeletonData.getConstraints() for PathConstraintData instances |
+    | SkeletonData.getPhysicsConstraints()   |→| Filter SkeletonData.getConstraints() for PhysicsConstraintData instances |
+  - `SkeletonData` now provides unified `findConstraint()` method with Class parameter:
+    ||||
+    |-----|-|-----|
+    | SkeletonData.findIkConstraint(name)        |→| SkeletonData.findConstraint(name, IkConstraintData.class) |
+    | SkeletonData.findTransformConstraint(name) |→| SkeletonData.findConstraint(name, TransformConstraintData.class) |
+    | SkeletonData.findPathConstraint(name)      |→| SkeletonData.findConstraint(name, PathConstraintData.class) |
+    | SkeletonData.findPhysicsConstraint(name)   |→| SkeletonData.findConstraint(name, PhysicsConstraintData.class) |
   - Renamed setup pose methods:
-    - `Skeleton.setToSetupPose()` → `Skeleton.setupPose()`
-    - `Skeleton.setBonesToSetupPose()` → `Skeleton.setupPoseBones()`
-    - `Skeleton.setSlotsToSetupPose()` → `Skeleton.setupPoseSlots()`
+    ||||
+    |-----|-|-----|
+    | `Skeleton.setToSetupPose()`      |→| `Skeleton.setupPose()` |
+    | `Skeleton.setBonesToSetupPose()` |→| `Skeleton.setupPoseBones()` |
+    | `Skeleton.setSlotsToSetupPose()` |→| `Skeleton.setupPoseSlots()` |
+    | Bone.setToSetupPose()            |→| Bone.setupPose() |
+    | Slot.setToSetupPose()            |→| Slot.setupPose() |
+    | IkConstraint.setToSetupPose()    |→| IkConstraint.setupPose() |
+  - `Physics` enum moved from nested `Skeleton.Physics` to standalone class `Physics`
+    - `updateWorldTransform(Skeleton.Physics.update)` → `updateWorldTransform(Physics.update)`
+  - Timeline `apply()` methods now take an additional `appliedPose` parameter
+  - Attachment `computeWorldVertices()` methods now take an additional `skeleton` parameter
+  - Renamed timeline constraint index methods to use unified `getConstraintIndex()`
+  - Reorganized timeline class hierarchy with `BoneTimeline1`, `BoneTimeline2`, and `SlotCurveTimeline` base classes
 
 ### libGDX
 
