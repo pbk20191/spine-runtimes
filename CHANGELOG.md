@@ -114,42 +114,108 @@
   - Added `IPose`, `Posed`, and `PosedActive` base classes for unified pose management
   - Added `IConstraintTimeline` interface for unified constraint timeline indexing
   - Added `Animation.Bones` property to get bone indices used by an animation
+  - Added `Skeleton` properties `GravityX`, `GravityY`, `WindX`, `WindY` to allow rotating physics force directions
+  - Added `Color32F` class used in new `.GetColor()` and `.SetColor()` methods replacing `.R` `.G` `.B` `.A` properties
 
 - **Breaking changes**
   - Color properties `.R` `.G` `.B` `.A` are replaced by `.GetColor()` and `.SetColor()`
-  - Dark color properties `.R2` `.G2` `.B2` are replaced by `.GetDarkColor()` and `.SetDarkColor()`.
-  - Timeline `Apply()` methods now take an additional `appliedPose` parameter
-  - Attachment `ComputeWorldVertices()` methods now take an additional `skeleton` parameter
+  - Dark color properties `.R2` `.G2` `.B2` are replaced by `.GetDarkColor()` and `.SetDarkColor()`
   - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
-  - `Bone` properties are moved to poses:
+  - `Bone` properties moved to poses:
     - Local `Bone` properties moved to `Bone.Pose`:
-      - `Bone.Rotation` → `Bone.Pose.Rotation`
-      - `Bone.X` → `Bone.Pose.X`
-      - `Bone.ScaleX` → `Bone.Pose.ScaleX`
-    - World and applied properties moved to `Bone.AppliedPose`:
-      - `Bone.WorldRotationX` → `Bone.AppliedPose.WorldRotationX`
-      - `Bone.AppliedRotation` → `Bone.AppliedPose.Rotation`
-      - `Bone.AX` → `Bone.AppliedPose.X`
-      - `Bone.AScaleX` → `Bone.AppliedPose.ScaleX`
-  - `Slot` properties moved to `SlotPose`, i.e. `slot.AppliedPose`:
-    - `slot.Attachment` → `slot.AppliedPose.Attachment`
-    - `slot.R` `.G` `.B` `.A` → `slot.AppliedPose.GetColor()` and `slot.AppliedPose.SetColor()`
-    - `slot.R2` `.G2` `.B2` → `slot.AppliedPose.GetDarkColor()` and `slot.AppliedPose.SetDarkColor()`
-  - `Constraint` properties moved to `Constraint.Pose`
-    - `ikConstraint.Mix` → `ikConstraint.Pose.Mix`
+      ||||
+      |-----|-|-----|
+      | `Bone.X`        |→| `Bone.Pose.X` |
+      | `Bone.Y`        |→| `Bone.Pose.Y` |
+      | `Bone.Rotation` |→| `Bone.Pose.Rotation` |
+      | `Bone.ScaleX`   |→| `Bone.Pose.ScaleX` |
+      | `Bone.ScaleY`   |→| `Bone.Pose.ScaleY` |
+      | `Bone.ShearX`   |→| `Bone.Pose.ShearX` |
+      | `Bone.ShearY`   |→| `Bone.Pose.ShearY` |
+    - World and applied `Bone` properties moved to `Bone.AppliedPose`:
+      ||||
+      |-----|-|-----|
+      | `Bone.AX`             |→| `Bone.AppliedPose.X` |
+      | `Bone.AY`             |→| `Bone.AppliedPose.Y` |
+      | `Bone.ARotation`      |→| `Bone.AppliedPose.Rotation` |
+      | `Bone.AScaleX`        |→| `Bone.AppliedPose.ScaleX` |
+      | `Bone.AScaleY`        |→| `Bone.AppliedPose.ScaleY` |
+      | `Bone.AShearX`        |→| `Bone.AppliedPose.ShearX` |
+      | `Bone.AShearY`        |→| `Bone.AppliedPose.ShearY` |
+      | `Bone.WorldX`         |→| `Bone.AppliedPose.WorldX` |
+      | `Bone.WorldY`         |→| `Bone.AppliedPose.WorldY` |
+      | `Bone.WorldRotationX` |→| `Bone.AppliedPose.WorldRotationX` |
+      | `Bone.WorldRotationY` |→| `Bone.AppliedPose.WorldRotationY` |
+  - `Bone` no longer provides a `Bone.Skeleton` property, constructor no longer takes a `skeleton` parameter
+  - `Slot` properties moved to `SlotPose`, i.e. `Slot.AppliedPose`:
+    ||||
+    |-----|-|-----|
+    | `Slot.Attachment`       |→| `Slot.AppliedPose.Attachment` |
+    | `Slot.R` `.G` `.B` `.A` |→| `Slot.AppliedPose.GetColor()` and `Slot.AppliedPose.SetColor()` |
+    | `Slot.R2` `.G2` `.B2`   |→| `Slot.AppliedPose.GetDarkColor()` and `Slot.AppliedPose.SetDarkColor()` |
+    | `Slot.HasSecondColor`   |→| `Slot.AppliedPose.HasSecondColor` |
+    | `Slot.Deform`           |→| `Slot.AppliedPose.Deform` |
+    | `Slot.SequenceIndex`    |→| `Slot.AppliedPose.SequenceIndex` |
+  - `Constraint` properties moved to `Constraint.Pose`:
+      ||||
+      |-----|-|-----|
+      | `IkConstraint.Mix`            |→| `IkConstraint.Pose.Mix` |
+      | `IkConstraint.Softness`       |→| `IkConstraint.Pose.Softness` |
+      | `IkConstraint.BendDirection`  |→| `IkConstraint.Pose.BendDirection` |
+      | `IkConstraint.Compress`       |→| `IkConstraint.Pose.Compress` |
+      | `IkConstraint.Stretch`        |→| `IkConstraint.Pose.Stretch` |
+
+      ||||
+      |-----|-|-----|
+      | `TransformConstraint.MixRotate` |→| `TransformConstraint.Pose.MixRotate` |
+      | `TransformConstraint.MixX`      |→| `TransformConstraint.Pose.MixX` |
+      | `TransformConstraint.MixY`      |→| `TransformConstraint.Pose.MixY` |
+      | `TransformConstraint.MixScaleX` |→| `TransformConstraint.Pose.MixScaleX` |
+      | `TransformConstraint.MixScaleY` |→| `TransformConstraint.Pose.MixScaleY` |
+      | `TransformConstraint.MixShearY` |→| `TransformConstraint.Pose.MixShearY` |
+
+      ||||
+      |-----|-|-----|
+      | `PathConstraint.Position`   |→| `PathConstraint.Pose.Position` |
+      | `PathConstraint.Spacing`    |→| `PathConstraint.Pose.Spacing` |
+      | `PathConstraint.MixRotate`  |→| `PathConstraint.Pose.MixRotate` |
+      | `PathConstraint.MixX`       |→| `PathConstraint.Pose.MixX` |
+      | `PathConstraint.MixY`       |→| `PathConstraint.Pose.MixY` |
+
+      ||||
+      |-----|-|-----|
+      | `PhysicsConstraint.Mix`         |→| `PhysicsConstraint.Pose.Mix` |
+      | `PhysicsConstraint.Gravity`     |→| `PhysicsConstraint.Pose.Gravity` |
+      | `PhysicsConstraint.Strength`    |→| `PhysicsConstraint.Pose.Strength` |
+      | `PhysicsConstraint.Damping`     |→| `PhysicsConstraint.Pose.Damping` |
+      | `PhysicsConstraint.MassInverse` |→| `PhysicsConstraint.Pose.MassInverse` |
+      | `PhysicsConstraint.Wind`        |→| `PhysicsConstraint.Pose.Wind` |
   - `ConstraintData` properties moved to `ConstraintData.GetSetupPose()`
-    - `ikConstraintData.Mix` → `ikConstraintData.GetSetupPose().Mix`
-  - `SkeletonData` Constraints now provide a unified list of `IConstraintData` via `SkeletonData.Constraints` instead of named properties for each type
-    - List by type: `skeletonData.ikConstraints` → `skeletonData.Constraints.OfType<IkConstraintData>()`
-    - Access by type and name: `skeletonData.FindIkConstraint()` → `skeletonData.FindConstraint<T>()`.
-  - Renamed timeline constraint index methods to use unified `ConstraintIndex` property
-  - Reorganized timeline class hierarchy with new base classes
+    - `IkConstraintData.Mix` → `IkConstraintData.GetSetupPose().Mix`
+  - `SkeletonData` now provides a single `IConstraintData` list `SkeletonData.Constraints` instead of separate lists per constraint type
+    - List by type:
+      ||||
+      |-----|-|-----|
+      | `SkeletonData.IkConstraints`        |→| `SkeletonData.Constraints.OfType<IkConstraintData>()` |
+      | `SkeletonData.TransformConstraints` |→| `SkeletonData.Constraints.OfType<TransformConstraintData>()` |
+      | `SkeletonData.PathConstraints`      |→| `SkeletonData.Constraints.OfType<PathConstraintData>()` |
+      | `SkeletonData.PhysicsConstraints`   |→| `SkeletonData.Constraints.OfType<PhysicsConstraintData>()` |
+    - Access by type and name: `SkeletonData.FindIkConstraint()` → `SkeletonData.FindConstraint<IkConstraint>()`
   - Renamed setup pose methods:
-    - `Skeleton.SetToSetupPose()` → `Skeleton.SetupPose()`
-    - `Skeleton.SetBonesToSetupPose()` → `Skeleton.SetupPoseBones()`
-    - `Skeleton.SetSlotsToSetupPose()` → `Skeleton.SetupPoseSlots()`
+    ||||
+    |-----|-|-----|
+    | `Skeleton.SetToSetupPose()`       |→| `Skeleton.SetupPose()` |
+    | `Skeleton.SetBonesToSetupPose()`  |→| `Skeleton.SetupPoseBones()` |
+    | `Skeleton.SetSlotsToSetupPose()`  |→| `Skeleton.SetupPoseSlots()` |
+    | `Bone.SetToSetupPose()`           |→| `Bone.SetupPose()` |
+    | `Slot.SetToSetupPose()`           |→| `Slot.SetupPose()` |
+    | `IkConstraint.SetToSetupPose()`   |→| `IkConstraint.SetupPose()` |
   - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace
     - `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
+  - Timeline `Apply()` methods now take an additional `appliedPose` parameter
+  - Attachment `ComputeWorldVertices()` methods now take an additional `skeleton` parameter
+  - Renamed timeline constraint index methods to use unified `ConstraintIndex` property
+  - Reorganized timeline class hierarchy with new base classes
   
 ### Unity
 
@@ -160,8 +226,8 @@
   - Added a workflow mismatch dialog showing whenever problematic PMA vs. straight alpha settings are detected at a newly imported `.atlas.txt` file. Invalid settings include the atlas being PMA and project using Linear color space, and a mismatch of Auto-Import presets set to straight alpha compared to the atlas being PMA and vice versa. The dialog offers an option to automatically fix the problematic setting on the import side and links website documentation for export settings. This dialog can be disabled and re-enabled via Spine preferences.
 
 - **Breaking changes**
-  - Example skeletons in Spine Examples are now using straight alpha textures and materials for better compatibility with Linear colorspace.
   - Updated to use new C# runtime with all breaking changes above
+  - Example skeletons in Spine Examples are now using straight alpha textures and materials for better compatibility with Linear colorspace.
   - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace, thus might clash with `UnityEngine.Physics`.
     - Spine Physics: `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
     - UnityEngine Physics: `Physics.gravity` → `UnityEngine.Physics.gravity`.
