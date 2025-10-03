@@ -27,52 +27,45 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-package starlingExamples;
+package spine.boundsprovider;
 
-import starlingExamples.Scene.SceneManager;
-import openfl.utils.Assets;
-import spine.SkeletonData;
-import spine.Physics;
-import spine.animation.AnimationStateData;
-import spine.atlas.TextureAtlas;
-import spine.starling.SkeletonSprite;
-import spine.starling.StarlingTextureLoader;
-import starling.core.Starling;
-import starling.events.TouchEvent;
-import starling.events.TouchPhase;
+import spine.animation.AnimationState;
+import spine.boundsprovider.BoundsProvider.BoundsGameObject;
+import spine.boundsprovider.BoundsProvider.BoundsRectangle;
 
-class CloudPotExample extends Scene {
-	var loadBinary = false;
+/** A bounds provider that calculates the bounding box from the setup pose. */
+class SetupPoseBoundsProvider extends BoundsProvider {
+	private var clipping:Bool;
 
-	public function load():Void {
-		background.color = 0x333333;
-
-		var atlas = new TextureAtlas(Assets.getText("assets/cloud-pot.atlas"), new StarlingTextureLoader("assets/cloud-pot.atlas"));
-		var skeletondata = SkeletonData.from(Assets.getText("assets/cloud-pot.json"), atlas);
-
-		var animationStateData = new AnimationStateData(skeletondata);
-		animationStateData.defaultMix = 0.25;
-
-		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
-		skeletonSprite.skeleton.updateWorldTransform(Physics.update);
-		var bounds = skeletonSprite.skeleton.getBounds();
-
-		skeletonSprite.scale = 0.2;
-		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
-		skeletonSprite.y = Starling.current.stage.stageHeight / 2;
-
-		skeletonSprite.state.setAnimationByName(0, "playing-in-the-rain", true);
-
-		addChild(skeletonSprite);
-		juggler.add(skeletonSprite);
-
-		addEventListener(TouchEvent.TOUCH, onTouch);
+	/**
+	 * @param clipping If true, clipping attachments are used to compute the bounds. False, by default.
+	 */
+	public function new(clipping = false) {
+		this.clipping = clipping;
 	}
 
-	public function onTouch(e:TouchEvent) {
-		var touch = e.getTouch(this);
-		if (touch != null && touch.phase == TouchPhase.ENDED) {
-			SceneManager.getInstance().switchScene(new BoundsProviderExample());
+	public function calculateBounds(gameObject:BoundsGameObject, out:BoundsRectangle):BoundsRectangle {
+		var skeleton = gameObject.skeleton;
+		if (skeleton == null) {
+			zeroRectangle(out);
+			return out;
 		}
+
+		// Make a copy of  skeleton as this might be called while
+		// the skeleton in the GameObject has already been heavily modified. We can not
+		// reconstruct that state.
+		var skeleton = new Skeleton(skeleton.data);
+		skeleton.setupPose();
+		skeleton.updateWorldTransform(Physics.update);
+		var newBounds = skeleton.getBounds(clipping ? new SkeletonClipping() : null);
+		if (newBounds.width == Math.NEGATIVE_INFINITY) {
+			zeroRectangle(out);
+			return out;
+		}
+		out.x = newBounds.x;
+		out.y = newBounds.y;
+		out.width = newBounds.width;
+		out.height = newBounds.height;
+		return out;
 	}
 }

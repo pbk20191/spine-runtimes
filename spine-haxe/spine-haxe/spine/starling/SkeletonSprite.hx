@@ -29,7 +29,8 @@
 
 package spine.starling;
 
-import spine.animation.Animation;
+import spine.boundsprovider.BoundsProvider;
+import spine.boundsprovider.SetupPoseBoundsProvider;
 import starling.animation.IAnimatable;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -42,8 +43,6 @@ import spine.SkeletonData;
 import spine.Slot;
 import spine.animation.AnimationState;
 import spine.animation.AnimationStateData;
-import spine.animation.MixBlend;
-import spine.animation.MixDirection;
 import spine.attachments.ClippingAttachment;
 import spine.attachments.MeshAttachment;
 import spine.attachments.RegionAttachment;
@@ -55,7 +54,6 @@ import starling.rendering.VertexData;
 import starling.textures.Texture;
 import starling.utils.Color;
 import starling.utils.MatrixUtil;
-import starling.utils.Max;
 
 /** A starling display object that draws a skeleton. */
 class SkeletonSprite extends DisplayObject implements IAnimatable {
@@ -64,9 +62,13 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 	static private var _tempVertices:Array<Float> = new Array<Float>();
 	static private var blendModes:Array<String> = [BlendMode.NORMAL, BlendMode.ADD, BlendMode.MULTIPLY, BlendMode.SCREEN];
 
-	private var _skeleton:Skeleton;
+	public var skeleton(default, null):Skeleton;
+	public var state(default, null):AnimationState;
 
-	public var _state:AnimationState;
+	public var boundsProvider:BoundsProvider;
+
+	private var __bounds = new OpenFlRectangle();
+	private var _boundsPoint = [.0, .0];
 
 	private var _smoothing:String = "bilinear";
 
@@ -80,12 +82,14 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 	public var afterUpdateWorldTransforms:SkeletonSprite->Void = function(_) {};
 
 	/** Creates an uninitialized SkeletonSprite. The skeleton and animation state must be set before use. */
-	public function new(skeletonData:SkeletonData, animationStateData:AnimationStateData = null) {
+	public function new(skeletonData:SkeletonData, animationStateData:AnimationStateData = null, ?boundsProvider:BoundsProvider) {
 		super();
 		Bone.yDown = true;
-		_skeleton = new Skeleton(skeletonData);
-		_skeleton.updateWorldTransform(Physics.update);
-		_state = new AnimationState(animationStateData != null ? animationStateData : new AnimationStateData(skeletonData));
+		skeleton = new Skeleton(skeletonData);
+		skeleton.updateWorldTransform(Physics.update);
+		state = new AnimationState(animationStateData != null ? animationStateData : new AnimationStateData(skeletonData));
+		this.boundsProvider = boundsProvider ?? new SetupPoseBoundsProvider();
+		this.calculateBounds();
 	}
 
 	override public function render(painter:Painter):Void {
@@ -238,137 +242,37 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 	}
 
 	override public function hitTest(localPoint:Point):DisplayObject {
-		if (!this.visible || !this.touchable)
+		if (!visible || !touchable)
 			return null;
-
-		var minX:Float = Max.MAX_VALUE;
-		var minY:Float = Max.MAX_VALUE;
-		var maxX:Float = -Max.MAX_VALUE;
-		var maxY:Float = -Max.MAX_VALUE;
-		var slots:Array<Slot> = skeleton.slots;
-		var worldVertices:Array<Float> = _tempVertices;
-		var empty:Bool = true;
-		for (i in 0...slots.length) {
-			var slot:Slot = slots[i];
-			var pose = slot.applied;
-			var attachment = pose.attachment;
-			if (attachment == null)
-				continue;
-			var verticesLength:Int;
-			if (Std.isOfType(attachment, RegionAttachment)) {
-				var region:RegionAttachment = cast(attachment, RegionAttachment);
-				verticesLength = 8;
-				region.computeWorldVertices(slot, worldVertices, 0, 2);
-			} else if (Std.isOfType(attachment, MeshAttachment)) {
-				var mesh:MeshAttachment = cast(attachment, MeshAttachment);
-				verticesLength = mesh.worldVerticesLength;
-				if (worldVertices.length < verticesLength)
-					worldVertices.resize(verticesLength);
-				mesh.computeWorldVertices(skeleton, slot, 0, verticesLength, worldVertices, 0, 2);
-			} else {
-				continue;
-			}
-
-			if (verticesLength != 0) {
-				empty = false;
-			}
-
-			var ii:Int = 0;
-			while (ii < verticesLength) {
-				var x:Float = worldVertices[ii],
-					y:Float = worldVertices[ii + 1];
-				minX = minX < x ? minX : x;
-				minY = minY < y ? minY : y;
-				maxX = maxX > x ? maxX : x;
-				maxY = maxY > y ? maxY : y;
-				ii += 2;
-			}
-		}
-
-		if (empty) {
-			return null;
-		}
-
-		var temp:Float;
-		if (maxX < minX) {
-			temp = maxX;
-			maxX = minX;
-			minX = temp;
-		}
-		if (maxY < minY) {
-			temp = maxY;
-			maxY = minY;
-			minY = temp;
-		}
-
-		if (localPoint.x >= minX && localPoint.x < maxX && localPoint.y >= minY && localPoint.y < maxY) {
+		else if (__bounds.containsPoint(localPoint))
 			return this;
-		}
-
-		return null;
+		else
+			return null;
 	}
 
-	override public function getBounds(targetSpace:DisplayObject, resultRect:OpenFlRectangle = null):OpenFlRectangle {
-		if (resultRect == null) {
-			resultRect = new OpenFlRectangle();
-		}
+	public function calculateBounds() {
+		this.boundsProvider.calculateBounds(this, __bounds);
+	}
+
+	override public function getBounds(targetSpace:DisplayObject, out:OpenFlRectangle = null):OpenFlRectangle {
+		if (out == null)
+			out = new OpenFlRectangle();
+
 		if (targetSpace == this) {
-			resultRect.setTo(0, 0, 0, 0);
+			out.setTo(0, 0, __bounds.width, __bounds.height);
 		} else if (targetSpace == parent) {
-			resultRect.setTo(x, y, 0, 0);
+			_boundsPoint[0] = __bounds.x;
+			_boundsPoint[1] = __bounds.y;
+			skeletonToHaxeWorldCoordinates(_boundsPoint);
+			out.setTo(_boundsPoint[0], _boundsPoint[1], __bounds.width * scaleX, __bounds.height * scaleX);
 		} else {
 			getTransformationMatrix(targetSpace, _tempMatrix);
-			MatrixUtil.transformCoords(_tempMatrix, 0, 0, _tempPoint);
-			resultRect.setTo(_tempPoint.x, _tempPoint.y, 0, 0);
-		}
-		return resultRect;
-	}
-
-	public function getAnimationBounds(animation:Animation, clip:Bool = true):Rectangle {
-		var clipper = clip ? SkeletonSprite.clipper : null;
-		_skeleton.setupPose();
-
-		var steps = 100, time = 0.;
-		var stepTime = animation.duration != 0 ? animation.duration / steps : 0;
-		var minX = 100000000.,
-			maxX = -100000000.,
-			minY = 100000000.,
-			maxY = -100000000.;
-
-		for (i in 0...steps) {
-			animation.apply(_skeleton, time, time, false, [], 1, MixBlend.setup, MixDirection.mixIn, false);
-			_skeleton.updateWorldTransform(Physics.update);
-			var boundsSkel = _skeleton.getBounds(clipper);
-
-			if (!Math.isNaN(boundsSkel.x) && !Math.isNaN(boundsSkel.y) && !Math.isNaN(boundsSkel.width) && !Math.isNaN(boundsSkel.height)) {
-				minX = Math.min(boundsSkel.x, minX);
-				minY = Math.min(boundsSkel.y, minY);
-				maxX = Math.max(boundsSkel.x + boundsSkel.width, maxX);
-				maxY = Math.max(boundsSkel.y + boundsSkel.height, maxY);
-			} else
-				throw new SpineException("Animation bounds are invalid: " + animation.name);
-
-			time += stepTime;
+			out.setTo(__bounds.x, __bounds.y, __bounds.width, __bounds.height);
+			MatrixUtil.transformCoords(_tempMatrix, out.x, out.y, _tempPoint);
+			out.setTo(_tempPoint.x, _tempPoint.y, out.width * scaleX, out.height * scaleY);
 		}
 
-		var bounds = new Rectangle();
-		bounds.x = minX;
-		bounds.y = minY;
-		bounds.width = maxX - minX;
-		bounds.height = maxY - minY;
-		return bounds;
-	}
-
-	public var skeleton(get, never):Skeleton;
-
-	private function get_skeleton():Skeleton {
-		return _skeleton;
-	}
-
-	public var state(get, never):AnimationState;
-
-	private function get_state():AnimationState {
-		return _state;
+		return out;
 	}
 
 	public var smoothing(get, set):String;
@@ -383,8 +287,8 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 	}
 
 	public function advanceTime(time:Float):Void {
-		_state.update(time);
-		_state.apply(skeleton);
+		state.update(time);
+		state.apply(skeleton);
 		this.beforeUpdateWorldTransforms(this);
 		skeleton.update(time);
 		skeleton.updateWorldTransform(Physics.update);
@@ -431,15 +335,14 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 	}
 
 	override public function dispose():Void {
-		if (_state != null) {
-			_state.clearListeners();
-			_state = null;
+		if (state != null) {
+			state.clearListeners();
+			state = null;
 		}
-		if (_skeleton != null)
-			_skeleton = null;
+		if (skeleton != null)
+			skeleton = null;
 		dispatchEventWith(starling.events.Event.REMOVE_FROM_JUGGLER);
 		removeFromParent();
-
 		// this will remove also all starling event listeners
 		super.dispose();
 	}

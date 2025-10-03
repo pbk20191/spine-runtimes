@@ -27,52 +27,32 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-package starlingExamples;
+package spine.boundsprovider;
 
-import starlingExamples.Scene.SceneManager;
-import openfl.utils.Assets;
-import spine.SkeletonData;
-import spine.Physics;
-import spine.animation.AnimationStateData;
-import spine.atlas.TextureAtlas;
-import spine.starling.SkeletonSprite;
-import spine.starling.StarlingTextureLoader;
-import starling.core.Starling;
-import starling.events.TouchEvent;
-import starling.events.TouchPhase;
+import spine.animation.AnimationState;
 
-class CloudPotExample extends Scene {
-	var loadBinary = false;
+/** A bounds provider calculates the bounding box for a skeleton, which is then assigned as the size of the SpineGameObject. */
+abstract class BoundsProvider {
+	/** Returns the bounding box for the skeleton, in skeleton space. */
+	abstract public function calculateBounds(gameObject:BoundsGameObject, out:BoundsRectangle):BoundsRectangle;
 
-	public function load():Void {
-		background.color = 0x333333;
-
-		var atlas = new TextureAtlas(Assets.getText("assets/cloud-pot.atlas"), new StarlingTextureLoader("assets/cloud-pot.atlas"));
-		var skeletondata = SkeletonData.from(Assets.getText("assets/cloud-pot.json"), atlas);
-
-		var animationStateData = new AnimationStateData(skeletondata);
-		animationStateData.defaultMix = 0.25;
-
-		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
-		skeletonSprite.skeleton.updateWorldTransform(Physics.update);
-		var bounds = skeletonSprite.skeleton.getBounds();
-
-		skeletonSprite.scale = 0.2;
-		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
-		skeletonSprite.y = Starling.current.stage.stageHeight / 2;
-
-		skeletonSprite.state.setAnimationByName(0, "playing-in-the-rain", true);
-
-		addChild(skeletonSprite);
-		juggler.add(skeletonSprite);
-
-		addEventListener(TouchEvent.TOUCH, onTouch);
+	private function zeroRectangle(rectangle:BoundsRectangle):BoundsRectangle {
+		rectangle.x = 0;
+		rectangle.y = 0;
+		rectangle.width = 0;
+		rectangle.height = 0;
+		return rectangle;
 	}
+}
 
-	public function onTouch(e:TouchEvent) {
-		var touch = e.getTouch(this);
-		if (touch != null && touch.phase == TouchPhase.ENDED) {
-			SceneManager.getInstance().switchScene(new BoundsProviderExample());
-		}
-	}
+typedef BoundsGameObject = {
+	var skeleton(default, null):Skeleton;
+	var state(default, null):AnimationState;
+}
+
+typedef BoundsRectangle = {
+	var x:Float;
+	var y:Float;
+	var width:Float;
+	var height:Float;
 }

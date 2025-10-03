@@ -29,10 +29,11 @@
 
 package starlingExamples;
 
+import starling.filters.BlurFilter;
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import starlingExamples.Scene.SceneManager;
 import openfl.utils.Assets;
 import spine.SkeletonData;
-import spine.Physics;
 import spine.animation.AnimationStateData;
 import spine.atlas.TextureAtlas;
 import spine.starling.SkeletonSprite;
@@ -42,55 +43,56 @@ import starling.events.TouchEvent;
 import starling.events.TouchPhase;
 import starling.display.Quad;
 
-class AnimationBoundExample extends Scene {
+class BoundsProviderExample extends Scene {
 	var loadBinary = false;
 	var skeletonSpriteClipping:SkeletonSprite;
 	var skeletonSpriteNoClipping:SkeletonSprite;
+	var quad:Quad;
+	var quadNoClipping:Quad;
+	private var movement = new openfl.geom.Point();
 
 	public function load():Void {
 		background.color = 0x333333;
-		var scale = .2;
+		var scale = .4;
 
 		var atlas = new TextureAtlas(Assets.getText("assets/spineboy.atlas"), new StarlingTextureLoader("assets/spineboy.atlas"));
-		var skeletondata = SkeletonData.from(Assets.getText("assets/spineboy-pro.json"), atlas);
+		var skeletondata = SkeletonData.from(Assets.getText("assets/spineboy-pro.json"), atlas, .5);
 
-		var animationStateDataClipping = new AnimationStateData(skeletondata);
-		animationStateDataClipping.defaultMix = 0.25;
-
-		skeletonSpriteClipping = new SkeletonSprite(skeletondata, animationStateDataClipping);
-		skeletonSpriteClipping.skeleton.updateWorldTransform(Physics.update);
-
+		var stateDataClipping = new AnimationStateData(skeletondata);
+		skeletonSpriteClipping = new SkeletonSprite(skeletondata, stateDataClipping, new SkinsAndAnimationBoundsProvider("portal", null, null, false));
 		skeletonSpriteClipping.scale = scale;
-		skeletonSpriteClipping.x = Starling.current.stage.stageWidth / 3 * 2;
+		skeletonSpriteClipping.x = Starling.current.stage.stageWidth / 4 * 3;
 		skeletonSpriteClipping.y = Starling.current.stage.stageHeight / 2;
+		skeletonSpriteClipping.state.setAnimationByName(0, "portal", true);
+		skeletonSpriteClipping.filter = new BlurFilter();
 
-		var animationClipping = skeletonSpriteClipping.state.setAnimationByName(0, "portal", true).animation;
-		var animationBoundClipping = skeletonSpriteClipping.getAnimationBounds(animationClipping, true);
-		var quad:Quad = new Quad(animationBoundClipping.width * scale, animationBoundClipping.height * scale, 0xc70000);
-		quad.x = skeletonSpriteClipping.x + animationBoundClipping.x * scale;
-		quad.y = skeletonSpriteClipping.y + animationBoundClipping.y * scale;
-
-		var animationStateDataNoClipping = new AnimationStateData(skeletondata);
-		animationStateDataNoClipping.defaultMix = 0.25;
-		skeletonSpriteNoClipping = new SkeletonSprite(skeletondata, animationStateDataNoClipping);
-		skeletonSpriteNoClipping.skeleton.updateWorldTransform(Physics.update);
-		skeletonSpriteNoClipping.scale = scale;
-		skeletonSpriteNoClipping.x = Starling.current.stage.stageWidth / 3;
-		skeletonSpriteNoClipping.y = Starling.current.stage.stageHeight / 2;
-
-		var animationNoClipping = skeletonSpriteNoClipping.state.setAnimationByName(0, "portal", true).animation;
-		var animationBoundNoClipping = skeletonSpriteNoClipping.getAnimationBounds(animationNoClipping, false);
-		var quadNoClipping:Quad = new Quad(animationBoundNoClipping.width * scale, animationBoundNoClipping.height * scale, 0xc70000);
-		quadNoClipping.x = skeletonSpriteNoClipping.x + animationBoundNoClipping.x * scale;
-		quadNoClipping.y = skeletonSpriteNoClipping.y + animationBoundNoClipping.y * scale;
-
+		var bounds = skeletonSpriteClipping.bounds;
+		quad = new Quad(bounds.width, bounds.height, 0xc70000);
+		quad.x = bounds.x;
+		quad.y = bounds.y;
 		addChild(quad);
-		addChild(quadNoClipping);
 		addChild(skeletonSpriteClipping);
+
+		var stateDataNoClipping = new AnimationStateData(skeletondata);
+		skeletonSpriteNoClipping = new SkeletonSprite(skeletondata, stateDataNoClipping, new SkinsAndAnimationBoundsProvider("portal", null, null, true));
+		skeletonSpriteNoClipping.scale = scale;
+		skeletonSpriteNoClipping.x = Starling.current.stage.stageWidth / 4;
+		skeletonSpriteNoClipping.y = Starling.current.stage.stageHeight / 2;
+		skeletonSpriteNoClipping.state.setAnimationByName(0, "portal", true);
+		skeletonSpriteNoClipping.filter = new BlurFilter();
+
+		bounds = skeletonSpriteNoClipping.bounds;
+		quadNoClipping = new Quad(bounds.width, bounds.height, 0xc70000);
+		quadNoClipping.x = bounds.x;
+		quadNoClipping.y = bounds.y;
+		addChild(quadNoClipping);
 		addChild(skeletonSpriteNoClipping);
-		addText("Animation bound without clipping", 75, 350);
-		addText("Animation bound with clipping", 370, 350);
-		addText("Red area is the animation bound", 240, 400);
+
+		addText("Bounds with clipping", 40, 350);
+		addText("Bounds without clipping", 400, 350);
+		addText("Bounds created with SkinsAndAnimationBoundsProvider", 240, 400);
+		addText("The blur filter shows also the correcntess of the bounds.", 240, 450);
+		addText("You can move the elements around to see the bounds is always correct.", 240, 500);
 
 		juggler.add(skeletonSpriteClipping);
 		juggler.add(skeletonSpriteNoClipping);
@@ -98,9 +100,33 @@ class AnimationBoundExample extends Scene {
 	}
 
 	public function onTouch(e:TouchEvent) {
-		var touch = e.getTouch(this);
-		if (touch != null && touch.phase == TouchPhase.ENDED) {
-			SceneManager.getInstance().switchScene(new ControlBonesExample());
+		var skeletonTouch = e.getTouch(skeletonSpriteClipping);
+		var skeletonTouch2 = e.getTouch(skeletonSpriteNoClipping);
+		if (skeletonTouch != null) {
+			if (skeletonTouch.phase == TouchPhase.MOVED) {
+				skeletonTouch.getMovement(this, movement);
+				skeletonSpriteClipping.x += movement.x;
+				skeletonSpriteClipping.y += movement.y;
+
+				var sBounds = skeletonSpriteClipping.bounds;
+				quad.x = sBounds.x;
+				quad.y = sBounds.y;
+			}
+		} else if (skeletonTouch2 != null) {
+			if (skeletonTouch2.phase == TouchPhase.MOVED) {
+				skeletonTouch2.getMovement(this, movement);
+				skeletonSpriteNoClipping.x += movement.x;
+				skeletonSpriteNoClipping.y += movement.y;
+
+				var sBounds = skeletonSpriteNoClipping.bounds;
+				quadNoClipping.x = sBounds.x;
+				quadNoClipping.y = sBounds.y;
+			}
+		} else {
+			var sceneTouch = e.getTouch(this);
+			if (sceneTouch != null && sceneTouch.phase == TouchPhase.ENDED) {
+				SceneManager.getInstance().switchScene(new ControlBonesExample());
+			}
 		}
 	}
 }
