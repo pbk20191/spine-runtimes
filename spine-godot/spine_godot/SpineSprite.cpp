@@ -41,7 +41,9 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/classes/mesh.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
+#ifdef TOOLS_ENABLED
 #include <godot_cpp/classes/editor_interface.hpp>
+#endif
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -60,7 +62,7 @@
 #include "scene/resources/mesh.h"
 #include "servers/rendering_server.h"
 #include "scene/resources/canvas_item_material.h"
-#if VERSION_MINOR > 0
+#if VERSION_MINOR > 0 && defined(TOOLS_ENABLED)
 #include "editor/editor_interface.h"
 #endif
 #else
@@ -171,10 +173,16 @@ static void add_triangles(SpineMesh2D *mesh_instance, const Vector<Point2> &vert
 	auto texture = renderer_object->texture;
 	auto normal_map = renderer_object->normal_map;
 	auto specular_map = renderer_object->specular_map;
+#if VERSION_MAJOR > 3
 	VisualServer::get_singleton()->canvas_item_add_triangle_array(mesh_instance->get_canvas_item(), indices, vertices, colors, uvs, Vector<int>(),
 																  Vector<float>(), texture.is_null() ? RID() : texture->get_rid(), -1,
 																  normal_map.is_null() ? RID() : normal_map->get_rid(),
 																  specular_map.is_null() ? RID() : specular_map->get_rid());
+#else
+	VisualServer::get_singleton()->canvas_item_add_triangle_array(mesh_instance->get_canvas_item(), indices, vertices, colors, uvs, Vector<int>(),
+																  Vector<float>(), texture.is_null() ? RID() : texture->get_rid(), -1,
+																  normal_map.is_null() ? RID() : normal_map->get_rid());
+#endif
 #endif
 #endif
 }
@@ -374,11 +382,16 @@ void SpineMesh2D::update_mesh(const Vector<Point2> &vertices, const Vector<Point
 		VS::get_singleton()->mesh_surface_update_region(mesh, 0, 0, mesh_buffer);
 		VS::get_singleton()->mesh_set_custom_aabb(mesh, aabb_new);
 	}
-
+#if VERSION_MAJOR > 3
 	VS::get_singleton()->canvas_item_add_mesh(this->get_canvas_item(), mesh, Transform2D(), Color(1, 1, 1, 1),
 											  renderer_object->texture.is_null() ? RID() : renderer_object->texture->get_rid(),
 											  renderer_object->normal_map.is_null() ? RID() : renderer_object->normal_map->get_rid(),
 											  renderer_object->specular_map.is_null() ? RID() : renderer_object->specular_map->get_rid());
+#else
+	VS::get_singleton()->canvas_item_add_mesh(this->get_canvas_item(), mesh, Transform2D(), Color(1, 1, 1, 1),
+											  renderer_object->texture.is_null() ? RID() : renderer_object->texture->get_rid(),
+											  renderer_object->normal_map.is_null() ? RID() : renderer_object->normal_map->get_rid());
+#endif
 #endif
 }
 #endif
@@ -1124,7 +1137,8 @@ void SpineSprite::draw() {
 			auto bounding_box = (spine::BoundingBoxAttachment *) attachment;
 			auto vertices = &statics.scratch_vertices;
 			vertices->setSize(bounding_box->getWorldVerticesLength(), 0);
-			bounding_box->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, bounding_box->getWorldVerticesLength(), vertices->buffer(), 0, 2);
+			bounding_box->computeWorldVertices(*skeleton->get_spine_object(), *slot, 0, bounding_box->getWorldVerticesLength(), vertices->buffer(), 0,
+											   2);
 			size_t num_vertices = vertices->size() / 2;
 			statics.scratch_points.resize((int) num_vertices);
 			memcpy(statics.scratch_points.ptrw(), vertices->buffer(), num_vertices * 2 * sizeof(float));
@@ -1220,7 +1234,11 @@ void SpineSprite::draw() {
 	Vector<String> hover_text_lines;
 	if (hovered_slot) {
 		String name;
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(hovered_slot->getData().getName().buffer());
+#else
 		name.parse_utf8(hovered_slot->getData().getName().buffer());
+#endif
 		hover_text_lines.push_back(String("Slot: ") + name);
 	}
 
@@ -1230,7 +1248,11 @@ void SpineSprite::draw() {
 		draw_bone(hovered_bone, Color(debug_bones_color.r, debug_bones_color.g, debug_bones_color.b, 1));
 		debug_bones_thickness = thickness;
 		String name;
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+		name = String::utf8(hovered_bone->getData().getName().buffer());
+#else
 		name.parse_utf8(hovered_bone->getData().getName().buffer());
+#endif
 		hover_text_lines.push_back(String("Bone: ") + name);
 	}
 
@@ -1289,7 +1311,8 @@ void SpineSprite::draw() {
 }
 
 void SpineSprite::draw_bone(spine::Bone *bone, const Color &color) {
-	draw_set_transform(Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()), spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
+	draw_set_transform(Vector2(bone->getAppliedPose().getWorldX(), bone->getAppliedPose().getWorldY()),
+					   spine::MathUtil::Deg_Rad * bone->getAppliedPose().getWorldRotationX(),
 					   Vector2(bone->getAppliedPose().getWorldScaleX(), bone->getAppliedPose().getWorldScaleY()));
 	float bone_length = bone->getData().getLength();
 	if (bone_length == 0) bone_length = debug_bones_thickness * 2;

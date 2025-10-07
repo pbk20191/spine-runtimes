@@ -40,8 +40,13 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_node.h"
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+#include "editor/animation/animation_player_editor_plugin.h"
+#include "editor/animation/animation_tree_editor_plugin.h"
+#else
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/animation_tree_editor_plugin.h"
+#endif
 #endif
 
 void SpineAnimationTrack::_bind_methods() {
@@ -243,7 +248,11 @@ Ref<Animation> SpineAnimationTrack::create_animation(spine::Animation *animation
 	Ref<Animation> animation_ref;
 	INSTANTIATE(animation_ref);
 	String name;
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+	name = String::utf8(animation->getName().buffer());
+#else
 	name.parse_utf8(animation->getName().buffer());
+#endif
 	animation_ref->set_name(name + (loop ? "" : "_looped"));
 #if VERSION_MAJOR > 3
 	// animation_ref->set_loop(!loop);
@@ -293,7 +302,11 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 			auto current_entry = animation_state->getCurrent(track_index);
 			bool should_set_mix = mix_duration >= 0;
 			String other_name;
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+			if (current_entry) other_name = String::utf8(current_entry->getAnimation().getName().buffer());
+#else
 			if (current_entry) other_name.parse_utf8(current_entry->getAnimation().getName().buffer());
+#endif
 			bool should_set_animation = !current_entry || (animation_name != other_name || current_entry->getLoop() != loop);
 
 			if (should_set_animation) {
@@ -428,7 +441,11 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 			auto current_entry = animation_state->getCurrent(track_index);
 			bool should_set_mix = mix_duration >= 0;
 			String other_name;
+#if (VERSION_MAJOR >= 4 && VERSION_MINOR >= 5)
+			if (current_entry) other_name = String::utf8(current_entry->getAnimation().getName().buffer());
+#else
 			if (current_entry) other_name.parse_utf8(current_entry->getAnimation().getName().buffer());
+#endif
 			bool should_set_animation = !current_entry || (animation_name != other_name || current_entry->getLoop() != loop) || animation_changed;
 			animation_changed = false;
 

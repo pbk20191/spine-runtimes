@@ -223,5 +223,5 @@ void SpineBone::set_global_transform(Transform2D transform) {
 void SpineBone::update(Ref<SpineSkeleton> skeleton, SpineConstant::Physics physics) {
 	SPINE_CHECK(get_spine_object(), )
 	SPINE_CHECK(skeleton.is_valid() && skeleton->get_spine_object(), )
-	get_spine_object()->update(*skeleton->get_spine_object(), (spine::Physics)physics);
+	get_spine_object()->update(*skeleton->get_spine_object(), (spine::Physics) physics);
 }
