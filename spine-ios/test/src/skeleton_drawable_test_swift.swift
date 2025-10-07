@@ -246,7 +246,7 @@ func runSkeletonDrawableTestSwift() {
         if let constraint = constraints[i] {
             let rttiClassName = constraint.rtti.rttiClassName ?? "unknown"
             print("  Constraint \(i) type: \(rttiClassName)")
-            
+
             let data = constraint.data
             let dataRttiClassName = data.rtti.rttiClassName ?? "unknown"
             print("    Data type: \(dataRttiClassName)")
@@ -258,44 +258,44 @@ func runSkeletonDrawableTestSwift() {
     print("\nTesting PosedActive methods on Bone:")
     if let bone = drawable.skeleton.findBone("rear-shin") {
         print("  Found bone: \(bone.data.name)")
-        
+
         // Cast Bone to PosedActive and try to call PosedActive methods
         let posedActive = bone as PosedActive
         print("  Successfully cast Bone to PosedActive")
-        
+
         // Try to access PosedActive properties/methods
         // This should work if the pointer is correct, or crash if there's an offset issue
-        
+
         // Get the isActive property (this is a PosedActive method)
         let isActiveFromPosed = posedActive.isActive
         print("  isActive from PosedActive: \(isActiveFromPosed)")
-        
+
         // Set active property through PosedActive
         print("  Setting active to false through PosedActive...")
         posedActive.active = false
         print("  ✓ Set active property succeeded")
-        
+
         // Check if it's actually false
         let isStillActive = posedActive.isActive
         print("  isActive after setting to false: \(isStillActive)")
-        
+
         // Restore it
         posedActive.active = true
         print("  Restored active to true")
-        
+
         // Now test the Update protocol
         let updateProtocol = bone as Update
         print("  Successfully cast Bone to Update protocol")
-        
+
         // Call update with required parameters
         print("  Calling update() through Update protocol...")
         updateProtocol.update(drawable.skeleton, Physics.none)
         print("  ✓ update() call succeeded through Update protocol")
-        
+
         // Test that we can still use Bone methods after casting
         let appliedPose = bone.appliedPose
         print("  Bone appliedPose still accessible: x=\(appliedPose.x), y=\(appliedPose.y)")
-        
+
         // The fact that this all works suggests the pointer is being handled correctly
         // even though we're not using cast functions in the constructor chain
         print("  ✓ All PosedActive and Update methods work correctly on Bone instance")
