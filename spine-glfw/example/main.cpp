@@ -37,6 +37,16 @@
 using namespace spine;
 
 int width = 800, height = 600;
+AnimationState *globalAnimationState = nullptr;
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+	SP_UNUSED(window);
+	SP_UNUSED(scancode);
+	SP_UNUSED(mods);
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && globalAnimationState) {
+		globalAnimationState->setAnimation(0, "walk", true);
+	}
+}
 
 GLFWwindow *init_glfw() {
 	if (!glfwInit()) {
@@ -85,8 +95,9 @@ int main() {
 	// Create an AnimationState to drive animations on the skeleton. Set the "portal" animation
 	// on track with index 0.
 	AnimationStateData animationStateData(*skeletonData);
-	animationStateData.setDefaultMix(0.2f);
+	animationStateData.setDefaultMix(1.0f);
 	AnimationState animationState(animationStateData);
+	globalAnimationState = &animationState;
 	animationState.setAnimation(0, "portal", true);
 	animationState.addAnimation(0, "run", true, 0)
 		.setListener([](AnimationState *state, EventType type, TrackEntry *entry, Event *event, void *userData) {
@@ -103,6 +114,9 @@ int main() {
 	// pixel perfect orthogonal projection for 2D rendering.
 	renderer_t *renderer = renderer_create();
 	renderer_set_viewport_size(renderer, width, height);
+
+	// Set up keyboard callback. When space is pressed, we switch to the "walk" animation.
+	glfwSetKeyCallback(window, key_callback);
 
 	// Rendering loop
 	double lastTime = glfwGetTime();
