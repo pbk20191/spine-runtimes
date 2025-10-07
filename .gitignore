@@ -262,3 +262,5 @@ spine-c/codegen/nullable.md
 spine-c/.docker-built
 
 .cache/
+spine-godot/class_info.txt
+spine-godot/class_meta.json
