@@ -206,7 +206,11 @@
   - Added pose classes for constraints: `SpineIkConstraintPose`, `SpinePathConstraintPose`, `SpinePhysicsConstraintPose`, `SpineSliderPose`, `SpineTransformConstraintPose`
 
 - **Breaking changes**
-  - Updated to use new C++ pose system with all breaking changes above
+  - Updated to use new C++ pose system internally
+  - Removed from `SpineBone`: `update_world_transform()`, `set_to_setup_pose()`, `get_world_to_local_rotation_x()`, `get_world_to_local_rotation_y()`
+  - Removed direct property access from `SpineBone`: `get_x()`, `set_x()`, `get_y()`, `set_y()`, `get_rotation()`, `set_rotation()`, etc. - use pose objects instead
+  - `SpineAnimation.apply()` now takes an additional `appliedPose` parameter
+  - Note: `SpineSkeleton` still maintains `set_to_setup_pose()`, `set_bones_to_setup_pose()`, `set_slots_to_setup_pose()` for compatibility
 
 ## C#
 
