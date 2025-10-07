@@ -95,7 +95,7 @@ int main() {
 	// Create an AnimationState to drive animations on the skeleton. Set the "portal" animation
 	// on track with index 0.
 	AnimationStateData animationStateData(*skeletonData);
-	animationStateData.setDefaultMix(1.0f);
+	animationStateData.setDefaultMix(0.2f);
 	AnimationState animationState(animationStateData);
 	globalAnimationState = &animationState;
 	animationState.setAnimation(0, "portal", true);
