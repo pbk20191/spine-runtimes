@@ -29,7 +29,6 @@
 
 package starlingExamples;
 
-import spine.BlendMode;
 import starlingExamples.Scene.SceneManager;
 import openfl.utils.Assets;
 import spine.SkeletonData;
@@ -60,8 +59,6 @@ class CelestialCircusExample extends Scene {
 
 		skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
 		skeletonSprite.skeleton.updateWorldTransform(Physics.update);
-		var bounds = skeletonSprite.skeleton.getBounds();
-
 		skeletonSprite.scale = 0.2;
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
 		skeletonSprite.y = Starling.current.stage.stageHeight / 1.5;
@@ -84,7 +81,7 @@ class CelestialCircusExample extends Scene {
 				skeletonTouch.getMovement(this, movement);
 				skeletonSprite.x += movement.x;
 				skeletonSprite.y += movement.y;
-				skeletonSprite.skeleton.physicsTranslate(movement.x / skeletonSprite.scale, movement.y / skeletonSprite.scale,);
+				skeletonSprite.skeleton.physicsTranslate(movement.x, movement.y);
 			}
 		} else {
 			var sceneTouch = e.getTouch(this);

@@ -55,7 +55,6 @@ class CloudPotExample extends Scene {
 
 		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
 		skeletonSprite.skeleton.updateWorldTransform(Physics.update);
-		var bounds = skeletonSprite.skeleton.getBounds();
 
 		skeletonSprite.scale = 0.2;
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;

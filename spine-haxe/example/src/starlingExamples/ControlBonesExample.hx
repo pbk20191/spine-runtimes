@@ -59,7 +59,7 @@ class ControlBonesExample extends Scene {
 
 		skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
 
-		var bounds = skeletonSprite.skeleton.getBounds();
+		var bounds = skeletonSprite.bounds;
 		skeletonSprite.scale = Starling.current.stage.stageWidth / bounds.width * 0.25;
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
 		skeletonSprite.y = Starling.current.stage.stageHeight * 0.9;
@@ -79,6 +79,7 @@ class ControlBonesExample extends Scene {
 			"front-leg-ik-target",
 		];
 
+		skeletonSprite.advanceTime(0);
 		for (boneName in controlBoneNames) {
 			var bone = skeletonSprite.skeleton.findBone(boneName);
 			var point = [bone.applied.worldX, bone.applied.worldY];

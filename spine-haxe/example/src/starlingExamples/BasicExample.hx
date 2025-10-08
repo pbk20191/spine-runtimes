@@ -29,6 +29,7 @@
 
 package starlingExamples;
 
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import starlingExamples.Scene.SceneManager;
 import openfl.utils.Assets;
 import spine.SkeletonData;
@@ -49,11 +50,12 @@ class BasicExample extends Scene {
 		var animationStateData = new AnimationStateData(skeletondata);
 		animationStateData.defaultMix = 0.25;
 
-		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
-		var bounds = skeletonSprite.skeleton.getBounds();
-		skeletonSprite.scale = Starling.current.stage.stageWidth / bounds.width * 0.5;
+		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData, new SkinsAndAnimationBoundsProvider("walk"));
+		var bounds = skeletonSprite.bounds;
+		skeletonSprite.scale = Starling.current.stage.stageWidth * .8 / bounds.width;
+
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
-		skeletonSprite.y = Starling.current.stage.stageHeight * 0.9;
+		skeletonSprite.y = Starling.current.stage.stageHeight * 0.95;
 
 		skeletonSprite.state.setAnimationByName(0, "walk", true);
 

@@ -53,7 +53,7 @@ class VineExample extends Scene {
 
 		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
 		skeletonSprite.skeleton.updateWorldTransform(Physics.none);
-		var bounds = skeletonSprite.skeleton.getBounds();
+		var bounds = skeletonSprite.bounds;
 		skeletonSprite.scale = Starling.current.stage.stageWidth / bounds.width / 10;
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
 		skeletonSprite.y = Starling.current.stage.stageHeight * 0.5;

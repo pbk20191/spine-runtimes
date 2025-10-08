@@ -29,7 +29,6 @@
 
 package flixelExamples;
 
-import spine.Skin;
 import flixel.ui.FlxButton;
 import flixel.FlxG;
 import spine.flixel.SkeletonSprite;

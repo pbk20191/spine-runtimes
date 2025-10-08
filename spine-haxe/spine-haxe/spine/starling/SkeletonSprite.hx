@@ -36,7 +36,6 @@ import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle as OpenFlRectangle;
 import spine.Bone;
-import spine.Rectangle;
 import spine.Skeleton;
 import spine.SkeletonClipping;
 import spine.SkeletonData;
@@ -264,12 +263,12 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 			_boundsPoint[0] = __bounds.x;
 			_boundsPoint[1] = __bounds.y;
 			skeletonToHaxeWorldCoordinates(_boundsPoint);
-			out.setTo(_boundsPoint[0], _boundsPoint[1], __bounds.width * scaleX, __bounds.height * scaleX);
+			out.setTo(_boundsPoint[0], _boundsPoint[1], __bounds.width, __bounds.height);
 		} else {
 			getTransformationMatrix(targetSpace, _tempMatrix);
 			out.setTo(__bounds.x, __bounds.y, __bounds.width, __bounds.height);
 			MatrixUtil.transformCoords(_tempMatrix, out.x, out.y, _tempPoint);
-			out.setTo(_tempPoint.x, _tempPoint.y, out.width * scaleX, out.height * scaleY);
+			out.setTo(_tempPoint.x, _tempPoint.y, out.width, out.height);
 		}
 
 		return out;
@@ -284,6 +283,35 @@ class SkeletonSprite extends DisplayObject implements IAnimatable {
 	private function set_smoothing(smoothing:String):String {
 		_smoothing = smoothing;
 		return _smoothing;
+	}
+
+	override function get_scaleX():Float {
+		return skeleton.scaleX;
+	}
+
+	override function set_scaleX(value:Float):Float {
+		skeleton.scaleX = value;
+		calculateBounds();
+		return skeleton.scaleX;
+	}
+
+	override function get_scaleY():Float {
+		return skeleton.scaleY * Bone.yDir;
+	}
+
+	override function set_scaleY(value:Float):Float {
+		skeleton.scaleY = value;
+		calculateBounds();
+		return value;
+	}
+
+	override function get_scale():Float {
+		return skeleton.scaleX;
+	}
+
+	override function set_scale(value:Float):Float {
+		scaleY = value;
+		return scaleX = value;
 	}
 
 	public function advanceTime(time:Float):Void {

@@ -50,7 +50,7 @@ class SequenceExample extends Scene {
 		animationStateData.defaultMix = 0.25;
 
 		var skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
-		var bounds = skeletonSprite.skeleton.getBounds();
+		var bounds = skeletonSprite.bounds;
 		skeletonSprite.scale = Starling.current.stage.stageWidth / bounds.width * 0.5;
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
 		skeletonSprite.y = Starling.current.stage.stageHeight * 0.5;

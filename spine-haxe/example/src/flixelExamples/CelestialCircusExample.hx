@@ -31,7 +31,6 @@ package flixelExamples;
 
 import flixel.text.FlxText;
 import flixel.math.FlxPoint;
-import spine.Skin;
 import flixel.ui.FlxButton;
 import flixel.FlxG;
 import spine.flixel.SkeletonSprite;

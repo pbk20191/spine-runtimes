@@ -29,6 +29,7 @@
 
 package starlingExamples;
 
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import spine.Skin;
 import starlingExamples.Scene.SceneManager;
 import openfl.utils.Assets;
@@ -50,7 +51,7 @@ class MixAndMatchExample extends Scene {
 		var animationStateData = new AnimationStateData(data);
 		animationStateData.defaultMix = 0.25;
 
-		var skeletonSprite = new SkeletonSprite(data, animationStateData);
+		var skeletonSprite = new SkeletonSprite(data, animationStateData, new SkinsAndAnimationBoundsProvider("dance", ["full-skins/boy"]));
 		var customSkin = new Skin("custom");
 		var skinBase = data.findSkin("skin-base");
 		customSkin.addSkin(skinBase);
@@ -64,7 +65,7 @@ class MixAndMatchExample extends Scene {
 		customSkin.addSkin(data.findSkin("accessories/hat-red-yellow"));
 		skeletonSprite.skeleton.skin = customSkin;
 
-		var bounds = skeletonSprite.skeleton.getBounds();
+		var bounds = skeletonSprite.bounds;
 		skeletonSprite.scale = Starling.current.stage.stageHeight / bounds.height * 0.5;
 		skeletonSprite.x = Starling.current.stage.stageWidth / 2;
 		skeletonSprite.y = Starling.current.stage.stageHeight * 0.9;
