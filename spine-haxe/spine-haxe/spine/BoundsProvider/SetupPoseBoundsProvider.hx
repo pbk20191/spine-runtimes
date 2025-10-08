@@ -45,8 +45,8 @@ class SetupPoseBoundsProvider extends BoundsProvider {
 	}
 
 	public function calculateBounds(gameObject:BoundsGameObject, out:BoundsRectangle):BoundsRectangle {
-		var skeleton = gameObject.skeleton;
-		if (skeleton == null) {
+		var prevSkeleton = gameObject.skeleton;
+		if (prevSkeleton == null) {
 			zeroRectangle(out);
 			return out;
 		}
@@ -54,7 +54,9 @@ class SetupPoseBoundsProvider extends BoundsProvider {
 		// Make a copy of  skeleton as this might be called while
 		// the skeleton in the GameObject has already been heavily modified. We can not
 		// reconstruct that state.
-		var skeleton = new Skeleton(skeleton.data);
+		var skeleton = new Skeleton(prevSkeleton.data);
+		skeleton.scaleX = prevSkeleton.scaleX;
+		skeleton.scaleY = prevSkeleton.scaleY * Bone.yDir;
 		skeleton.setupPose();
 		skeleton.updateWorldTransform(Physics.update);
 		var newBounds = skeleton.getBounds(clipping ? new SkeletonClipping() : null);

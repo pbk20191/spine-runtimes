@@ -65,8 +65,7 @@ class ControlBonesExample extends FlxState {
 		var skeletonSprite = new SkeletonSprite(data, animationStateData);
 		skeletonSprite.scaleX = .5;
 		skeletonSprite.scaleY = .5;
-		var animation = skeletonSprite.state.setAnimationByName(0, "idle", true).animation;
-		skeletonSprite.setBoundingBox(animation);
+		skeletonSprite.state.setAnimationByName(0, "idle", true);
 		skeletonSprite.screenCenter();
 		add(skeletonSprite);
 
@@ -77,6 +76,8 @@ class ControlBonesExample extends FlxState {
 			"front-leg-ik-target",
 		];
 
+		// we need to update, to ensure scale is applied before getting bone values
+		skeletonSprite.update(0);
 		var radius = 6;
 		for (boneName in controlBoneNames) {
 			var bone = skeletonSprite.skeleton.findBone(boneName);
@@ -84,7 +85,7 @@ class ControlBonesExample extends FlxState {
 			skeletonSprite.skeletonToHaxeWorldCoordinates(point);
 			var control = new FlxSprite();
 			control.makeGraphic(radius * 2, radius * 2, FlxColor.TRANSPARENT, true);
-			FlxSpriteUtil.drawCircle(control, radius, radius, radius, 0xffff00ff);
+			FlxSpriteUtil.drawCircle(control, -1, -1, -1, 0xffff00ff);
 			control.setPosition(point[0] - radius, point[1] - radius);
 			controlBones.push(bone);
 			controls.push(control);

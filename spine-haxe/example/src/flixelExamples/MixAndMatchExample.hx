@@ -29,6 +29,7 @@
 
 package flixelExamples;
 
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import spine.Skin;
 import flixel.ui.FlxButton;
 import flixel.FlxG;
@@ -59,7 +60,7 @@ class MixAndMatchExample extends FlxState {
 		var animationStateData = new AnimationStateData(data);
 		animationStateData.defaultMix = 0.25;
 
-		skeletonSprite = new SkeletonSprite(data, animationStateData);
+		skeletonSprite = new SkeletonSprite(data, animationStateData, new SkinsAndAnimationBoundsProvider("dance", ["full-skins/boy"]));
 		var customSkin = new Skin("custom");
 		var skinBase = data.findSkin("skin-base");
 		customSkin.addSkin(skinBase);
@@ -74,8 +75,7 @@ class MixAndMatchExample extends FlxState {
 		skeletonSprite.skeleton.skin = customSkin;
 
 		skeletonSprite.state.update(0);
-		var animation = skeletonSprite.state.setAnimationByName(0, "dance", true).animation;
-		skeletonSprite.setBoundingBox(animation);
+		skeletonSprite.state.setAnimationByName(0, "dance", true);
 		skeletonSprite.screenCenter();
 		add(skeletonSprite);
 

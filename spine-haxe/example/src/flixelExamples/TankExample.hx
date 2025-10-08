@@ -57,7 +57,6 @@ class TankExample extends FlxState {
 
 		var skeletonSprite = new SkeletonSprite(data, animationStateData);
 		var animation = skeletonSprite.state.setAnimationByName(0, "drive", true).animation;
-		skeletonSprite.setBoundingBox(animation);
 		skeletonSprite.screenCenter();
 		add(skeletonSprite);
 

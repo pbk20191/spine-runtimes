@@ -56,9 +56,9 @@ class SkinsAndAnimationBoundsProvider extends BoundsProvider {
 	}
 
 	public function calculateBounds(gameObject:BoundsGameObject, out:BoundsRectangle):BoundsRectangle {
-		var skeleton = gameObject.skeleton;
+		var prevSkeleton = gameObject.skeleton;
 		var state = gameObject.state;
-		if (skeleton == null || state == null) {
+		if (prevSkeleton == null || state == null) {
 			zeroRectangle(out);
 			return out;
 		}
@@ -67,7 +67,9 @@ class SkinsAndAnimationBoundsProvider extends BoundsProvider {
 		// the skeleton in the GameObject has already been heavily modified. We can not
 		// reconstruct that state.
 		var animationState = new AnimationState(state.data);
-		var skeleton = new Skeleton(skeleton.data);
+		var skeleton = new Skeleton(prevSkeleton.data);
+		skeleton.scaleX = prevSkeleton.scaleX;
+		skeleton.scaleY = prevSkeleton.scaleY * Bone.yDir;
 		var clipper = clipping ? new SkeletonClipping() : null;
 		var data = skeleton.data;
 		if (skins.length > 0) {

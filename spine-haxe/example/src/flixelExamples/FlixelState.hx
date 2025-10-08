@@ -30,6 +30,11 @@
 package flixelExamples;
 
 import flixel.ui.FlxButton;
+import flixel.math.FlxPoint;
+import flixel.util.FlxColor;
+import flixel.util.FlxSpriteUtil;
+import spine.boundsprovider.SetupPoseBoundsProvider;
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import flixel.group.FlxSpriteGroup;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
@@ -55,6 +60,11 @@ class FlixelState extends FlxState {
 
 	var scale = 4;
 	var speed:Float;
+
+	var skeletonOrigin:FlxSprite;
+	var gameObjectOrigin:FlxSprite;
+	var radius = 3;
+	var rootPoint = [.0, .0];
 
 	override public function create():Void {
 		FlxG.cameras.bgColor = 0xffa1b2b0;
@@ -97,12 +107,37 @@ class FlixelState extends FlxState {
 
 		// loading spineboy
 		var atlas = new TextureAtlas(Assets.getText("assets/spineboy.atlas"), new FlixelTextureLoader("assets/spineboy.atlas"));
-		var skeletondata = SkeletonData.from(Assets.getText("assets/spineboy-pro.json"), atlas, 1 / scale);
+		var skeletondata = SkeletonData.from(Assets.getText("assets/spineboy-pro.json"), atlas, 1);
+
+		// var atlas = new TextureAtlas(Assets.getText("assets/quad.atlas"), new FlixelTextureLoader("assets/quad.atlas"));
+		// var skeletondata = SkeletonData.from(Assets.getText("assets/quad.json"), atlas, 2);
+
 		var animationStateData = new AnimationStateData(skeletondata);
-		spineSprite = new SkeletonSprite(skeletondata, animationStateData);
+		// spineSprite = new SkeletonSprite(skeletondata, animationStateData, new SetupPoseBoundsProvider());
+
+		spineSprite = new SkeletonSprite(skeletondata, animationStateData, new SkinsAndAnimationBoundsProvider("walk"));
+
+		spineSprite.scale = new FlxPoint(1 / scale, 1 / scale);
 
 		// positioning spineboy
-		spineSprite.setPosition(.5 * FlxG.width, .5 * FlxG.height);
+		spineSprite.screenCenter();
+		spineSprite.y += spineSprite.height / 2;
+
+		var control3 = new FlxSprite();
+		control3.makeGraphic(radius * 2, radius * 2, FlxColor.TRANSPARENT, true);
+		FlxSpriteUtil.drawCircle(control3, radius, radius, radius, 0xff5500ff);
+		add(control3);
+		control3.setPosition(FlxG.width / 2, FlxG.height / 2);
+
+		skeletonOrigin = new FlxSprite();
+		skeletonOrigin.makeGraphic(radius * 2, radius * 2, FlxColor.TRANSPARENT, true);
+		FlxSpriteUtil.drawCircle(skeletonOrigin, radius, radius, radius, 0xff5500ff);
+		add(skeletonOrigin);
+
+		gameObjectOrigin = new FlxSprite();
+		gameObjectOrigin.makeGraphic(radius * 2, radius * 2, FlxColor.TRANSPARENT, true);
+		FlxSpriteUtil.drawCircle(gameObjectOrigin, radius, radius, radius, 0xffff9100);
+		add(gameObjectOrigin);
 
 		// setting mix times
 		animationStateData.defaultMix = 0.5;
@@ -119,7 +154,7 @@ class FlixelState extends FlxState {
 		// setting idle animation
 		spineSprite.state.setAnimationByName(0, "idle", true);
 
-		// setting y offset function to move object body while jumping
+		// // setting y offset function to move object body while jumping
 		var hip = spineSprite.skeleton.findBone("hip");
 		var initialY = 0.;
 		var initialOffsetY = 0.;
@@ -137,13 +172,19 @@ class FlixelState extends FlxState {
 			}
 		});
 		var diff = .0;
+		var tmpPoint = [.0, .0];
 		spineSprite.afterUpdateWorldTransforms = spineSprite -> {
 			if (jumping) {
-				diff -= hip.pose.y;
-				spineSprite.offsetY -= diff;
-				spineSprite.y += diff;
+				tmpPoint[1] = hip.applied.worldY;
+				spineSprite.skeletonToHaxeWorldCoordinates(tmpPoint);
+				diff -= (tmpPoint[1]);
+				spineSprite.offsetY += diff;
+				spineSprite.y -= diff;
 			}
-			diff = hip.pose.y;
+
+			tmpPoint[1] = hip.applied.worldY;
+			spineSprite.skeletonToHaxeWorldCoordinates(tmpPoint);
+			diff = tmpPoint[1];
 		}
 
 		// adding spineboy to the stage
@@ -152,7 +193,7 @@ class FlixelState extends FlxState {
 		// FlxG.debugger.visible = !FlxG.debugger.visible;
 		// debug ui
 		// FlxG.debugger.visible = true;
-		// FlxG.debugger.drawDebug = true;
+		FlxG.debugger.drawDebug = true;
 		// FlxG.log.redirectTraces = true;
 
 		// FlxG.debugger.track(spineSprite);
@@ -160,12 +201,14 @@ class FlixelState extends FlxState {
 		// FlxG.watch.add(spineSprite, "offsetY");
 		// FlxG.watch.add(spineSprite, "y");
 		// FlxG.watch.add(this, "jumping");
+
 		super.create();
 	}
 
 	var justSetIdle = true;
 
 	override public function update(elapsed:Float):Void {
+		// spineSprite.calculateBounds();
 		if (FlxG.overlap(spineSprite, group)) {
 			myText.text = "Overlapping";
 		} else {
@@ -182,6 +225,17 @@ class FlixelState extends FlxState {
 		if (FlxG.keys.anyJustPressed([J])) {
 			// spineSprite.antialiasing = !spineSprite.antialiasing;
 			FlxG.debugger.visible = !FlxG.debugger.visible;
+		}
+
+		if (FlxG.keys.anyPressed([UP, DOWN])) {
+			if (FlxG.keys.anyPressed([UP])) {
+				if (spineSprite.flipY == true)
+					spineSprite.flipY = false;
+			}
+			if (FlxG.keys.anyPressed([DOWN])) {
+				if (spineSprite.flipY == false)
+					spineSprite.flipY = true;
+			}
 		}
 
 		if (FlxG.keys.anyPressed([RIGHT, LEFT])) {
@@ -216,6 +270,13 @@ class FlixelState extends FlxState {
 			justSetIdle = true;
 			spineSprite.state.setAnimationByName(0, "idle", true);
 		}
+
+		var rootBone = spineSprite.skeleton.findBone("root");
+		rootPoint[0] = rootBone.applied.worldX;
+		rootPoint[1] = rootBone.applied.worldY;
+		spineSprite.skeletonToHaxeWorldCoordinates(rootPoint);
+		skeletonOrigin.setPosition(rootPoint[0] - radius, rootPoint[1] - radius);
+		gameObjectOrigin.setPosition(spineSprite.x - radius, spineSprite.y - radius);
 
 		super.update(elapsed);
 	}

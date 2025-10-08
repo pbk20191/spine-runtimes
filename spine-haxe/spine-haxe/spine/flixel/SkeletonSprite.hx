@@ -29,42 +29,35 @@
 
 package spine.flixel;
 
+import flixel.util.FlxDirectionFlags;
+import flixel.math.FlxRect;
+import flixel.FlxCamera;
+import flixel.FlxBasic;
+import flixel.util.FlxAxes;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import spine.boundsprovider.SetupPoseBoundsProvider;
+import spine.boundsprovider.BoundsProvider;
 import openfl.geom.Point;
 import flixel.math.FlxPoint;
 import flixel.math.FlxMatrix;
-import spine.animation.MixDirection;
-import spine.animation.MixBlend;
-import spine.animation.Animation;
 import spine.TextureRegion;
-import haxe.extern.EitherType;
-import spine.attachments.Attachment;
-import flixel.util.typeLimit.OneOfTwo;
-import flixel.FlxCamera;
-import flixel.math.FlxRect;
 import flixel.FlxG;
 import flixel.FlxObject;
-import flixel.FlxSprite;
-import flixel.FlxStrip;
-import flixel.group.FlxSpriteGroup;
-import flixel.graphics.FlxGraphic;
 import flixel.util.FlxColor;
 import openfl.Vector;
-import openfl.display.BlendMode;
 import spine.Bone;
-import spine.Rectangle;
 import spine.Skeleton;
 import spine.SkeletonData;
 import spine.Slot;
 import spine.animation.AnimationState;
 import spine.animation.AnimationStateData;
-import spine.atlas.TextureAtlasRegion;
 import spine.attachments.MeshAttachment;
 import spine.attachments.RegionAttachment;
 import spine.attachments.ClippingAttachment;
 import spine.flixel.SkeletonMesh;
 
 /** A FlxObject that draws a skeleton. The animation state and skeleton must be updated each frame. */
-class SkeletonSprite extends FlxObject {
+class SkeletonSprite extends FlxTypedGroup<FlxObject> {
 	public var skeleton(default, null):Skeleton;
 	public var state(default, null):AnimationState;
 	public var stateData(default, null):AnimationStateData;
@@ -81,6 +74,18 @@ class SkeletonSprite extends FlxObject {
 	public var flipY(default, set):Bool = false;
 	public var antialiasing:Bool = true;
 
+	public var boundsProvider:BoundsProvider;
+
+	public var angle(default, set) = 0.;
+	public var x(default, set) = 0.;
+	public var y(default, set) = 0.;
+	public var width(get, set):Float;
+	public var height(get, set):Float;
+	public var boundsX(get, never):Float;
+	public var boundsY(get, never):Float;
+
+	@:isVar
+	public var scale(never, set):FlxPoint;
 	@:isVar
 	public var scaleX(get, set):Float = 1;
 	@:isVar
@@ -92,103 +97,50 @@ class SkeletonSprite extends FlxObject {
 
 	private var _tempMatrix = new FlxMatrix();
 	private var _tempPoint = new Point();
+	private var _tempPointFlip = [.0, .0];
+	private var __bounds = new openfl.geom.Rectangle();
+	private var __objectBounds = new FlxObject();
 
 	private static var QUAD_INDICES:Array<Int> = [0, 1, 2, 2, 3, 0];
 
 	/** Creates an uninitialized SkeletonSprite. The renderer, skeleton, and animation state must be set before use. */
-	public function new(skeletonData:SkeletonData, animationStateData:AnimationStateData = null) {
-		super(0, 0);
+	public function new(skeletonData:SkeletonData, animationStateData:AnimationStateData = null, ?boundsProvider:BoundsProvider) {
+		super(1);
 		Bone.yDown = true;
 		skeleton = new Skeleton(skeletonData);
 		skeleton.updateWorldTransform(Physics.update);
 		state = new AnimationState(animationStateData != null ? animationStateData : new AnimationStateData(skeletonData));
-		setBoundingBox();
+		// setBoundingBox();
+		this.boundsProvider = boundsProvider ?? new SetupPoseBoundsProvider();
+		this.calculateBounds();
+		add(__objectBounds);
 	}
 
-	public function setBoundingBox(?animation:Animation, ?clip:Bool = true) {
-		var bounds = animation == null ? skeleton.getBounds() : getAnimationBounds(animation, clip);
-		if (bounds.width > 0 && bounds.height > 0) {
-			width = bounds.width;
-			height = bounds.height;
-			offsetX = -bounds.x;
-			offsetY = -bounds.y;
-		}
+	// TODO: this changes the scale
+	// public function setSize(width:Float, height:Float):Void {
+	// 	this.width = width;
+	// 	this.height = height;
+	// }
+	// ============================================================
+	// DEBUG METHODS (if FLX_DEBUG)
+	// ============================================================
+	#if FLX_DEBUG
+	public function drawDebug():Void {
+		__objectBounds.drawDebug();
 	}
 
-	public function getAnimationBounds(animation:Animation, clip:Bool = true):Rectangle {
-		var clipper = clip ? SkeletonSprite.clipper : null;
-		skeleton.setupPose();
-
-		var steps = 100, time = 0.;
-		var stepTime = animation.duration != 0 ? animation.duration / steps : 0;
-		var minX = 100000000.,
-			maxX = -100000000.,
-			minY = 100000000.,
-			maxY = -100000000.;
-
-		for (i in 0...steps) {
-			animation.apply(skeleton, time, time, false, [], 1, MixBlend.setup, MixDirection.mixIn, false);
-			skeleton.updateWorldTransform(Physics.update);
-			var boundsSkel = skeleton.getBounds(clipper);
-
-			if (!Math.isNaN(boundsSkel.x) && !Math.isNaN(boundsSkel.y) && !Math.isNaN(boundsSkel.width) && !Math.isNaN(boundsSkel.height)) {
-				minX = Math.min(boundsSkel.x, minX);
-				minY = Math.min(boundsSkel.y, minY);
-				maxX = Math.max(boundsSkel.x + boundsSkel.width, maxX);
-				maxY = Math.max(boundsSkel.y + boundsSkel.height, maxY);
-			} else
-				throw new SpineException("Animation bounds are invalid: " + animation.name);
-
-			time += stepTime;
-		}
-
-		var bounds = new Rectangle();
-		bounds.x = minX;
-		bounds.y = minY;
-		bounds.width = maxX - minX;
-		bounds.height = maxY - minY;
-		return bounds;
+	public function drawDebugOnCamera(camera:FlxCamera):Void {
+		__objectBounds.drawDebugOnCamera(camera);
 	}
+	#end
 
-	override public function destroy():Void {
-		state.clearListeners();
-		state = null;
-		skeleton = null;
-
-		_tempVertices = null;
-		_quadTriangles = null;
-		_tempMatrix = null;
-		_tempPoint = null;
-
-		if (_meshes != null) {
-			for (mesh in _meshes)
-				mesh.destroy();
-			_meshes = null;
-		}
-
-		super.destroy();
-	}
-
-	override public function update(elapsed:Float):Void {
-		super.update(elapsed);
-		state.update(elapsed);
-		state.apply(skeleton);
-		this.beforeUpdateWorldTransforms(this);
-		skeleton.update(elapsed);
-		skeleton.updateWorldTransform(Physics.update);
-		this.afterUpdateWorldTransforms(this);
-	}
-
-	override public function draw():Void {
-		if (alpha == 0)
-			return;
-
-		renderMeshes();
-
-		#if FLX_DEBUG
-		if (FlxG.debugger.drawDebug)
-			drawDebug();
-		#end
+	// ============================================================
+	// SKELETON SPRITE METHODS
+	// ============================================================
+	public function calculateBounds() {
+		this.boundsProvider.calculateBounds(this, __bounds);
+		__objectBounds.setPosition(x + __bounds.x, y + __bounds.y);
+		__objectBounds.setSize(__bounds.width, __bounds.height);
 	}
 
 	function renderMeshes():Void {
@@ -320,7 +272,7 @@ class SkeletonSprite extends FlxObject {
 	private function getTransformMatrix():FlxMatrix {
 		_tempMatrix.identity();
 		// scale is connected to the skeleton scale - no need to rescale
-		_tempMatrix.scale(1, 1);
+		// _tempMatrix.scale(1, 1);
 		_tempMatrix.rotate(angle * Math.PI / 180);
 		_tempMatrix.translate(x + offsetX, y + offsetY);
 		return _tempMatrix;
@@ -375,18 +327,24 @@ class SkeletonSprite extends FlxObject {
 	}
 
 	function set_flipX(value:Bool):Bool {
-		if (value != flipX)
+		if (value != flipX) {
 			skeleton.scaleX = -skeleton.scaleX;
+			this.calculateBounds();
+		}
 		return flipX = value;
 	}
 
 	function set_flipY(value:Bool):Bool {
-		if (value != flipY)
-			skeleton.scaleY = -skeleton.scaleY;
+		if (value != flipY) {
+			skeleton.scaleY = -skeleton.scaleY * Bone.yDir;
+			this.calculateBounds();
+		}
 		return flipY = value;
 	}
 
 	function set_scale(value:FlxPoint):FlxPoint {
+		scaleX = value.x;
+		scaleY = value.y;
 		return value;
 	}
 
@@ -395,15 +353,199 @@ class SkeletonSprite extends FlxObject {
 	}
 
 	function set_scaleX(value:Float):Float {
-		return skeleton.scaleX = value;
+		skeleton.scaleX = value;
+		this.calculateBounds();
+		return value;
 	}
 
 	function get_scaleY():Float {
-		return skeleton.scaleY;
+		return skeleton.scaleY * Bone.yDir;
 	}
 
 	function set_scaleY(value:Float):Float {
-		return skeleton.scaleY = value;
+		skeleton.scaleY = value;
+		this.calculateBounds();
+		return value;
+	}
+
+	function set_angle(value:Float):Float {
+		__objectBounds.angle = value;
+		return angle = value;
+	}
+
+	function set_x(value:Float):Float {
+		__objectBounds.x = __bounds.x + value;
+		return x = value;
+	}
+
+	function set_y(value:Float):Float {
+		__objectBounds.y = __bounds.y + value;
+		return y = value;
+	}
+
+	function get_height():Float {
+		return __bounds.height;
+	}
+
+	function get_width():Float {
+		return __bounds.width;
+	}
+
+	function set_width(value:Float):Float {
+		var scale = value / __bounds.width;
+		scaleX *= scale;
+		return __bounds.width;
+	}
+
+	function set_height(value:Float):Float {
+		var scale = value / __bounds.height;
+		scaleY *= scale;
+		return __bounds.height;
+	}
+
+	function get_boundsX():Float {
+		return __objectBounds.x;
+	}
+
+	function get_boundsY():Float {
+		return __objectBounds.y;
+	}
+
+	// ============================================================
+	// OVERRIDE METHODS FROM FlxBasic
+	// ============================================================
+
+	override public function update(elapsed:Float):Void {
+		super.update(elapsed);
+		state.update(elapsed);
+		state.apply(skeleton);
+		this.beforeUpdateWorldTransforms(this);
+		skeleton.update(elapsed);
+		skeleton.updateWorldTransform(Physics.update);
+		this.afterUpdateWorldTransforms(this);
+	}
+
+	override public function draw():Void {
+		if (alpha == 0)
+			return;
+
+		renderMeshes();
+
+		#if FLX_DEBUG
+		if (FlxG.debugger.drawDebug)
+			__objectBounds.drawDebug();
+		#end
+	}
+
+	override public function destroy():Void {
+		state.clearListeners();
+		state = null;
+		skeleton = null;
+
+		_tempVertices = null;
+		_quadTriangles = null;
+		_tempMatrix = null;
+		_tempPoint = null;
+
+		if (_meshes != null) {
+			for (mesh in _meshes)
+				mesh.destroy();
+			_meshes = null;
+		}
+
+		super.destroy();
+	}
+
+	// ============================================================
+	// OVERLAP/COLLISION METHODS
+	// ============================================================
+
+	public function overlaps(objectOrGroup:FlxBasic, inScreenSpace:Bool = false, ?camera:FlxCamera):Bool {
+		return __objectBounds.overlaps(objectOrGroup, inScreenSpace, camera);
+	}
+
+	public function overlapsAt(x:Float, y:Float, objectOrGroup:FlxBasic, inScreenSpace = false, ?camera:FlxCamera):Bool {
+		return __objectBounds.overlapsAt(x, y, objectOrGroup, inScreenSpace, camera);
+	}
+
+	public function overlapsPoint(point:FlxPoint, inScreenSpace = false, ?camera:FlxCamera):Bool {
+		return __objectBounds.overlapsPoint(point, inScreenSpace, camera);
+	}
+
+	// ============================================================
+	// BOUNDS/POSITION METHODS
+	// ============================================================
+
+	public function inWorldBounds():Bool {
+		return __objectBounds.inWorldBounds();
+	}
+
+	public function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint {
+		return __objectBounds.getScreenPosition(result, camera);
+	}
+
+	public function getPosition(?result:FlxPoint):FlxPoint {
+		return __objectBounds.getPosition(result);
+	}
+
+	public function getMidpoint(?point:FlxPoint):FlxPoint {
+		return __objectBounds.getMidpoint(point);
+	}
+
+	public function getHitbox(?rect:FlxRect):FlxRect {
+		return __objectBounds.getHitbox(rect);
+	}
+
+	public function getRotatedBounds(?newRect:FlxRect):FlxRect {
+		return __objectBounds.getRotatedBounds(newRect);
+	}
+
+	// ============================================================
+	// STATE METHODS
+	// ============================================================
+
+	public function reset(x:Float, y:Float):Void {
+		__objectBounds.reset(x, y);
+	}
+
+	public function isOnScreen(?camera:FlxCamera):Bool {
+		return __objectBounds.isOnScreen(camera);
+	}
+
+	public function isPixelPerfectRender(?camera:FlxCamera):Bool {
+		return __objectBounds.isPixelPerfectRender(camera);
+	}
+
+	public function isTouching(direction:FlxDirectionFlags):Bool {
+		return __objectBounds.isTouching(direction);
+	}
+
+	public function justTouched(direction:FlxDirectionFlags):Bool {
+		return __objectBounds.justTouched(direction);
+	}
+
+	// ============================================================
+	// UTILITY METHODS
+	// ============================================================
+
+	public inline function screenCenter(axes:FlxAxes = XY):SkeletonSprite {
+		if (axes.x)
+			x = (FlxG.width - __bounds.width) / 2 - __bounds.x;
+
+		if (axes.y)
+			y = (FlxG.height - __bounds.height) / 2 - __bounds.y;
+
+		return this;
+	}
+
+	public function setPosition(x = 0.0, y = 0.0):Void {
+		this.x = x;
+		this.y = y;
+	}
+
+	public function setSize(width:Float, height:Float):Void {
+		this.width = width;
+		this.height = height;
 	}
 }
 

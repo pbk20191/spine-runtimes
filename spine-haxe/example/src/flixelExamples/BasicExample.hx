@@ -57,8 +57,7 @@ class BasicExample extends FlxState {
 		animationStateData.defaultMix = 0.25;
 
 		skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
-		var animation = skeletonSprite.state.setAnimationByName(0, "walk", true).animation;
-		skeletonSprite.setBoundingBox(animation);
+		// skeletonSprite.state.setAnimationByName(0, "walk", true);
 		skeletonSprite.screenCenter();
 		add(skeletonSprite);
 

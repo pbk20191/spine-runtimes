@@ -46,7 +46,7 @@ class CloudPotExample extends FlxState {
 	override public function create():Void {
 		FlxG.cameras.bgColor = 0xffa1b2b0;
 
-		var button = new FlxButton(0, 0, "Next scene", () -> FlxG.switchState(() -> new AnimationBoundExample()));
+		var button = new FlxButton(0, 0, "Next scene", () -> FlxG.switchState(() -> new BoundsProviderExample()));
 		button.setPosition(FlxG.width * .75, FlxG.height / 10);
 		add(button);
 

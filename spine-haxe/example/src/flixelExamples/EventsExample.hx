@@ -68,9 +68,6 @@ class EventsExample extends FlxState {
 		skeletonSprite.state.setAnimationByName(0, "walk", true);
 
 		var trackEntry = skeletonSprite.state.addAnimationByName(0, "run", true, 3);
-		skeletonSprite.setBoundingBox(trackEntry.animation);
-
-		skeletonSprite.setBoundingBox();
 		skeletonSprite.screenCenter();
 		skeletonSprite.skeleton.setupPoseBones();
 		add(skeletonSprite);

@@ -59,7 +59,6 @@ class SequenceExample extends FlxState {
 		skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
 
 		var animation = skeletonSprite.state.setAnimationByName(0, "flying", true).animation;
-		skeletonSprite.setBoundingBox(animation);
 		skeletonSprite.screenCenter();
 		add(skeletonSprite);
 		super.create();

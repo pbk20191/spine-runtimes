@@ -29,6 +29,7 @@
 
 package flixelExamples;
 
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import flixel.util.FlxColor;
 import flixel.text.FlxText;
 import spine.Skin;
@@ -42,7 +43,7 @@ import spine.SkeletonData;
 import spine.animation.AnimationStateData;
 import spine.atlas.TextureAtlas;
 
-class AnimationBoundExample extends FlxState {
+class BoundsProviderExample extends FlxState {
 	var loadBinary = true;
 
 	override public function create():Void {
@@ -60,38 +61,34 @@ class AnimationBoundExample extends FlxState {
 		var animationStateData = new AnimationStateData(data);
 		animationStateData.defaultMix = 0.25;
 
-		var skeletonSpriteClipping = new SkeletonSprite(data, animationStateData);
-		var animationClipping = skeletonSpriteClipping.state.setAnimationByName(0, "portal", true).animation;
-		skeletonSpriteClipping.update(0);
-		skeletonSpriteClipping.setBoundingBox(animationClipping, true);
+		var skeletonSpriteClipping = new SkeletonSprite(data, animationStateData, new SkinsAndAnimationBoundsProvider("portal", null, null, true));
+		skeletonSpriteClipping.state.setAnimationByName(0, "portal", true);
 		skeletonSpriteClipping.screenCenter();
-		skeletonSpriteClipping.x = FlxG.width / 4 - skeletonSpriteClipping.width / 2;
+		skeletonSpriteClipping.x = FlxG.width / 4;
 		add(skeletonSpriteClipping);
 		var textClipping = new FlxText();
-		textClipping.text = "Animation bound with clipping";
+		textClipping.text = "Bounds with clipping";
 		textClipping.size = 12;
-		textClipping.x = skeletonSpriteClipping.x + skeletonSpriteClipping.width / 2 - textClipping.width / 2;
-		textClipping.y = skeletonSpriteClipping.y + skeletonSpriteClipping.height + 20;
+		textClipping.x = skeletonSpriteClipping.boundsX + skeletonSpriteClipping.width / 2 - textClipping.width / 2;
+		textClipping.y = skeletonSpriteClipping.boundsY + skeletonSpriteClipping.height + 20;
 		textClipping.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.RED, 2);
 		add(textClipping);
 
-		var skeletonSpriteNoClipping = new SkeletonSprite(data, animationStateData);
-		var animationClipping = skeletonSpriteNoClipping.state.setAnimationByName(0, "portal", true).animation;
-		skeletonSpriteNoClipping.update(0);
-		skeletonSpriteNoClipping.setBoundingBox(animationClipping, false);
+		var skeletonSpriteNoClipping = new SkeletonSprite(data, animationStateData, new SkinsAndAnimationBoundsProvider("portal"));
+		skeletonSpriteNoClipping.state.setAnimationByName(0, "portal", true);
 		skeletonSpriteNoClipping.screenCenter();
-		skeletonSpriteNoClipping.x = FlxG.width / 4 * 3 - skeletonSpriteClipping.width / 2 - 50;
+		skeletonSpriteNoClipping.x = FlxG.width / 4 * 3;
 		add(skeletonSpriteNoClipping);
 		var textNoClipping = new FlxText();
-		textNoClipping.text = "Animation bound without clipping";
+		textNoClipping.text = "Bounds without clipping";
 		textNoClipping.size = 12;
-		textNoClipping.x = skeletonSpriteNoClipping.x + skeletonSpriteNoClipping.width / 2 - textNoClipping.width / 2;
-		textNoClipping.y = skeletonSpriteNoClipping.y + skeletonSpriteNoClipping.height + 20;
+		textNoClipping.x = skeletonSpriteNoClipping.boundsX + skeletonSpriteNoClipping.width / 2 - textNoClipping.width / 2;
+		textNoClipping.y = skeletonSpriteNoClipping.boundsY + skeletonSpriteNoClipping.height + 20;
 		textNoClipping.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.RED, 2);
 		add(textNoClipping);
 
 		var textInstruction = new FlxText();
-		textInstruction.text = "Red rectangle is the animation bound";
+		textInstruction.text = "Red rectangle is the Spine provider bounds";
 		textInstruction.size = 12;
 		textInstruction.screenCenter();
 		textInstruction.y = textNoClipping.y + 40;
