@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Name: snowglobe-pro_SkeletonData
   m_EditorClassIdentifier: 
   atlasAssets:
-  - {fileID: 11400000, guid: b9e4a2caef534b644a5daf4e4b7da32a, type: 2}
+  - {fileID: 0}
   scale: 0.01
   skeletonJSON: {fileID: 4900000, guid: 3c5679bf3b085444a862aa6d3ebe97ad, type: 3}
   isUpgradingBlendModeMaterials: 0
