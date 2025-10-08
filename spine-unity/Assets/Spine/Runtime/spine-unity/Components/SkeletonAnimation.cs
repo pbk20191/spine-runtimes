@@ -416,7 +416,7 @@ namespace Spine.Unity {
 
 #if UNITY_EDITOR
 		protected void UpdatePropertyToCurrentAnimationEditor () {
-			if (state.Tracks.Count == 0)
+			if (state.Tracks.Count == 0 || state.Tracks.Items[0] == null)
 				return;
 			Animation currentAnimation = state.Tracks.Items[0].Animation;
 			animationName = currentAnimation == null ? "<None>" : currentAnimation.Name;
