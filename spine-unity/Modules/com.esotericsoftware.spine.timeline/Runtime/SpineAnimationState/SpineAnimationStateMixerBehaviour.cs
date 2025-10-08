@@ -239,9 +239,9 @@ namespace Spine.Unity.Playables {
 			if (numStartingClips > 0) {
 				if (skeletonAnimation) {
 					skeletonAnimation.Update(0);
-					skeletonAnimation.LateUpdate();
+					skeletonAnimation.Renderer.LateUpdate();
 				} else if (skeletonGraphic) {
-					skeletonGraphic.Update(0);
+					skeletonGraphic.Animation.Update(0);
 					skeletonGraphic.LateUpdate();
 				}
 			}
@@ -364,8 +364,8 @@ namespace Spine.Unity.Playables {
 
 				skeleton.UpdateWorldTransform(Physics.Update);
 				if (skeletonAnimation) {
-					skeletonAnimation.AfterAnimationApplied();
-					skeletonAnimation.LateUpdate();
+					skeletonAnimation.Renderer.AfterAnimationApplied();
+					skeletonAnimation.Renderer.LateUpdate();
 				} else if (skeletonGraphic) {
 					skeletonGraphic.AfterAnimationApplied();
 					skeletonGraphic.LateUpdate();
