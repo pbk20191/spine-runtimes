@@ -552,7 +552,9 @@ namespace Spine.Unity.Editor {
 				Undo.RecordObject(skeletonGraphic, "Change Offset to Pivot");
 				Vector3 localScaledOffset = skeletonGraphic.transform.InverseTransformPoint(newWorldSpacePosition);
 				skeletonGraphic.SetScaledPivotOffset(localScaledOffset);
-				skeletonGraphic.UpdateMeshToInstructions();
+
+				skeletonGraphic.UpdateBuffersToInstructions(true);
+				skeletonGraphic.UpdateMeshAndMaterialsToBuffers();
 			}
 			Handles.DrawSolidDisc(newWorldSpacePosition, skeletonGraphic.transform.forward, discSize);
 			Handles.color = savedColor;

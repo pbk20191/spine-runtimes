@@ -336,18 +336,26 @@
 
 - **Officially supported Unity versions are 2017.1-6000.1**.
 
-- **Additions**
-  - Added Spine Preferences `Switch Texture Workflow` functionality to quickly switch to the respective PMA or straight-alpha texture and material presets.
-  - Added a workflow mismatch dialog showing whenever problematic PMA vs. straight alpha settings are detected at a newly imported `.atlas.txt` file. Invalid settings include the atlas being PMA and project using Linear color space, and a mismatch of Auto-Import presets set to straight alpha compared to the atlas being PMA and vice versa. The dialog offers an option to automatically fix the problematic setting on the import side and links website documentation for export settings. This dialog can be disabled and re-enabled via Spine preferences.
-
 - **Breaking changes**
   - Updated to use new C# runtime with all breaking changes above
+  - **MAJOR ARCHITECTURE CHANGE: Main skeleton components have been split into separate rendering and animation components.** Components will be automatically upgraded when scenes/prefabs are opened in the Unity Editor. See the `Documentation/4.3-split-component-upgrade-guide.md` document for detailed migration instructions. The major changes are:
+    - `SkeletonAnimation` is now split into `SkeletonAnimation` + `SkeletonRenderer` components
+    - `SkeletonMecanim` is now split into `SkeletonMecanim` + `SkeletonRenderer` components
+    - `SkeletonGraphic` is now split into `SkeletonAnimation` + `SkeletonGraphic` components
   - Example skeletons in Spine Examples are now using straight alpha textures and materials for better compatibility with Linear colorspace.
   - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace, thus might clash with `UnityEngine.Physics`.
     - Spine Physics: `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
     - UnityEngine Physics: `Physics.gravity` → `UnityEngine.Physics.gravity`.
 - **Changes of default values**
   - Changed default atlas texture workflow from PMA to straight alpha textures. This move was done because straight alpha textures are compatible with both Gamma and Linear color space, with the latter being the default for quite some time now in Unity. Note that `PMA Vertex Color` is unaffected and shall be enabled as usual to allow for single-pass additive rendering.
+
+- **Additions**
+  - Added Spine Preferences `Switch Texture Workflow` functionality to quickly switch to the respective PMA or straight-alpha texture and material presets.
+  - Added a workflow mismatch dialog showing whenever problematic PMA vs. straight alpha settings are detected at a newly imported `.atlas.txt` file. Invalid settings include the atlas being PMA and project using Linear color space, and a mismatch of Auto-Import presets set to straight alpha compared to the atlas being PMA and vice versa. The dialog offers an option to automatically fix the problematic setting on the import side and links website documentation for export settings. This dialog can be disabled and re-enabled via Spine preferences.
+  - Added threading support for all skeleton rendering and animation components, disabled by default. Threading can be activated per component or globally via Edit → Preferences → Spine → Threading Defaults. Two threading options are available:
+    - `Threaded MeshGeneration`: Default value for SkeletonRenderer and SkeletonGraphic threaded mesh generation
+    - `Threaded Animation`: Default value for SkeletonAnimation and SkeletonMecanim threaded animation updates  
+  - Even when threading is enabled, the threading system defaults to user callbacks like `UpdateWorld` being issued on the main thread to support existing user code. Can be configured via `SkeletonUpdateSystem.Instance.MainThreadUpdateCallbacks = false` to perform callbacks on worker threads if parallel execution is supported and desired by the user code. Note that most Unity API calls are restricted to the main thread.
 
 - **Deprecated**
 

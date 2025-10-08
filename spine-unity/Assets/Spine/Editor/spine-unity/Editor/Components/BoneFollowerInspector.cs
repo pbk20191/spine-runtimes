@@ -63,7 +63,7 @@ namespace Spine.Unity.Editor {
 		[MenuItem("CONTEXT/SkeletonRenderer/Add BoneFollower GameObject", true)]
 		static bool ValidateAddBoneFollowerGameObject (MenuCommand cmd) {
 			SkeletonRenderer skeletonRenderer = cmd.context as SkeletonRenderer;
-			return skeletonRenderer.valid;
+			return skeletonRenderer.IsValid;
 		}
 
 		[MenuItem("CONTEXT/BoneFollower/Rename BoneFollower GameObject")]
@@ -109,7 +109,7 @@ namespace Spine.Unity.Editor {
 			if (skeletonRendererComponent == null) return;
 
 			Transform transform = skeletonRendererComponent.transform;
-			Skeleton skeleton = skeletonRendererComponent.skeleton;
+			Skeleton skeleton = skeletonRendererComponent.Skeleton;
 
 			if (string.IsNullOrEmpty(boneName.stringValue)) {
 				SpineHandles.DrawBones(transform, skeleton);
@@ -200,10 +200,10 @@ namespace Spine.Unity.Editor {
 				} else {
 					boneFollowerSkeletonRenderer.Initialize(false);
 
-					if (boneFollowerSkeletonRenderer.skeletonDataAsset == null)
+					if (boneFollowerSkeletonRenderer.SkeletonDataAsset == null)
 						EditorGUILayout.HelpBox("Assigned SkeletonRenderer does not have SkeletonData assigned to it.", MessageType.Warning);
 
-					if (!boneFollowerSkeletonRenderer.valid)
+					if (!boneFollowerSkeletonRenderer.IsValid)
 						EditorGUILayout.HelpBox("Assigned SkeletonRenderer is invalid. Check target SkeletonRenderer, its SkeletonData asset or the console for other errors.", MessageType.Warning);
 				}
 			}

@@ -39,7 +39,7 @@ namespace Spine.Unity.Editor {
 
 	[CustomEditor(typeof(SpineSpriteAtlasAsset)), CanEditMultipleObjects]
 	public class SpineSpriteAtlasAssetInspector : UnityEditor.Editor {
-		SerializedProperty atlasFile, materials;
+		SerializedProperty atlasFile, materials, materialOverrides;
 		SpineSpriteAtlasAsset atlasAsset;
 
 		static List<AtlasRegion> GetRegions (Atlas atlas) {
@@ -52,6 +52,7 @@ namespace Spine.Unity.Editor {
 			atlasFile = serializedObject.FindProperty("spriteAtlasFile");
 			materials = serializedObject.FindProperty("materials");
 			materials.isExpanded = true;
+			materialOverrides = serializedObject.FindProperty("materialOverrides");
 			atlasAsset = (SpineSpriteAtlasAsset)target;
 
 			if (!SpineSpriteAtlasAsset.AnySpriteAtlasNeedsRegionsLoaded())
@@ -82,6 +83,7 @@ namespace Spine.Unity.Editor {
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(atlasFile);
 			EditorGUILayout.PropertyField(materials, true);
+			EditorGUILayout.PropertyField(materialOverrides, true);
 			if (EditorGUI.EndChangeCheck()) {
 				serializedObject.ApplyModifiedProperties();
 				atlasAsset.Clear();

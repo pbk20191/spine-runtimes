@@ -30,13 +30,17 @@
 #if UNITY_2018_3 || UNITY_2019 || UNITY_2018_3_OR_NEWER
 #define NEW_PREFAB_SYSTEM
 #endif
-#define SPINE_OPTIONAL_MATERIALOVERRIDE
+
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
 
 // Contributed by: Lost Polygon
 
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Spine.Unity {
 #if NEW_PREFAB_SYSTEM
@@ -45,7 +49,7 @@ namespace Spine.Unity {
 	[ExecuteInEditMode]
 #endif
 	[HelpURL("https://esotericsoftware.com/spine-unity-utility-components#SkeletonRendererCustomMaterials")]
-	public class SkeletonRendererCustomMaterials : MonoBehaviour {
+	public class SkeletonRendererCustomMaterials : MonoBehaviour, IUpgradable {
 
 		#region Inspector
 		public SkeletonRenderer skeletonRenderer;
@@ -53,6 +57,14 @@ namespace Spine.Unity {
 		[SerializeField] protected List<AtlasMaterialOverride> customMaterialOverrides = new List<AtlasMaterialOverride>();
 
 #if UNITY_EDITOR
+#if AUTO_UPGRADE_TO_43_COMPONENTS
+		public void Awake () {
+			if (!Application.isPlaying && !wasUpgradedTo43) {
+				UpgradeTo43();
+			}
+		}
+#endif
+
 		void Reset () {
 			skeletonRenderer = GetComponent<SkeletonRenderer>();
 
@@ -127,7 +139,6 @@ namespace Spine.Unity {
 				return;
 			}
 
-#if SPINE_OPTIONAL_MATERIALOVERRIDE
 			for (int i = 0; i < customMaterialOverrides.Count; i++) {
 				AtlasMaterialOverride atlasMaterialOverride = customMaterialOverrides[i];
 				if (atlasMaterialOverride.overrideDisabled)
@@ -135,7 +146,6 @@ namespace Spine.Unity {
 
 				skeletonRenderer.CustomMaterialOverride[atlasMaterialOverride.originalMaterial] = atlasMaterialOverride.replacementMaterial;
 			}
-#endif
 		}
 
 		void RemoveCustomMaterialOverrides () {
@@ -144,7 +154,6 @@ namespace Spine.Unity {
 				return;
 			}
 
-#if SPINE_OPTIONAL_MATERIALOVERRIDE
 			for (int i = 0; i < customMaterialOverrides.Count; i++) {
 				AtlasMaterialOverride atlasMaterialOverride = customMaterialOverrides[i];
 				Material currentMaterial;
@@ -158,7 +167,6 @@ namespace Spine.Unity {
 
 				skeletonRenderer.CustomMaterialOverride.Remove(atlasMaterialOverride.originalMaterial);
 			}
-#endif
 		}
 
 		// OnEnable applies the overrides at runtime, and when the editor loads.
@@ -210,5 +218,22 @@ namespace Spine.Unity {
 				return overrideDisabled == other.overrideDisabled && originalMaterial == other.originalMaterial && replacementMaterial == other.replacementMaterial;
 			}
 		}
+
+		#region Transfer of Deprecated Fields
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		public virtual void UpgradeTo43 () {
+			wasUpgradedTo43 = true;
+			if (skeletonRenderer == null) {
+				Component previousReference = previousSkeletonRenderer != null ? previousSkeletonRenderer : this;
+				skeletonRenderer = previousReference.GetComponent<SkeletonRenderer>();
+				if (skeletonRenderer == null)
+					Debug.LogError("Please manually re-assign SkeletonRenderer at SkeletonRendererCustomMaterials, " +
+						"automatic upgrade failed.", this);
+			}
+		}
+		[SerializeField, HideInInspector, FormerlySerializedAs("skeletonRenderer")] Component previousSkeletonRenderer;
+		[SerializeField] protected bool wasUpgradedTo43 = false;
+#endif
+		#endregion
 	}
 }

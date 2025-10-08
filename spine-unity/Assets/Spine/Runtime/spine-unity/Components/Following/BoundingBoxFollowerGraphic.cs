@@ -80,7 +80,7 @@ namespace Spine.Unity {
 			Initialize();
 		}
 
-		void HandleRebuild (SkeletonGraphic sr) {
+		void HandleRebuild (ISkeletonRenderer sr) {
 			//if (BoundingBoxFollowerGraphic.DebugMessages) Debug.Log("Skeleton was rebuilt. Repopulating BoundingBoxFollowerGraphic.");
 			Initialize();
 		}

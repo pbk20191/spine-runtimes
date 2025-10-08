@@ -27,7 +27,12 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Spine.Unity {
 
@@ -37,7 +42,7 @@ namespace Spine.Unity {
 	/// Note: This component is automatically attached when calling "Create Hinge Chain 2D" at <see cref="SkeletonUtilityBone"/>,
 	/// do not attempt to use this component for other purposes.
 	/// </summary>
-	public class ActivateBasedOnFlipDirection : MonoBehaviour {
+	public class ActivateBasedOnFlipDirection : MonoBehaviour, IUpgradable {
 
 		public SkeletonRenderer skeletonRenderer;
 		public SkeletonGraphic skeletonGraphic;
@@ -48,6 +53,14 @@ namespace Spine.Unity {
 		ISkeletonComponent skeletonComponent;
 
 		bool wasFlippedXBefore = false;
+
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		protected void Awake () {
+			if (!Application.isPlaying && !wasUpgradedTo43) {
+				UpgradeTo43();
+			}
+		}
+#endif
 
 		private void Start () {
 			jointsNormalX = activeOnNormalX.GetComponentsInChildren<HingeJoint2D>();
@@ -88,5 +101,22 @@ namespace Spine.Unity {
 			Transform currentLocation = toActivate.GetChild(0);
 			toActivate.position += targetLocation.position - currentLocation.position;
 		}
+
+		#region Transfer of Deprecated Fields
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		public virtual void UpgradeTo43 () {
+			wasUpgradedTo43 = true;
+			if (skeletonRenderer == null && skeletonGraphic == null) {
+				Component previousReference = previousSkeletonRenderer != null ? previousSkeletonRenderer : this;
+				skeletonRenderer = previousReference.GetComponent<SkeletonRenderer>();
+				if (skeletonRenderer == null)
+					Debug.LogError("Please manually re-assign SkeletonRenderer at ActivateBasedOnFlipDirection, " +
+						"automatic upgrade failed.", this);
+			}
+		}
+		[SerializeField, HideInInspector, FormerlySerializedAs("skeletonRenderer")] Component previousSkeletonRenderer;
+		[SerializeField] protected bool wasUpgradedTo43 = false;
+#endif
+		#endregion
 	}
 }

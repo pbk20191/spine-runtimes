@@ -27,6 +27,8 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
+#define USE_THREADED_ANIMATION_UPDATE
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -58,10 +60,14 @@ namespace Spine.Unity.Examples {
 			if (audioSource == null) return;
 			if (skeletonAnimation == null) return;
 			skeletonAnimation.Initialize(false);
-			if (!skeletonAnimation.valid) return;
+			if (!skeletonAnimation.IsValid) return;
 
 			eventData = skeletonAnimation.Skeleton.Data.FindEvent(eventName);
+#if USE_THREADED_ANIMATION_UPDATE
+			skeletonAnimation.MainThreadEvent += HandleAnimationStateEvent;
+#else
 			skeletonAnimation.AnimationState.Event += HandleAnimationStateEvent;
+#endif
 		}
 
 		private void HandleAnimationStateEvent (TrackEntry trackEntry, Event e) {

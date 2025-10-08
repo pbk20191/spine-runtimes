@@ -31,8 +31,13 @@
 #define NEW_PREFAB_SYSTEM
 #endif
 
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Spine.Unity {
 
@@ -44,7 +49,7 @@ namespace Spine.Unity {
 #endif
 	[AddComponentMenu("Spine/BoneFollower")]
 	[HelpURL("https://esotericsoftware.com/spine-unity-utility-components#BoneFollower")]
-	public class BoneFollower : MonoBehaviour {
+	public class BoneFollower : MonoBehaviour, IUpgradable {
 
 		#region Inspector
 		public SkeletonRenderer skeletonRenderer;
@@ -107,10 +112,15 @@ namespace Spine.Unity {
 		}
 
 		public void Awake () {
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+			if (!Application.isPlaying && !wasUpgradedTo43) {
+				UpgradeTo43();
+			}
+#endif
 			if (initializeOnAwake) Initialize();
 		}
 
-		public void HandleRebuildRenderer (SkeletonRenderer skeletonRenderer) {
+		public void HandleRebuildRenderer (ISkeletonRenderer skeletonRenderer) {
 			Initialize();
 		}
 
@@ -126,7 +136,6 @@ namespace Spine.Unity {
 
 			if (!string.IsNullOrEmpty(boneName))
 				bone = skeletonRenderer.skeleton.FindBone(boneName);
-
 #if UNITY_EDITOR
 			if (Application.isEditor)
 				LateUpdate();
@@ -248,5 +257,22 @@ namespace Spine.Unity {
 			if (boneIndex < 0) return 0f;
 			return skeletonRenderer.zSpacing * boneIndex;
 		}
+
+		#region Transfer of Deprecated Fields
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		public virtual void UpgradeTo43 () {
+			wasUpgradedTo43 = true;
+			if (skeletonRenderer == null) {
+				Component previousReference = previousSkeletonRenderer != null ? previousSkeletonRenderer : this;
+				skeletonRenderer = previousReference.GetComponent<SkeletonRenderer>();
+				if (skeletonRenderer == null)
+					Debug.LogError("Please manually re-assign SkeletonRenderer at BoneFollower, " +
+						"automatic upgrade failed.", this);
+			}
+		}
+		[SerializeField, HideInInspector, FormerlySerializedAs("skeletonRenderer")] Component previousSkeletonRenderer;
+		[SerializeField] protected bool wasUpgradedTo43 = false;
+#endif
+		#endregion
 	}
 }

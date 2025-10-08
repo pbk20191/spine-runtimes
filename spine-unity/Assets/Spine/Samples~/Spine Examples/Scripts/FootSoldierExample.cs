@@ -69,7 +69,7 @@ namespace Spine.Unity.Examples {
 			skeletonAnimation.OnRebuild += Apply;
 		}
 
-		void Apply (SkeletonRenderer skeletonRenderer) {
+		void Apply (ISkeletonRenderer skeletonRenderer) {
 			StartCoroutine(Blink());
 		}
 

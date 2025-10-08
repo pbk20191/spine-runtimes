@@ -84,6 +84,7 @@ namespace Spine.Unity.Editor {
 
 	public static class SpineBuildEnvUtility {
 		public const string SPINE_ALLOW_UNSAFE_CODE = "SPINE_ALLOW_UNSAFE";
+		public const string SPINE_AUTO_UPGRADE_COMPONENTS_OFF = "SPINE_AUTO_UPGRADE_COMPONENTS_OFF";
 
 		static bool IsInvalidGroup (BuildTargetGroup group) {
 			int gi = (int)group;

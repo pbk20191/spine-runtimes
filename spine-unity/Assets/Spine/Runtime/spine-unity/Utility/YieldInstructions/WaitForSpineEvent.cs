@@ -88,7 +88,7 @@ namespace Spine.Unity {
 
 		public WaitForSpineEvent (SkeletonAnimation skeletonAnimation, Spine.EventData eventDataReference, bool unsubscribeAfterFiring = true) {
 			// If skeletonAnimation is invalid, its state will be null. Subscribe handles null states just fine.
-			Subscribe(skeletonAnimation.state, eventDataReference, unsubscribeAfterFiring);
+			Subscribe(skeletonAnimation.AnimationState, eventDataReference, unsubscribeAfterFiring);
 		}
 
 		public WaitForSpineEvent (Spine.AnimationState state, string eventName, bool unsubscribeAfterFiring = true) {
@@ -97,7 +97,7 @@ namespace Spine.Unity {
 
 		public WaitForSpineEvent (SkeletonAnimation skeletonAnimation, string eventName, bool unsubscribeAfterFiring = true) {
 			// If skeletonAnimation is invalid, its state will be null. Subscribe handles null states just fine.
-			SubscribeByName(skeletonAnimation.state, eventName, unsubscribeAfterFiring);
+			SubscribeByName(skeletonAnimation.AnimationState, eventName, unsubscribeAfterFiring);
 		}
 		#endregion
 

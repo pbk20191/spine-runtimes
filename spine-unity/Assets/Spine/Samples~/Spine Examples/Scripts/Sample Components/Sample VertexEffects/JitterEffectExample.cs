@@ -27,6 +27,9 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
+#define USE_THREADED_SKELETON_UPDATE
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -38,7 +41,6 @@ namespace Spine.Unity.Examples {
 	// than using this API, but in cases where your vertex effect logic cannot be
 	// expressed as shader code, these vertex effects can be useful.
 	public class JitterEffectExample : MonoBehaviour {
-
 		[Range(0f, 0.8f)]
 		public float jitterMagnitude = 0.2f;
 
@@ -55,16 +57,38 @@ namespace Spine.Unity.Examples {
 			Debug.Log("Jitter Effect Enabled.");
 		}
 
-		void ProcessVertices (MeshGeneratorBuffers buffers) {
-			if (!this.enabled) return;
+#if USE_THREADED_SKELETON_UPDATE
+		[ThreadStatic]
+		private static System.Random threadRandom;
+		private static System.Random ThreadRandom {
+			get {
+				if (threadRandom == null)
+					threadRandom = new System.Random();
+				return threadRandom;
+			}
+		}
 
+		Vector2 RandomInsideUnitCircle () {
+			float length = (float)ThreadRandom.NextDouble();
+			float angle = (float)ThreadRandom.NextDouble() * (2f * Mathf.PI);
+			float x = Mathf.Cos(angle);
+			float y = Mathf.Sin(angle);
+			return new Vector2(x, y) * length;
+		}
+#else
+		Vector2 RandomInsideUnitCircle () {
+			return UnityEngine.Random.insideUnitCircle;
+		}
+#endif
+
+		void ProcessVertices (MeshGeneratorBuffers buffers) {
 			// For efficiency, limit your effect to the actual mesh vertex count using vertexCount
 			int vertexCount = buffers.vertexCount;
 
 			// Modify vertex positions by accessing Vector3[] vertexBuffer
 			Vector3[] vertices = buffers.vertexBuffer;
 			for (int i = 0; i < vertexCount; i++)
-				vertices[i] += (Vector3)(Random.insideUnitCircle * jitterMagnitude);
+				vertices[i] += (Vector3)(RandomInsideUnitCircle() * jitterMagnitude);
 
 			// You can also modify uvs and colors.
 			//Vector2[] uvs = buffers.uvBuffer;

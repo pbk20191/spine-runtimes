@@ -42,7 +42,7 @@ namespace Spine.Unity.Editor {
 
 	[CustomEditor(typeof(SpineAtlasAsset)), CanEditMultipleObjects]
 	public class SpineAtlasAssetInspector : UnityEditor.Editor {
-		SerializedProperty atlasFile, materials, textureLoadingMode, onDemandTextureLoader;
+		SerializedProperty atlasFile, materials, materialOverrides, textureLoadingMode, onDemandTextureLoader;
 		SpineAtlasAsset atlasAsset;
 
 		GUIContent spriteSlicesLabel;
@@ -73,6 +73,7 @@ namespace Spine.Unity.Editor {
 			textureLoadingMode = serializedObject.FindProperty("textureLoadingMode");
 			onDemandTextureLoader = serializedObject.FindProperty("onDemandTextureLoader");
 			materials.isExpanded = true;
+			materialOverrides = serializedObject.FindProperty("serializedMaterialOverrides");
 			atlasAsset = (SpineAtlasAsset)target;
 #if REGION_BAKING_MESH
 			UpdateBakedList();
@@ -134,12 +135,14 @@ namespace Spine.Unity.Editor {
 				}
 			}
 
+			EditorGUILayout.PropertyField(materialOverrides, true);
+
 			if (textureLoadingMode != null) {
 				EditorGUILayout.Space();
 				EditorGUILayout.PropertyField(textureLoadingMode);
 				EditorGUILayout.PropertyField(onDemandTextureLoader);
 			}
-
+			
 			EditorGUILayout.Space();
 			if (SpineInspectorUtility.LargeCenteredButton(SpineInspectorUtility.TempContent("Set Mipmap Bias to " + SpinePreferences.DEFAULT_MIPMAPBIAS, tooltip: "This may help textures with mipmaps be less blurry when used for 2D sprites."))) {
 				foreach (Material m in atlasAsset.materials) {

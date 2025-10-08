@@ -167,7 +167,7 @@ namespace Spine.Unity.Examples {
 
 		RaycastHit2D[] hits = new RaycastHit2D[1];
 
-		private void UpdateLocal (ISkeletonAnimation animated) {
+		private void UpdateLocal (ISkeletonRenderer skeletonRenderer) {
 			Transform thisTransform = transform;
 
 			Vector2 thisTransformPosition = thisTransform.position;

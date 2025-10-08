@@ -33,20 +33,25 @@ using UnityEngine;
 public class SkeletonGraphicPlayAnimationAtEvent : MonoBehaviour {
 
 	public SkeletonGraphic skeletonGraphic;
+	public SkeletonAnimation skeletonAnimation;
 	public int trackIndex = 0;
 	public float playbackSpeed = 1.0f;
 
+	public void Awake () {
+		if (skeletonAnimation == null)
+			skeletonAnimation = skeletonGraphic.GetComponent<SkeletonAnimation>();
+	}
 	public void PlayAnimationLooping (string animation) {
-		Spine.TrackEntry entry = skeletonGraphic.AnimationState.SetAnimation(trackIndex, animation, true);
+		Spine.TrackEntry entry = skeletonAnimation.AnimationState.SetAnimation(trackIndex, animation, true);
 		entry.TimeScale = playbackSpeed;
 	}
 
 	public void PlayAnimationOnce (string animation) {
-		Spine.TrackEntry entry = skeletonGraphic.AnimationState.SetAnimation(trackIndex, animation, false);
+		Spine.TrackEntry entry = skeletonAnimation.AnimationState.SetAnimation(trackIndex, animation, false);
 		entry.TimeScale = playbackSpeed;
 	}
 
 	public void ClearTrack () {
-		skeletonGraphic.AnimationState.ClearTrack(trackIndex);
+		skeletonAnimation.AnimationState.ClearTrack(trackIndex);
 	}
 }

@@ -139,7 +139,7 @@ namespace Spine.Unity {
 			bool isProblematic = false;
 			if (material) {
 				isProblematic |= IsMaterialSetupProblematic(material, ref errorMessage);
-				MeshGenerator.Settings settings = skeletonGraphic.MeshGenerator.settings;
+				MeshGenerator.Settings settings = skeletonGraphic.MeshSettings;
 				if (settings.zSpacing == 0) {
 					isProblematic |= IsZSpacingRequired(material, ref errorMessage);
 				}
@@ -343,7 +343,7 @@ namespace Spine.Unity {
 			Canvas canvas = skeletonGraphic.canvas;
 			if (!canvas)
 				return false;
-			var requiredChannels =
+			AdditionalCanvasShaderChannels requiredChannels =
 				AdditionalCanvasShaderChannels.TexCoord1 |
 				AdditionalCanvasShaderChannels.TexCoord2;
 			return (canvas.additionalShaderChannels & requiredChannels) != requiredChannels;

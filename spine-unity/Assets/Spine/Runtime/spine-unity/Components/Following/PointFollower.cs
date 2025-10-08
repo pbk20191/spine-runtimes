@@ -31,7 +31,12 @@
 #define NEW_PREFAB_SYSTEM
 #endif
 
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Spine.Unity {
 
@@ -42,10 +47,11 @@ namespace Spine.Unity {
 #endif
 	[AddComponentMenu("Spine/Point Follower")]
 	[HelpURL("https://esotericsoftware.com/spine-unity-utility-components#PointFollower")]
-	public class PointFollower : MonoBehaviour, IHasSkeletonRenderer, IHasSkeletonComponent {
+	public class PointFollower : MonoBehaviour, IHasSkeletonRenderer, IHasSkeletonComponent, IUpgradable {
 
 		public SkeletonRenderer skeletonRenderer;
-		public SkeletonRenderer SkeletonRenderer { get { return this.skeletonRenderer; } }
+		public ISkeletonRenderer SkeletonRenderer { get { return this.skeletonRenderer; } }
+		public ISkeletonRenderer Renderer { get { return this.skeletonRenderer; } }
 		public ISkeletonComponent SkeletonComponent { get { return skeletonRenderer as ISkeletonComponent; } }
 
 		[SpineSlot(dataField: "skeletonRenderer", includeNone: true)]
@@ -65,6 +71,14 @@ namespace Spine.Unity {
 		bool valid;
 		public bool IsValid { get { return valid; } }
 
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		protected void Awake () {
+			if (!Application.isPlaying && !wasUpgradedTo43) {
+				UpgradeTo43();
+			}
+		}
+#endif
+
 		public void Initialize () {
 			valid = skeletonRenderer != null && skeletonRenderer.valid;
 			if (!valid)
@@ -77,7 +91,7 @@ namespace Spine.Unity {
 #endif
 		}
 
-		private void HandleRebuildRenderer (SkeletonRenderer skeletonRenderer) {
+		private void HandleRebuildRenderer (ISkeletonRenderer skeletonRenderer) {
 			Initialize();
 		}
 
@@ -162,5 +176,22 @@ namespace Spine.Unity {
 				thisTransform.localScale = localScale;
 			}
 		}
+
+		#region Transfer of Deprecated Fields
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		public virtual void UpgradeTo43 () {
+			wasUpgradedTo43 = true;
+			if (skeletonRenderer == null) {
+				Component previousReference = previousSkeletonRenderer != null ? previousSkeletonRenderer : this;
+				skeletonRenderer = previousReference.GetComponent<SkeletonRenderer>();
+				if (skeletonRenderer == null)
+					Debug.LogError("Please manually re-assign SkeletonRenderer at PointFollower, " +
+						"automatic upgrade failed.", this);
+			}
+		}
+		[SerializeField, HideInInspector, FormerlySerializedAs("skeletonRenderer")] Component previousSkeletonRenderer;
+		[SerializeField] protected bool wasUpgradedTo43 = false;
+#endif
+		#endregion
 	}
 }

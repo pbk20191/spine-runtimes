@@ -89,7 +89,7 @@ namespace Spine.Unity {
 		void LateUpdate () {
 			if (frameskipMeshUpdate && !requiresNewMesh) return;
 
-			skeletonAnimation.LateUpdate();
+			skeletonAnimation.Renderer.LateUpdate();
 			requiresNewMesh = false;
 		}
 	}

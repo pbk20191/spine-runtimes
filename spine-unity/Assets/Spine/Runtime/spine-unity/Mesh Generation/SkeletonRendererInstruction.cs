@@ -139,10 +139,12 @@ namespace Spine.Unity {
 			other.submeshInstructions.CopyTo(this.submeshInstructions.Items);
 		}
 
-		public static bool GeometryNotEqual (SkeletonRendererInstruction a, SkeletonRendererInstruction b) {
+		public static bool GeometryNotEqual (SkeletonRendererInstruction a, SkeletonRendererInstruction b,
+			bool calledFromMainThread = true) {
+
 #if SPINE_TRIANGLECHECK
 #if UNITY_EDITOR
-			if (!Application.isPlaying)
+			if (calledFromMainThread && !Application.isPlaying)
 				return true;
 #endif
 

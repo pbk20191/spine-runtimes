@@ -141,7 +141,7 @@ namespace Spine.Unity.Examples {
 			UpdateMaterials();
 		}
 
-		void UpdateOnCallback (SkeletonRenderer r) {
+		void UpdateOnCallback (ISkeletonRenderer r) {
 			UpdateMaterials();
 		}
 

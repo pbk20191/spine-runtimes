@@ -55,7 +55,7 @@ namespace Spine.Unity.Examples {
 				applyPMA = skeletonRenderer.pmaVertexColors;
 			} else {
 				SkeletonGraphic skeletonGraphic = skeletonComponent as SkeletonGraphic;
-				applyPMA = skeletonGraphic != null && skeletonGraphic.MeshGenerator.settings.pmaVertexColors;
+				applyPMA = skeletonGraphic != null && skeletonGraphic.MeshSettings.pmaVertexColors;
 			}
 
 			if (applyPMA) {
@@ -97,7 +97,7 @@ namespace Spine.Unity.Examples {
 				Attach();
 		}
 
-		void AnimationOverrideSpriteAttach (ISkeletonAnimation animated) {
+		void AnimationOverrideSpriteAttach (ISkeletonRenderer skeletonRenderer) {
 			if (overrideAnimation && isActiveAndEnabled)
 				Attach();
 		}
@@ -105,26 +105,16 @@ namespace Spine.Unity.Examples {
 		public void Initialize (bool overwrite = true) {
 			if (overwrite || attachment == null) {
 				// Get the applyPMA value.
-				ISkeletonComponent skeletonComponent = GetComponent<ISkeletonComponent>();
-				SkeletonRenderer skeletonRenderer = skeletonComponent as SkeletonRenderer;
-				if (skeletonRenderer != null)
-					this.applyPMA = skeletonRenderer.pmaVertexColors;
-				else {
-					SkeletonGraphic skeletonGraphic = skeletonComponent as SkeletonGraphic;
-					if (skeletonGraphic != null)
-						this.applyPMA = skeletonGraphic.MeshGenerator.settings.pmaVertexColors;
-				}
-
-				// Subscribe to UpdateComplete to override animation keys.
-				if (overrideAnimation) {
-					ISkeletonAnimation animatedSkeleton = skeletonComponent as ISkeletonAnimation;
-					if (animatedSkeleton != null) {
-						animatedSkeleton.UpdateComplete -= AnimationOverrideSpriteAttach;
-						animatedSkeleton.UpdateComplete += AnimationOverrideSpriteAttach;
+				ISkeletonRenderer skeletonRenderer = GetComponent<ISkeletonRenderer>();
+				if (skeletonRenderer != null) {
+					this.applyPMA = skeletonRenderer.MeshSettings.pmaVertexColors;
+					// Subscribe to UpdateComplete to override animation keys.
+					if (overrideAnimation) {
+						skeletonRenderer.UpdateComplete -= AnimationOverrideSpriteAttach;
+						skeletonRenderer.UpdateComplete += AnimationOverrideSpriteAttach;
 					}
 				}
-
-				spineSlot = spineSlot ?? skeletonComponent.Skeleton.FindSlot(slot);
+				spineSlot = spineSlot ?? skeletonRenderer.Skeleton.FindSlot(slot);
 				Shader attachmentShader = applyPMA ? Shader.Find(DefaultPMAShader) : Shader.Find(DefaultStraightAlphaShader);
 				if (sprite == null)
 					attachment = null;

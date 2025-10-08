@@ -47,6 +47,10 @@
 #define HAS_ANY_UNSAFE_OPTIONS
 #endif
 
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
@@ -144,6 +148,18 @@ namespace Spine.Unity.Editor {
 			set { workflowMismatchDialog = value; }
 		}
 
+		public bool ShowSplitComponentChangeWarning {
+			get { return splitComponentChangeWarning; }
+			set {
+				if (splitComponentChangeWarning == value) return;
+
+				SerializedObject serializedSettings = new SerializedObject(this);
+				SerializedProperty splitComponentChangeProperty = serializedSettings.FindProperty("splitComponentChangeWarning");
+				splitComponentChangeProperty.boolValue = value;
+				serializedSettings.ApplyModifiedProperties();
+			}
+		}
+
 		internal const bool DEFAULT_APPLY_ADDITIVE_MATERIAL = false;
 		public bool applyAdditiveMaterial = DEFAULT_APPLY_ADDITIVE_MATERIAL;
 
@@ -218,6 +234,9 @@ namespace Spine.Unity.Editor {
 
 		internal const bool DEFAULT_WORKFLOW_MISMATCH_DIALOG = true;
 		public bool workflowMismatchDialog = DEFAULT_WORKFLOW_MISMATCH_DIALOG;
+
+		internal const bool DEFAULT_SPLIT_COMPONENT_CHANGE_WARNING = true;
+		public bool splitComponentChangeWarning = DEFAULT_SPLIT_COMPONENT_CHANGE_WARNING;
 
 		public const float DEFAULT_MIPMAPBIAS = -0.5f;
 
@@ -425,12 +444,41 @@ namespace Spine.Unity.Editor {
 				EditorGUILayout.LabelField("Unsafe Build Defines", EditorStyles.boldLabel);
 				using (new GUILayout.HorizontalScope()) {
 					EditorGUILayout.PrefixLabel(new GUIContent("Direct data access", "Allow unsafe direct data access. Currently affects reading .skel.bytes files, reading with fewer allocations."));
-					if (GUILayout.Button("Enable", GUILayout.Width(64)))
-						SpineBuildEnvUtility.EnableBuildDefine(SpineBuildEnvUtility.SPINE_ALLOW_UNSAFE_CODE);
 					if (GUILayout.Button("Disable", GUILayout.Width(64)))
 						SpineBuildEnvUtility.DisableBuildDefine(SpineBuildEnvUtility.SPINE_ALLOW_UNSAFE_CODE);
+					if (GUILayout.Button("Enable", GUILayout.Width(64)))
+						SpineBuildEnvUtility.EnableBuildDefine(SpineBuildEnvUtility.SPINE_ALLOW_UNSAFE_CODE);
 				}
 #endif
+				GUILayout.Space(20);
+				EditorGUILayout.LabelField("Automatic Component Upgrade", EditorStyles.boldLabel);
+#if SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+				bool upgradeComponentsEnabled = false;
+#else
+				bool upgradeComponentsEnabled = true;
+#endif
+				using (new GUILayout.HorizontalScope()) {
+					EditorGUILayout.PrefixLabel(new GUIContent("Split Component Upgrade", "Allow automatic upgrade of skeleton components to new split components."));
+
+					SpineEditorUtilities.EnableDisableDefineButtons(SpineBuildEnvUtility.SPINE_AUTO_UPGRADE_COMPONENTS_OFF, upgradeComponentsEnabled, invert: true);
+				}
+				using (new EditorGUI.DisabledScope(!upgradeComponentsEnabled)) {
+					using (new GUILayout.HorizontalScope()) {
+						EditorGUILayout.PrefixLabel(new GUIContent("Upgrade Scenes & Prefabs", "Upgrades all scenes and " +
+						"prefabs in the project to Spine 4.3 split animation components."));
+						if (GUILayout.Button("Upgrade All", GUILayout.Width(132))) {
+							if (EditorUtility.DisplayDialog("Upgrade All",
+								"This will open and process all scenes and prefabs in your project to upgrade Spine components to version 4.3.\n\n" +
+								"This process may take a while for large projects.\n\n" +
+								"Make sure to backup your project before proceeding.\n\n" +
+								"Continue?", "Yes, Upgrade", "Cancel")) {
+#if AUTO_UPGRADE_TO_43_COMPONENTS
+							SpineEditorUtilities.UpgradeAllScenesAndPrefabsTo43();
+#endif
+							}
+						}
+					}
+				}
 
 #if SPINE_TK2D_DEFINE
 				bool isTK2DDefineSet = true;
@@ -443,10 +491,10 @@ namespace Spine.Unity.Editor {
 					EditorGUILayout.LabelField("3rd Party Settings", EditorStyles.boldLabel);
 					using (new GUILayout.HorizontalScope()) {
 						EditorGUILayout.PrefixLabel("Define TK2D");
-						if (isTK2DAllowed && GUILayout.Button("Enable", GUILayout.Width(64)))
-							SpineEditorUtilities.SpineTK2DEditorUtility.EnableTK2D();
 						if (GUILayout.Button("Disable", GUILayout.Width(64)))
 							SpineEditorUtilities.SpineTK2DEditorUtility.DisableTK2D();
+						if (isTK2DAllowed && GUILayout.Button("Enable", GUILayout.Width(64)))
+							SpineEditorUtilities.SpineTK2DEditorUtility.EnableTK2D();
 					}
 #if !SPINE_TK2D_DEFINE
 					if (!isTK2DAllowed) {
@@ -454,6 +502,20 @@ namespace Spine.Unity.Editor {
 						EditorGUILayout.LabelField("Spine/Editor/spine-unity/Editor/Util./BuildSettings.cs", EditorStyles.boldLabel);
 					}
 #endif
+				}
+
+				GUILayout.Space(20);
+				EditorGUILayout.LabelField("Threading Defaults", EditorStyles.boldLabel);
+				{
+					bool useThreadedMeshGeneration = RuntimeSettings.UseThreadedMeshGeneration;
+					bool useThreadedAnimation = RuntimeSettings.UseThreadedAnimation;
+					SpineEditorUtilities.BoolRuntimePropertiesField(
+						() => RuntimeSettings.UseThreadedMeshGeneration,
+						value => RuntimeSettings.UseThreadedMeshGeneration = value,
+						new GUIContent("Threaded MeshGeneration", "Default value for SkeletonRenderer and SkeletonGraphic Threaded Mesh Generation."));
+					SpineEditorUtilities.BoolRuntimePropertiesField(
+						() => RuntimeSettings.UseThreadedAnimation, value => RuntimeSettings.UseThreadedAnimation = value,
+						new GUIContent("Threaded Animation", "Default value for SkeletonAnimation and SkeletonMecanim Threaded Animation."));
 				}
 
 				GUILayout.Space(20);

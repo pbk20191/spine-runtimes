@@ -33,7 +33,6 @@
 #define SPINE_UNITY_2018_PREVIEW_API
 #endif
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -793,8 +792,7 @@ namespace Spine.Unity.Editor {
 		List<Spine.Event> currentAnimationEvents = new List<Spine.Event>();
 		List<float> currentAnimationEventTimes = new List<float>();
 		List<SpineEventTooltip> currentAnimationEventTooltips = new List<SpineEventTooltip>();
-
-		public bool IsValid { get { return skeletonAnimation != null && skeletonAnimation.valid; } }
+		public bool IsValid { get { return skeletonAnimation != null && skeletonAnimation.IsValid; } }
 
 		public Skeleton Skeleton { get { return IsValid ? skeletonAnimation.Skeleton : null; } }
 
@@ -885,8 +883,9 @@ namespace Spine.Unity.Editor {
 						previewGameObject.hideFlags = HideFlags.HideAndDontSave;
 						previewGameObject.layer = PreviewLayer;
 						skeletonAnimation = previewGameObject.GetComponent<SkeletonAnimation>();
-						skeletonAnimation.initialSkinName = skinName;
-						skeletonAnimation.LateUpdate();
+						ISkeletonRenderer skeletonRenderer = skeletonAnimation.Renderer;
+						skeletonRenderer.InitialSkinName = skinName;
+						skeletonRenderer.LateUpdate();
 						previewGameObject.GetComponent<Renderer>().enabled = false;
 
 #if SPINE_UNITY_2018_PREVIEW_API
@@ -953,7 +952,7 @@ namespace Spine.Unity.Editor {
 					float deltaTime = (current - animationLastTime);
 					skeletonAnimation.Update(deltaTime);
 					animationLastTime = current;
-					skeletonAnimation.LateUpdate();
+					skeletonAnimation.Renderer.LateUpdate();
 				}
 
 				Camera thisPreviewUtilityCamera = this.PreviewUtilityCamera;
@@ -1051,7 +1050,7 @@ namespace Spine.Unity.Editor {
 				return;
 			}
 
-			if (!skeletonAnimation.valid) return;
+			if (!skeletonAnimation.IsValid) return;
 
 			if (string.IsNullOrEmpty(animationName)) {
 				skeletonAnimation.Skeleton.SetupPose();
@@ -1154,7 +1153,7 @@ namespace Spine.Unity.Editor {
 
 		void HandleSkinDropdownSelection (object o) {
 			Skin skin = (Skin)o;
-			skeletonAnimation.initialSkinName = skin.Name;
+			skeletonAnimation.Renderer.InitialSkinName = skin.Name;
 			skeletonAnimation.Initialize(true);
 			RefreshOnNextUpdate();
 			if (OnSkinChanged != null) OnSkinChanged(skin.Name);

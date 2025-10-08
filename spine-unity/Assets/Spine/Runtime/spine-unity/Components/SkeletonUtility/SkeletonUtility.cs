@@ -31,8 +31,13 @@
 #define NEW_PREFAB_SYSTEM
 #endif
 
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Spine.Unity {
 
@@ -41,9 +46,9 @@ namespace Spine.Unity {
 #else
 	[ExecuteInEditMode]
 #endif
-	[RequireComponent(typeof(ISkeletonAnimation))]
+	[RequireComponent(typeof(ISkeletonRenderer))]
 	[HelpURL("https://esotericsoftware.com/spine-unity-utility-components#SkeletonUtility")]
-	public sealed class SkeletonUtility : MonoBehaviour {
+	public sealed class SkeletonUtility : MonoBehaviour, IUpgradable {
 
 		#region BoundingBoxAttachment
 		public static PolygonCollider2D AddBoundingBoxGameObject (Skeleton skeleton, string skinName, string slotName, string attachmentName, Transform parent, bool isTrigger = true) {
@@ -188,30 +193,33 @@ namespace Spine.Unity {
 			// Thus to prevent a one-frame-behind offset after a layout change affecting mesh scale,
 			// we have to re-evaluate the callbacks via the lines below.
 			if (lastPositionScale != positionScale) {
-				UpdateLocal(skeletonAnimation);
-				UpdateWorld(skeletonAnimation);
-				UpdateComplete(skeletonAnimation);
-			}
-		}
+				UpdateLocal(skeletonGraphic);
+				UpdateWorld(skeletonGraphic);
+				UpdateComplete(skeletonGraphic);
+ 			}
+ 		}
 
 		[HideInInspector] public SkeletonRenderer skeletonRenderer;
 		[HideInInspector] public SkeletonGraphic skeletonGraphic;
-		[System.NonSerialized] public ISkeletonAnimation skeletonAnimation;
 
-		private ISkeletonComponent skeletonComponent;
+		private ISkeletonRenderer skeletonComponent;
 		[System.NonSerialized] public List<SkeletonUtilityBone> boneComponents = new List<SkeletonUtilityBone>();
 		[System.NonSerialized] public List<SkeletonUtilityConstraint> constraintComponents = new List<SkeletonUtilityConstraint>();
 
-		public ISkeletonComponent SkeletonComponent {
+
+		public ISkeletonComponent SkeletonComponent { get { return this.SkeletonRenderer; } }
+
+		public ISkeletonRenderer SkeletonRenderer {
 			get {
 				if (skeletonComponent == null) {
-					skeletonComponent = skeletonRenderer != null ? skeletonRenderer.GetComponent<ISkeletonComponent>() :
-										skeletonGraphic != null ? skeletonGraphic.GetComponent<ISkeletonComponent>() :
-										GetComponent<ISkeletonComponent>();
+					skeletonComponent = skeletonRenderer != null ? skeletonRenderer :
+										skeletonGraphic != null ? skeletonGraphic :
+										GetComponent<ISkeletonRenderer>();
 				}
 				return skeletonComponent;
 			}
 		}
+
 		public Skeleton Skeleton {
 			get {
 				if (SkeletonComponent == null)
@@ -222,8 +230,8 @@ namespace Spine.Unity {
 
 		public bool IsValid {
 			get {
-				return (skeletonRenderer != null && skeletonRenderer.valid) ||
-					(skeletonGraphic != null && skeletonGraphic.IsValid);
+				ISkeletonRenderer skeletonComponent = this.SkeletonRenderer;
+				return (skeletonComponent != null && skeletonComponent.IsValid);
 			}
 		}
 
@@ -234,7 +242,7 @@ namespace Spine.Unity {
 		float lastPositionScale = 1.0f;
 		Vector2 positionOffset = Vector2.zero;
 		bool hasOverrideBones;
-		bool hasConstraints;
+		bool hasConstraintTargetBones;
 		bool needToReprocessBones;
 
 		public void ResubscribeEvents () {
@@ -243,31 +251,31 @@ namespace Spine.Unity {
 		}
 
 		void ResubscribeIndependentEvents () {
-			if (skeletonRenderer != null) {
-				skeletonRenderer.OnRebuild -= HandleRendererReset;
-				skeletonRenderer.OnRebuild += HandleRendererReset;
-			} else if (skeletonGraphic != null) {
-				skeletonGraphic.OnRebuild -= HandleRendererReset;
-				skeletonGraphic.OnRebuild += HandleRendererReset;
+			ISkeletonRenderer skeletonComponent = this.SkeletonRenderer;
+			if (skeletonComponent != null) {
+				skeletonComponent.OnRebuild -= HandleRendererReset;
+				skeletonComponent.OnRebuild += HandleRendererReset;
+			}
+			if (skeletonGraphic != null) {
 				skeletonGraphic.OnPostProcessVertices -= UpdateToMeshScaleAndOffset;
 				skeletonGraphic.OnPostProcessVertices += UpdateToMeshScaleAndOffset;
-			}
-
-			if (skeletonAnimation != null) {
-				skeletonAnimation.UpdateLocal -= UpdateLocal;
-				skeletonAnimation.UpdateLocal += UpdateLocal;
 			}
 		}
 
 		void ResubscribeDependentEvents () {
-			if (skeletonAnimation != null) {
-				skeletonAnimation.UpdateWorld -= UpdateWorld;
-				skeletonAnimation.UpdateComplete -= UpdateComplete;
+			ISkeletonRenderer skeletonComponent = this.SkeletonRenderer;
+			if (skeletonComponent != null) {
+				skeletonComponent.UpdateLocal -= UpdateLocal;
+				skeletonComponent.UpdateWorld -= UpdateWorld;
+				skeletonComponent.UpdateComplete -= UpdateComplete;
 
-				if (hasOverrideBones || hasConstraints)
-					skeletonAnimation.UpdateWorld += UpdateWorld;
-				if (hasConstraints)
-					skeletonAnimation.UpdateComplete += UpdateComplete;
+				bool hasConstraintComponents = constraintComponents.Count > 0;
+				if (hasOverrideBones || !hasConstraintTargetBones)
+					skeletonComponent.UpdateLocal += UpdateLocal;
+				if (hasOverrideBones || hasConstraintComponents)
+					skeletonComponent.UpdateWorld += UpdateWorld;
+				if (hasConstraintTargetBones)
+					skeletonComponent.UpdateComplete += UpdateComplete;
 			}
 		}
 
@@ -278,19 +286,17 @@ namespace Spine.Unity {
 			if (skeletonGraphic == null) {
 				skeletonGraphic = GetComponent<SkeletonGraphic>();
 			}
-			if (skeletonAnimation == null) {
-				skeletonAnimation = skeletonRenderer != null ? skeletonRenderer.GetComponent<ISkeletonAnimation>() :
-									skeletonGraphic != null ? skeletonGraphic.GetComponent<ISkeletonAnimation>() :
-									GetComponent<ISkeletonAnimation>();
-			}
-			if (skeletonComponent == null) {
-				skeletonComponent = skeletonRenderer != null ? skeletonRenderer.GetComponent<ISkeletonComponent>() :
-									skeletonGraphic != null ? skeletonGraphic.GetComponent<ISkeletonComponent>() :
-									GetComponent<ISkeletonComponent>();
-			}
 			CollectBones();
 			ResubscribeEvents();
 		}
+
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		void Awake () {
+			if (!Application.isPlaying && !wasUpgradedTo43) {
+				UpgradeTo43();
+			}
+		}
+#endif
 
 		void Start () {
 			//recollect because order of operations failure when switching between game mode and edit mode...
@@ -298,26 +304,19 @@ namespace Spine.Unity {
 		}
 
 		void OnDisable () {
-			if (skeletonRenderer != null)
-				skeletonRenderer.OnRebuild -= HandleRendererReset;
-			if (skeletonGraphic != null) {
-				skeletonGraphic.OnRebuild -= HandleRendererReset;
+			ISkeletonRenderer skeletonComponent = this.SkeletonRenderer;
+			if (skeletonComponent != null) {
+				skeletonComponent.OnRebuild -= HandleRendererReset;
+				skeletonComponent.UpdateLocal -= UpdateLocal;
+				skeletonComponent.UpdateWorld -= UpdateWorld;
+				skeletonComponent.UpdateComplete -= UpdateComplete;
+			}
+			if (skeletonGraphic) {
 				skeletonGraphic.OnPostProcessVertices -= UpdateToMeshScaleAndOffset;
 			}
-
-			if (skeletonAnimation != null) {
-				skeletonAnimation.UpdateLocal -= UpdateLocal;
-				skeletonAnimation.UpdateWorld -= UpdateWorld;
-				skeletonAnimation.UpdateComplete -= UpdateComplete;
-			}
 		}
 
-		void HandleRendererReset (SkeletonRenderer r) {
-			if (OnReset != null) OnReset();
-			CollectBones();
-		}
-
-		void HandleRendererReset (SkeletonGraphic g) {
+		void HandleRendererReset (ISkeletonRenderer r) {
 			if (OnReset != null) OnReset();
 			CollectBones();
 		}
@@ -349,6 +348,8 @@ namespace Spine.Unity {
 		}
 
 		public void CollectBones () {
+			ISkeletonRenderer skeletonComponent = this.SkeletonRenderer;
+			if (skeletonComponent == null) return;
 			Skeleton skeleton = skeletonComponent.Skeleton;
 			if (skeleton == null) return;
 
@@ -373,10 +374,9 @@ namespace Spine.Unity {
 						if (b.bone == null) continue;
 					}
 					hasOverrideBones |= (b.mode == SkeletonUtilityBone.Mode.Override);
-					hasConstraints |= constraintTargets.Contains(b.bone);
+					hasConstraintTargetBones |= constraintTargets.Contains(b.bone);
 				}
 
-				hasConstraints |= constraintComponents.Count > 0;
 				needToReprocessBones = false;
 			} else {
 				boneComponents.Clear();
@@ -385,30 +385,22 @@ namespace Spine.Unity {
 			ResubscribeDependentEvents();
 		}
 
-		void UpdateLocal (ISkeletonAnimation anim) {
-			if (needToReprocessBones)
-				CollectBones();
-
-			List<SkeletonUtilityBone> boneComponents = this.boneComponents;
-			if (boneComponents == null) return;
-			for (int i = 0, n = boneComponents.Count; i < n; i++)
-				boneComponents[i].transformLerpComplete = false;
-
+		void UpdateLocal (ISkeletonRenderer skeletonRenderer) {
 			UpdateAllBones(SkeletonUtilityBone.UpdatePhase.Local);
 		}
 
-		void UpdateWorld (ISkeletonAnimation anim) {
+		void UpdateWorld (ISkeletonRenderer skeletonRenderer) {
 			UpdateAllBones(SkeletonUtilityBone.UpdatePhase.World);
 			for (int i = 0, n = constraintComponents.Count; i < n; i++)
 				constraintComponents[i].DoUpdate();
 		}
 
-		void UpdateComplete (ISkeletonAnimation anim) {
+		void UpdateComplete (ISkeletonRenderer skeletonRenderer) {
 			UpdateAllBones(SkeletonUtilityBone.UpdatePhase.Complete);
 		}
 
 		void UpdateAllBones (SkeletonUtilityBone.UpdatePhase phase) {
-			if (boneRoot == null)
+			if (boneRoot == null || needToReprocessBones)
 				CollectBones();
 
 			List<SkeletonUtilityBone> boneComponents = this.boneComponents;
@@ -502,6 +494,21 @@ namespace Spine.Unity {
 			return go;
 		}
 
+		#region Transfer of Deprecated Fields
+#if UNITY_EDITOR && AUTO_UPGRADE_TO_43_COMPONENTS
+		public void UpgradeTo43 () {
+			wasUpgradedTo43 = true;
+			if (skeletonRenderer == null && skeletonGraphic == null) {
+				Component previousReference = previousSkeletonRenderer != null ? previousSkeletonRenderer : this;
+				skeletonRenderer = previousReference.GetComponent<SkeletonRenderer>();
+				if (skeletonRenderer == null)
+					Debug.LogError("Please manually re-assign SkeletonRenderer at SkeletonUtility, " +
+						"automatic upgrade failed.", this);
+			}
+		}
+		[SerializeField, HideInInspector, FormerlySerializedAs("skeletonRenderer")] Component previousSkeletonRenderer;
+		[SerializeField] bool wasUpgradedTo43 = false;
+#endif
+		#endregion
 	}
-
 }

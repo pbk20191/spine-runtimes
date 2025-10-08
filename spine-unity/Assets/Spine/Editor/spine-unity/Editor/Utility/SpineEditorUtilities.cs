@@ -54,6 +54,14 @@
 #define HAS_ON_POSTPROCESS_PREFAB
 #endif
 
+#if UNITY_2020_1_OR_NEWER
+#define HAS_EDIT_PREFAB_CONTENTS_SCOPE
+#endif
+
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -61,6 +69,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Spine.Unity.Editor {
@@ -124,7 +133,7 @@ namespace Spine.Unity.Editor {
 
 				renderer.EditorUpdateMeshFilterHideFlags();
 				renderer.Initialize(true, true);
-				renderer.LateUpdateMesh();
+				renderer.UpdateMesh();
 				Mesh mesh = meshFilter.sharedMesh;
 				if (mesh == null) continue;
 
@@ -232,9 +241,17 @@ namespace Spine.Unity.Editor {
 			EditorApplication.playmodeStateChanged += DataReloadHandler.OnPlaymodeStateChanged;
 			DataReloadHandler.OnPlaymodeStateChanged();
 #endif
+			EditorBridge.OnRequestMarkDirty += OnRequestMarkDirty;
 
 			if (SpineEditorUtilities.Preferences.textureImporterWarning) {
 				IssueWarningsForUnrecommendedTextureSettings();
+			}
+
+#if BUILT_IN_SPRITE_MASK_COMPONENT && AUTO_UPGRADE_TO_43_COMPONENTS
+			SpineMaskUtilities.EditorGatherAtlasAssetsMaskMaterials();
+#endif
+			if (SpineEditorUtilities.Preferences.ShowSplitComponentChangeWarning) {
+				ComponentUpgradeWarningDialog.ShowDialog();
 			}
 
 			initialized = true;
@@ -266,16 +283,9 @@ namespace Spine.Unity.Editor {
 			}
 		}
 
-		public static void ReloadSkeletonDataAssetAndComponent (SkeletonRenderer component) {
+		public static void ReloadSkeletonDataAssetAndComponent (ISkeletonRenderer component) {
 			if (component == null) return;
-			ReloadSkeletonDataAsset(component.skeletonDataAsset);
-			ReinitializeComponent(component);
-		}
-
-		public static void ReloadSkeletonDataAssetAndComponent (SkeletonGraphic component) {
-			if (component == null) return;
-			ReloadSkeletonDataAsset(component.skeletonDataAsset);
-			// Reinitialize.
+			ReloadSkeletonDataAsset(component.SkeletonDataAsset);
 			ReinitializeComponent(component);
 		}
 
@@ -298,32 +308,34 @@ namespace Spine.Unity.Editor {
 			DataReloadHandler.ReloadAnimationReferenceAssets(skeletonDataAsset);
 		}
 
-		public static void ReinitializeComponent (SkeletonRenderer component) {
+		public static void ReinitializeComponent (ISkeletonRenderer component) {
 			if (component == null) return;
 			if (!SkeletonDataAssetIsValid(component.SkeletonDataAsset)) return;
 
-			IAnimationStateComponent stateComponent = component as IAnimationStateComponent;
-			AnimationState oldAnimationState = null;
-			if (stateComponent != null) {
-				oldAnimationState = stateComponent.AnimationState;
-			}
+			component.Initialize(true);
 
-			component.Initialize(true); // implicitly clears any subscribers
-
-			if (oldAnimationState != null) {
-				stateComponent.AnimationState.AssignEventSubscribersFrom(oldAnimationState);
-			}
-			if (stateComponent != null) {
+			if (component.Animation != null) {
 				// Any set animation needs to be applied as well since it might set attachments,
 				// having an effect on generated SpriteMaskMaterials below.
-				stateComponent.AnimationState.Apply(component.skeleton);
+				component.Animation.ApplyAnimation();
 				component.LateUpdate();
 			}
 
 #if BUILT_IN_SPRITE_MASK_COMPONENT
-			SpineMaskUtilities.EditorAssignSpriteMaskMaterials(component);
+			SkeletonRenderer skeletonRenderer = component as SkeletonRenderer;
+			if (skeletonRenderer != null)
+				SpineMaskUtilities.EditorSetupSpriteMaskMaterials(skeletonRenderer);
 #endif
 			component.LateUpdate();
+		}
+
+		public static void ReinitializeComponent (ISkeletonAnimation component) {
+			if (component == null || component.Renderer == null) return;
+			if (!SkeletonDataAssetIsValid(component.Renderer.SkeletonDataAsset)) return;
+
+			component.Initialize(true);
+			component.UpdateOncePerFrame(0);
+			component.Renderer.LateUpdate();
 		}
 
 		public static void ReinitializeComponent (SkeletonGraphic component) {
@@ -336,6 +348,156 @@ namespace Spine.Unity.Editor {
 		public static bool SkeletonDataAssetIsValid (SkeletonDataAsset asset) {
 			return asset != null && asset.GetSkeletonData(quiet: true) != null;
 		}
+
+#if AUTO_UPGRADE_TO_43_COMPONENTS
+		public static void UpgradeAllScenesAndPrefabsTo43 () {
+			int scenesUpdated = 0;
+			int prefabsUpdated = 0;
+			int componentsUpdated = 0;
+
+			// Find all scene assets
+			string[] sceneGuids = AssetDatabase.FindAssets("t:Scene");
+			List<string> scenePaths = new List<string>();
+			foreach (string guid in sceneGuids) {
+				string path = AssetDatabase.GUIDToAssetPath(guid);
+				if (!string.IsNullOrEmpty(path) && !path.StartsWith("Packages/"))
+					scenePaths.Add(path);
+			}
+
+			// Find all prefab assets
+			string[] prefabGuids = AssetDatabase.FindAssets("t:Prefab");
+			List<string> prefabPaths = new List<string>();
+			foreach (string guid in prefabGuids) {
+				string path = AssetDatabase.GUIDToAssetPath(guid);
+				if (!string.IsNullOrEmpty(path) && !path.StartsWith("Packages/"))
+					prefabPaths.Add(path);
+			}
+
+			// Process scenes
+			UnityEngine.SceneManagement.Scene currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+			string currentScenePath = currentScene.path;
+
+			foreach (string scenePath in scenePaths) {
+				try {
+					EditorUtility.DisplayProgressBar("Upgrading Spine Components",
+						"Processing scene: " + Path.GetFileName(scenePath),
+						(float)scenesUpdated / scenePaths.Count);
+
+					// Open the scene
+					UnityEngine.SceneManagement.Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath,
+						UnityEditor.SceneManagement.OpenSceneMode.Single);
+
+					bool sceneModified = false;
+
+					// Find all IUpgradable components in the scene
+					GameObject[] rootObjects = scene.GetRootGameObjects();
+					List<IUpgradable> upgradableComponents = new List<IUpgradable>();
+
+					foreach (GameObject root in rootObjects) {
+						IUpgradable[] componentsInObject = root.GetComponentsInChildren<IUpgradable>(true);
+						upgradableComponents.AddRange(componentsInObject);
+					}
+
+					// Upgrade all found components
+					foreach (IUpgradable upgradable in upgradableComponents) {
+						if (upgradable != null) {
+							upgradable.UpgradeTo43();
+							componentsUpdated++;
+							sceneModified = true;
+						}
+					}
+
+					// Save the scene if modified
+					if (sceneModified) {
+						UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+						scenesUpdated++;
+					}
+				} catch (System.Exception e) {
+					Debug.LogError(string.Format("Failed to process scene {0}: {1}", scenePath, e.Message));
+				}
+			}
+
+			// Process prefabs
+			for (int i = 0; i < prefabPaths.Count; i++) {
+				string prefabPath = prefabPaths[i];
+				try {
+					EditorUtility.DisplayProgressBar("Migrating Spine Components to 4.3",
+						"Processing prefab: " + Path.GetFileName(prefabPath),
+						(float)(scenePaths.Count + i) / (scenePaths.Count + prefabPaths.Count));
+
+					GameObject prefabRoot = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+					if (prefabRoot != null) {
+						bool prefabModified = false;
+
+#if HAS_EDIT_PREFAB_CONTENTS_SCOPE
+						using (var editingScope = new PrefabUtility.EditPrefabContentsScope(prefabPath)) {
+						    GameObject prefabContents = editingScope.prefabContentsRoot;
+						    IUpgradable[] upgradableComponents = prefabContents.GetComponentsInChildren<IUpgradable>(true);
+						    foreach (IUpgradable upgradable in upgradableComponents) {
+						        if (upgradable != null) {
+						            upgradable.UpgradeTo43();
+						            componentsUpdated++;
+						            prefabModified = true;
+						        }
+						    }
+						    if (prefabModified) {
+						        prefabsUpdated++;
+						    }
+						}
+#else // HAS_EDIT_PREFAB_CONTENTS_SCOPE
+						// Unity 2017.1 compatible approach
+						// Instantiate the prefab temporarily to modify it
+						GameObject tempInstance = PrefabUtility.InstantiatePrefab(prefabRoot) as GameObject;
+						if (tempInstance != null) {
+							// Find all IUpgradable components in the prefab instance
+							IUpgradable[] upgradableComponents = tempInstance.GetComponentsInChildren<IUpgradable>(true);
+
+							// Upgrade all found components
+							foreach (IUpgradable upgradable in upgradableComponents) {
+								if (upgradable != null) {
+									upgradable.UpgradeTo43();
+									componentsUpdated++;
+									prefabModified = true;
+								}
+							}
+
+							if (prefabModified) {
+								// Apply changes back to the prefab asset
+								PrefabUtility.ReplacePrefab(tempInstance, prefabRoot, ReplacePrefabOptions.ConnectToPrefab);
+								prefabsUpdated++;
+							}
+
+							// Clean up the temporary instance
+							GameObject.DestroyImmediate(tempInstance);
+						}
+#endif
+					}
+				} catch (System.Exception e) {
+					Debug.LogError(string.Format("Failed to process prefab {0}: {1}", prefabPath, e.Message));
+				}
+			}
+
+			// Restore original scene if needed
+			if (!string.IsNullOrEmpty(currentScenePath) && currentScenePath != UnityEngine.SceneManagement.SceneManager.GetActiveScene().path) {
+				UnityEditor.SceneManagement.EditorSceneManager.OpenScene(currentScenePath,
+					UnityEditor.SceneManagement.OpenSceneMode.Single);
+			}
+
+			EditorUtility.ClearProgressBar();
+
+			// Show results
+			string message = string.Format("Migration to Spine 4.3 complete!\n\n" +
+				"Scenes processed: {0}/{1}\n" +
+				"Prefabs processed: {2}/{3}\n" +
+				"Components upgraded: {4}",
+				scenesUpdated, scenePaths.Count,
+				prefabsUpdated, prefabPaths.Count,
+				componentsUpdated);
+
+			EditorUtility.DisplayDialog("Spine 4.3 Migration Complete", message, "OK");
+			Debug.Log("[Spine] " + message);
+		}
+#endif // AUTO_UPGRADE_TO_43_COMPONENTS
 
 		public static bool IssueWarningsForUnrecommendedTextureSettings (string texturePath) {
 			TextureImporter texImporter = (TextureImporter)TextureImporter.GetAtPath(texturePath);
@@ -357,6 +519,15 @@ namespace Spine.Unity.Editor {
 				Debug.LogWarning(errorMessage, material);
 			}
 			return true;
+		}
+
+		static void OnRequestMarkDirty (GameObject go) {
+			if (go == null) return;
+
+			EditorApplication.delayCall += () => {
+				EditorUtility.SetDirty(go);
+				EditorSceneManager.MarkSceneDirty(go.scene);
+			};
 		}
 		#endregion
 

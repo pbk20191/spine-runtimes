@@ -54,7 +54,7 @@ namespace Spine.Unity {
 			Complete
 		}
 
-		#region Inspector
+#region Inspector
 		/// <summary>If a bone isn't set, boneName is used to find the bone.</summary>
 		public string boneName;
 		public Transform parentReference;
@@ -62,16 +62,22 @@ namespace Spine.Unity {
 		public bool position, rotation, scale, zPosition = true;
 		[Range(0f, 1f)]
 		public float overrideAlpha = 1;
-		#endregion
+#endregion
 
 		public SkeletonUtility hierarchy;
 		[System.NonSerialized] public Bone bone;
-		[System.NonSerialized] public bool transformLerpComplete;
 		[System.NonSerialized] public bool valid;
 		Transform cachedTransform;
 		Transform skeletonTransform;
+
+		Vector3 TransformLocalPosition { get { return cachedTransform.localPosition; } }
+		Quaternion TransformLocalRotation { get { return cachedTransform.localRotation; } }
+		Vector3 TransformLocalScale { get { return cachedTransform.localScale; } }
+
+#if UNITY_EDITOR
 		bool incompatibleTransformMode;
 		public bool IncompatibleTransformMode { get { return incompatibleTransformMode; } }
+#endif
 
 		public void Reset () {
 			bone = null;
@@ -145,7 +151,9 @@ namespace Spine.Unity {
 
 					if (scale) {
 						thisTransform.localScale = new Vector3(bonePose.ScaleX, bonePose.ScaleY, 1f);
+#if UNITY_EDITOR
 						incompatibleTransformMode = BoneTransformModeIncompatible(bone);
+#endif
 					}
 					break;
 				case UpdatePhase.World:
@@ -166,38 +174,36 @@ namespace Spine.Unity {
 
 					if (scale) {
 						thisTransform.localScale = new Vector3(appliedPose.ScaleX, appliedPose.ScaleY, 1f);
+#if UNITY_EDITOR
 						incompatibleTransformMode = BoneTransformModeIncompatible(bone);
+#endif
 					}
 					break;
 				}
-
 			} else if (mode == Mode.Override) {
-				if (transformLerpComplete)
+				if (phase != UpdatePhase.Local)
 					return;
 				var bonePose = bone.Pose;
 				if (parentReference == null) {
 					if (position) {
-						Vector3 clp = thisTransform.localPosition / positionScale;
+						Vector3 clp = TransformLocalPosition / positionScale;
 						bonePose.X = Mathf.Lerp(bonePose.X, clp.x, overrideAlpha);
 						bonePose.Y = Mathf.Lerp(bonePose.Y, clp.y, overrideAlpha);
 					}
 
 					if (rotation) {
-						float angle = Mathf.LerpAngle(bonePose.Rotation, thisTransform.localRotation.eulerAngles.z, overrideAlpha);
+						float angle = Mathf.LerpAngle(bonePose.Rotation, TransformLocalRotation.eulerAngles.z, overrideAlpha);
 						bonePose.Rotation = angle;
 						bone.AppliedPose.Rotation = angle;
 					}
 
 					if (scale) {
-						Vector3 cls = thisTransform.localScale;
+						Vector3 cls = TransformLocalScale;
 						bonePose.ScaleX = Mathf.Lerp(bonePose.ScaleX, cls.x, overrideAlpha);
 						bonePose.ScaleY = Mathf.Lerp(bonePose.ScaleY, cls.y, overrideAlpha);
 					}
 
 				} else {
-					if (transformLerpComplete)
-						return;
-
 					if (position) {
 						Vector3 pos = parentReference.InverseTransformPoint(thisTransform.position) / positionScale;
 						bonePose.X = Mathf.Lerp(bonePose.X, pos.x, overrideAlpha);
@@ -211,15 +217,14 @@ namespace Spine.Unity {
 					}
 
 					if (scale) {
-						Vector3 cls = thisTransform.localScale;
+						Vector3 cls = TransformLocalScale;
 						bonePose.ScaleX = Mathf.Lerp(bonePose.ScaleX, cls.x, overrideAlpha);
 						bonePose.ScaleY = Mathf.Lerp(bonePose.ScaleY, cls.y, overrideAlpha);
 					}
-
+#if UNITY_EDITOR
 					incompatibleTransformMode = BoneTransformModeIncompatible(bone);
+#endif
 				}
-
-				transformLerpComplete = true;
 			}
 		}
 

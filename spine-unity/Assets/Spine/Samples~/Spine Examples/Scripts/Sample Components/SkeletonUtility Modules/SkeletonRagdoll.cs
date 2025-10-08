@@ -61,7 +61,7 @@ namespace Spine.Unity.Examples {
 		[Tooltip("Default rotational limit value. Min is negative this value, Max is this value.")]
 		public float rotationLimit = 20;
 		public float rootMass = 20;
-		[Tooltip("If your ragdoll seems unstable or uneffected by limits, try lowering this value.")]
+		[Tooltip("If your ragdoll seems unstable or unaffected by limits, try lowering this value.")]
 		[Range(0.01f, 1f)]
 		public float massFalloffFactor = 0.4f;
 		[Tooltip("The layer assigned to all of the rigidbody parts.")]
@@ -71,7 +71,7 @@ namespace Spine.Unity.Examples {
 		public bool oldRagdollBehaviour = false;
 		#endregion
 
-		ISkeletonAnimation targetSkeletonComponent;
+		ISkeletonRenderer targetSkeletonComponent;
 		Skeleton skeleton;
 		struct BoneFlipEntry {
 			public BoneFlipEntry (bool flipX, bool flipY) {
@@ -98,10 +98,8 @@ namespace Spine.Unity.Examples {
 				parentSpaceHelper.hideFlags = HideFlags.HideInHierarchy;
 			}
 
-			targetSkeletonComponent = GetComponent<SkeletonRenderer>() as ISkeletonAnimation;
-			if (targetSkeletonComponent == null) Debug.LogError("Attached Spine component does not implement ISkeletonAnimation. This script is not compatible.");
+			targetSkeletonComponent = GetComponent<ISkeletonRenderer>();
 			skeleton = targetSkeletonComponent.Skeleton;
-
 			if (applyOnStart) {
 				yield return null;
 				Apply();
@@ -328,7 +326,7 @@ namespace Spine.Unity.Examples {
 				RecursivelyCreateBoneProxies(child);
 		}
 
-		void UpdateSpineSkeleton (ISkeletonAnimation skeletonRenderer) {
+		void UpdateSpineSkeleton (ISkeletonRenderer skeletonRenderer) {
 			bool parentFlipX;
 			bool parentFlipY;
 			GetStartBoneParentFlipState(out parentFlipX, out parentFlipY);

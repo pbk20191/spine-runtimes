@@ -126,7 +126,7 @@ namespace Spine.Unity.Examples {
 			skeletonGraphic.AssignMeshOverrideMultipleRenderers += RenderMultipleMeshesToRenderTexture;
 			skeletonGraphic.disableMeshAssignmentOnOverride = true;
 			skeletonGraphic.OnMeshAndMaterialsUpdated += RenderOntoQuad;
-			skeletonGraphic.OnAnimationRebuild += OnRebuild;
+			skeletonGraphic.OnRebuild += OnRebuild;
 			List<CanvasRenderer> canvasRenderers = skeletonGraphic.canvasRenderers;
 			for (int i = 0; i < canvasRenderers.Count; ++i)
 				canvasRenderers[i].cull = true;
@@ -141,7 +141,7 @@ namespace Spine.Unity.Examples {
 			skeletonGraphic.AssignMeshOverrideMultipleRenderers -= RenderMultipleMeshesToRenderTexture;
 			skeletonGraphic.disableMeshAssignmentOnOverride = false;
 			skeletonGraphic.OnMeshAndMaterialsUpdated -= RenderOntoQuad;
-			skeletonGraphic.OnAnimationRebuild -= OnRebuild;
+			skeletonGraphic.OnRebuild -= OnRebuild;
 			List<CanvasRenderer> canvasRenderers = skeletonGraphic.canvasRenderers;
 			for (int i = 0; i < canvasRenderers.Count; ++i)
 				canvasRenderers[i].cull = false;
@@ -158,11 +158,11 @@ namespace Spine.Unity.Examples {
 			SetupQuad();
 		}
 
-		void RenderOntoQuad (SkeletonGraphic skeletonRenderer) {
+		void RenderOntoQuad (ISkeletonRenderer skeletonRenderer) {
 			AssignAtQuad();
 		}
 
-		void OnRebuild (ISkeletonAnimation skeletonGraphic) {
+		void OnRebuild (ISkeletonRenderer skeletonGraphic) {
 			ResetMeshRendererMaterials();
 		}
 

@@ -2,7 +2,7 @@
   "name": "com.esotericsoftware.spine.spine-unity-examples",
   "displayName": "spine-unity Runtime Examples",
   "description": "Examples have been moved to main spine-unity Runtime package. Please install via Package Manager, select 'spine-unity Runtime', navigate to tab 'Samples' and select 'Import'.",
-  "version": "4.3.3",
+  "version": "4.3.4",
   "unity": "2018.3",
   "author": {
     "name": "Esoteric Software",

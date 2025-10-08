@@ -166,7 +166,7 @@ namespace Spine.Unity.Examples {
 			UpdateMesh();
 		}
 
-		void UpdateOnCallback (SkeletonRenderer r) {
+		void UpdateOnCallback (ISkeletonRenderer r) {
 			UpdateMesh();
 		}
 

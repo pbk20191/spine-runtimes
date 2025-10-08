@@ -47,7 +47,7 @@ namespace Spine.Unity.Examples {
 		const float RunTimeScale = 1.5f;
 
 		IEnumerator Start () {
-			AnimationState state = skeletonAnimation.state;
+			AnimationState state = skeletonAnimation.AnimationState;
 
 			while (true) {
 				// Run phase

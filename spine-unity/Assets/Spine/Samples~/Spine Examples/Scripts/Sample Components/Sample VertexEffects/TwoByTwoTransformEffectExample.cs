@@ -56,9 +56,6 @@ namespace Spine.Unity.Examples {
 		}
 
 		void ProcessVertices (MeshGeneratorBuffers buffers) {
-			if (!this.enabled)
-				return;
-
 			int vertexCount = buffers.vertexCount; // For efficiency, limit your effect to the actual mesh vertex count using vertexCount
 
 			// Modify vertex positions by accessing Vector3[] vertexBuffer

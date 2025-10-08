@@ -32,8 +32,6 @@
 #define SPINE_TRIANGLECHECK
 //#define SPINE_DEBUG
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Spine.Unity {

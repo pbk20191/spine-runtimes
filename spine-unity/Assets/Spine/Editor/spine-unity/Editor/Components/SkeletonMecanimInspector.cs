@@ -33,41 +33,71 @@ using UnityEditor;
 using UnityEngine;
 
 namespace Spine.Unity.Editor {
+	using Event = UnityEngine.Event;
+
 	[CustomEditor(typeof(SkeletonMecanim))]
 	[CanEditMultipleObjects]
-	public class SkeletonMecanimInspector : SkeletonRendererInspector {
+	public class SkeletonMecanimInspector : UnityEditor.Editor {
 		public static bool mecanimSettingsFoldout;
 		public static bool enableScenePreview;
 
-		protected SerializedProperty autoReset;
-		protected SerializedProperty useCustomMixMode;
-		protected SerializedProperty layerMixModes;
-		protected SerializedProperty layerBlendModes;
+		protected SerializedProperty updateTiming, autoReset, useCustomMixMode, layerMixModes, layerBlendModes, threadedAnimation;
 
-		protected override void OnEnable () {
-			base.OnEnable();
+		readonly GUIContent UpdateTimingLabel = new GUIContent("Animation Update",
+			"Whether to update the animation in normal Update (the default), " +
+			"physics step FixedUpdate, or manually via a user call.");
+		readonly GUIContent AutoResetLabel = new GUIContent("Auto Reset",
+			"When set to true, the skeleton state is mixed out to setup-" +
+			"pose when an animation finishes, according to the " +
+			"animation's keyed items.");
+		readonly GUIContent UseCustomMixModeLabel = new GUIContent("Custom MixMode",
+			"When disabled, the recommended MixMode is used according to the layer blend mode. " +
+			"Enable to specify a custom MixMode for each Mecanim layer.");
+		readonly GUIContent ThreadedAnimationLabel = new GUIContent("Use Threading",
+			"When enabled, animations are processed on multiple threads in parallel.");
+
+		protected virtual void OnEnable () {
 			SerializedProperty mecanimTranslator = serializedObject.FindProperty("translator");
+
 			autoReset = mecanimTranslator.FindPropertyRelative("autoReset");
 			useCustomMixMode = mecanimTranslator.FindPropertyRelative("useCustomMixMode");
 			layerMixModes = mecanimTranslator.FindPropertyRelative("layerMixModes");
 			layerBlendModes = mecanimTranslator.FindPropertyRelative("layerBlendModes");
+
+			updateTiming = serializedObject.FindProperty("updateTiming");
+			threadedAnimation = serializedObject.FindProperty("threadedAnimation");
 		}
 
-		protected override void DrawInspectorGUI (bool multi) {
+		override public void OnInspectorGUI () {
+			DrawInspectorGUI();
+			serializedObject.ApplyModifiedProperties();
+		}
+
+		protected virtual void DrawInspectorGUI () {
+			foreach (UnityEngine.Object c in targets) {
+				ISkeletonAnimation component = c as ISkeletonAnimation;
+				if (!component.IsValid) {
+					SpineEditorUtilities.ReinitializeComponent(component);
+				}
+			}
+
 			AddRootMotionComponentIfEnabled();
 
-			base.DrawInspectorGUI(multi);
+			EditorGUILayout.PropertyField(updateTiming, UpdateTimingLabel);
+			EditorGUILayout.Space();
+
+			if (threadedAnimation != null) {
+				EditorGUILayout.LabelField(SpineInspectorUtility.TempContent("Threaded Animation", SpineEditorUtilities.Icons.subMeshRenderer), EditorStyles.boldLabel);
+				EditorGUILayout.PropertyField(threadedAnimation, ThreadedAnimationLabel);
+				EditorGUILayout.Space();
+			}
 
 			using (new SpineInspectorUtility.BoxScope()) {
 				mecanimSettingsFoldout = EditorGUILayout.Foldout(mecanimSettingsFoldout, "Mecanim Translator");
 				if (mecanimSettingsFoldout) {
-					EditorGUILayout.PropertyField(autoReset, new GUIContent("Auto Reset",
-						"When set to true, the skeleton state is mixed out to setup-" +
-						"pose when an animation finishes, according to the " +
-						"animation's keyed items."));
+					EditorGUILayout.PropertyField(autoReset, AutoResetLabel);
 
-					EditorGUILayout.PropertyField(useCustomMixMode, new GUIContent("Custom MixMode",
-						"When disabled, the recommended MixMode is used according to the layer blend mode. Enable to specify a custom MixMode for each Mecanim layer."));
+					EditorGUILayout.PropertyField(useCustomMixMode, UseCustomMixModeLabel);
 
 					if (useCustomMixMode.hasMultipleDifferentValues || useCustomMixMode.boolValue == true) {
 						DrawLayerSettings();
@@ -182,6 +212,17 @@ namespace Spine.Unity.Editor {
 			int maxIndex = 0;
 			for (int i = 0; i < targets.Length; ++i) {
 				SkeletonMecanim skeletonMecanim = ((SkeletonMecanim)targets[i]);
+
+				Animator animator = skeletonMecanim.Translator.Animator;
+				if (!Application.isPlaying) {
+					if (animator != null && animator.isInitialized &&
+						animator.isActiveAndEnabled && animator.runtimeAnimatorController != null) {
+						// Note: Rebind is required to prevent warning "Animator is not playing an AnimatorController"
+						// when saving and perhaps also with prefabs.
+						animator.Rebind();
+					}
+				}
+
 				int count = skeletonMecanim.Translator.MecanimLayerCount;
 				if (count > maxLayerCount) {
 					maxLayerCount = count;

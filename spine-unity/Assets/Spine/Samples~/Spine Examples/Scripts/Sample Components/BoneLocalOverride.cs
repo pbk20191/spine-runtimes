@@ -47,13 +47,13 @@ namespace Spine.Unity.Examples {
 		public bool overrideRotation = true;
 		[Range(0, 360)] public float rotation = 0;
 
-		ISkeletonAnimation spineComponent;
+		ISkeletonRenderer spineComponent;
 		Bone bone;
 
 #if UNITY_EDITOR
 		void OnValidate () {
 			if (Application.isPlaying) return;
-			if (spineComponent == null) spineComponent = GetComponent<ISkeletonAnimation>();
+			if (spineComponent == null) spineComponent = GetComponent<ISkeletonRenderer>();
 			if (spineComponent.IsNullOrDestroyed()) return;
 			if (bone != null) bone.SetupPose();
 			OverrideLocal(spineComponent);
@@ -61,14 +61,14 @@ namespace Spine.Unity.Examples {
 #endif
 
 		void Awake () {
-			spineComponent = GetComponent<ISkeletonAnimation>();
+			spineComponent = GetComponent<ISkeletonRenderer>();
 			if (spineComponent == null) { this.enabled = false; return; }
 			spineComponent.UpdateLocal += OverrideLocal;
 
 			if (bone == null) { this.enabled = false; return; }
 		}
 
-		void OverrideLocal (ISkeletonAnimation animated) {
+		void OverrideLocal (ISkeletonRenderer skeletonRenderer) {
 			if (bone == null || bone.Data.Name != boneName) {
 				if (string.IsNullOrEmpty(boneName)) return;
 				bone = spineComponent.Skeleton.FindBone(boneName);

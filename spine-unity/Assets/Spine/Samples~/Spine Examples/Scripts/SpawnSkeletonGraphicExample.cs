@@ -48,14 +48,16 @@ namespace Spine.Unity.Examples {
 			skeletonDataAsset.GetSkeletonData(false); // Preload SkeletonDataAsset.
 			yield return new WaitForSeconds(1f); // Pretend stuff is happening.
 
-			SkeletonGraphic sg = SkeletonGraphic.NewSkeletonGraphicGameObject(skeletonDataAsset, this.transform, skeletonGraphicMaterial); // Spawn a new SkeletonGraphic GameObject.
-			sg.gameObject.name = "SkeletonGraphic Instance";
+			var components = SkeletonGraphic.NewSkeletonGraphicGameObject(skeletonDataAsset, this.transform, skeletonGraphicMaterial); // Spawn a new SkeletonGraphic GameObject.
+			SkeletonGraphic skeletonGraphic = components.skeletonRenderer;
+			SkeletonAnimation skeletonAnimation = components.skeletonAnimation;
+			skeletonGraphic.gameObject.name = "SkeletonGraphic Instance";
 
 			// Extra Stuff
-			sg.Initialize(false);
-			sg.Skeleton.SetSkin(startingSkin);
-			sg.Skeleton.SetupPoseSlots();
-			sg.AnimationState.SetAnimation(0, startingAnimation, true);
+			skeletonGraphic.Initialize(false);
+			skeletonGraphic.Skeleton.SetSkin(startingSkin);
+			skeletonGraphic.Skeleton.SetupPoseSlots();
+			skeletonAnimation.AnimationState.SetAnimation(0, startingAnimation, true);
 		}
 	}
 

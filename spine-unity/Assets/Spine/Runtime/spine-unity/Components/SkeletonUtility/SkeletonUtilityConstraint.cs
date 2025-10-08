@@ -50,6 +50,7 @@ namespace Spine.Unity {
 		protected virtual void OnEnable () {
 			bone = GetComponent<SkeletonUtilityBone>();
 			hierarchy = transform.GetComponentInParent<SkeletonUtility>();
+			hierarchy.RegisterBone(bone); // prevent update order issues
 			hierarchy.RegisterConstraint(this);
 		}
 

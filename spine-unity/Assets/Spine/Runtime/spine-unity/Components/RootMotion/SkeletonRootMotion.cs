@@ -90,7 +90,7 @@ namespace Spine.Unity {
 
 		public override void Initialize () {
 			base.Initialize();
-			IAnimationStateComponent animstateComponent = skeletonComponent as IAnimationStateComponent;
+			IAnimationStateComponent animstateComponent = animationComponent as IAnimationStateComponent;
 			this.animationState = (animstateComponent != null) ? animstateComponent.AnimationState : null;
 
 			skeletonGraphic = this.GetComponent<SkeletonGraphic>();

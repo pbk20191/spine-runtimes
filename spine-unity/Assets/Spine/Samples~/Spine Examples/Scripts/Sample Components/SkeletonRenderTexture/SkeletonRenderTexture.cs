@@ -128,7 +128,7 @@ namespace Spine.Unity.Examples {
 			allocatedRenderTextureSize = Vector2Int.zero;
 		}
 
-		void RenderOntoQuad (SkeletonRenderer skeletonRenderer) {
+		void RenderOntoQuad (ISkeletonRenderer skeletonRenderer) {
 			if (meshFilter == null)
 				meshFilter = this.GetComponent<MeshFilter>();
 			Vector3 size = meshFilter.sharedMesh.bounds.size;

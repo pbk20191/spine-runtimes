@@ -61,7 +61,7 @@ namespace Spine.Unity.Examples {
 			skeletonAnimation.UpdateLocal += UpdateLocal;
 		}
 
-		private void UpdateLocal (ISkeletonAnimation animated) {
+		private void UpdateLocal (ISkeletonRenderer skeletonRenderer) {
 			hipRotationTarget = planter.Balance * hipTiltScale;
 			hipRotationSmoothed = Mathf.MoveTowards(hipRotationSmoothed, hipRotationTarget, Time.deltaTime * hipRotationMoveScale * Mathf.Abs(2f * planter.Balance / planter.offBalanceThreshold));
 			hipBone.Pose.Rotation = hipRotationSmoothed;

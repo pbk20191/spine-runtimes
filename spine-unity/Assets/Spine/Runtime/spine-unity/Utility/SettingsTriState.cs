@@ -34,6 +34,7 @@ namespace Spine.Unity {
 	/// a third <c>UseGlobalSettings</c> state. Automatically maps serialized
 	/// bool values to corresponding <c>Disable</c> and <c>Enable</c> states.
 	/// </summary>
+	[System.Serializable]
 	public enum SettingsTriState {
 		Disable,
 		Enable,

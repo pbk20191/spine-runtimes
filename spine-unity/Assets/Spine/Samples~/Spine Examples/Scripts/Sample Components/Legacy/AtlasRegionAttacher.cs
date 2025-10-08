@@ -55,12 +55,12 @@ namespace Spine.Unity.Examples {
 			if (skeletonRenderer.valid) Apply(skeletonRenderer);
 		}
 
-		void Apply (SkeletonRenderer skeletonRenderer) {
+		void Apply (ISkeletonRenderer skeletonRenderer) {
 			if (!this.enabled) return;
 
 			atlas = atlasAsset.GetAtlas();
 			if (atlas == null) return;
-			float scale = skeletonRenderer.skeletonDataAsset.scale;
+			float scale = skeletonRenderer.SkeletonDataAsset.scale;
 
 			foreach (SlotRegionPair entry in attachments) {
 				Slot slot = skeletonRenderer.Skeleton.FindSlot(entry.slot);

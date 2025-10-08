@@ -43,6 +43,10 @@
 #define NEW_PREFERENCES_SETTINGS_PROVIDER
 #endif
 
+#if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+#define AUTO_UPGRADE_TO_43_COMPONENTS
+#endif
+
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -149,6 +153,15 @@ namespace Spine.Unity.Editor {
 				}
 			}
 
+			public static bool ShowSplitComponentChangeWarning {
+				get { return splitComponentChangeWarning; }
+				set {
+					if (splitComponentChangeWarning == value) return;
+					splitComponentChangeWarning = value;
+					EditorPrefs.SetBool(SPLIT_COMPONENT_CHANGE_WARNING_KEY, splitComponentChangeWarning);
+				}
+			}
+
 			const string APPLY_ADDITIVE_MATERIAL_KEY = "SPINE_APPLY_ADDITIVE_MATERIAL";
 			const string BLEND_MODE_MATERIAL_MULTIPLY_KEY = "SPINE_BLENDMODE_MATERIAL_MULTIPLY";
 			const string BLEND_MODE_MATERIAL_SCREEN_KEY = "SPINE_BLENDMODE_MATERIAL_SCREEN";
@@ -201,6 +214,9 @@ namespace Spine.Unity.Editor {
 			const string WORKFLOW_MISMATCH_DIALOG_KEY = "SPINE_WORKFLOW_MISMATCH_DIALOG";
 			public static bool workflowMismatchDialog = SpinePreferences.DEFAULT_WORKFLOW_MISMATCH_DIALOG;
 
+			const string SPLIT_COMPONENT_CHANGE_WARNING_KEY = "SPINE_SPLIT_COMPONENT_CHANGE_WARNING";
+			public static bool splitComponentChangeWarning = SpinePreferences.DEFAULT_SPLIT_COMPONENT_CHANGE_WARNING;
+
 			public const float DEFAULT_MIPMAPBIAS = SpinePreferences.DEFAULT_MIPMAPBIAS;
 
 			public const string SCENE_ICONS_SCALE_KEY = "SPINE_SCENE_ICONS_SCALE";
@@ -247,6 +263,7 @@ namespace Spine.Unity.Editor {
 				componentMaterialWarning = EditorPrefs.GetBool(COMPONENTMATERIAL_WARNING_KEY, SpinePreferences.DEFAULT_COMPONENTMATERIAL_WARNING);
 				skeletonDataAssetNoFileError = EditorPrefs.GetBool(SKELETONDATA_ASSET_NO_FILE_ERROR_KEY, SpinePreferences.DEFAULT_SKELETONDATA_ASSET_NO_FILE_ERROR);
 				workflowMismatchDialog = EditorPrefs.GetBool(WORKFLOW_MISMATCH_DIALOG_KEY, SpinePreferences.DEFAULT_WORKFLOW_MISMATCH_DIALOG);
+				splitComponentChangeWarning = EditorPrefs.GetBool(SPLIT_COMPONENT_CHANGE_WARNING_KEY, SpinePreferences.DEFAULT_SPLIT_COMPONENT_CHANGE_WARNING);
 				timelineDefaultMixDuration = EditorPrefs.GetBool(TIMELINE_DEFAULT_MIX_DURATION_KEY, SpinePreferences.DEFAULT_TIMELINE_DEFAULT_MIX_DURATION);
 				timelineUseBlendDuration = EditorPrefs.GetBool(TIMELINE_USE_BLEND_DURATION_KEY, SpinePreferences.DEFAULT_TIMELINE_USE_BLEND_DURATION);
 				handleScale = EditorPrefs.GetFloat(SCENE_ICONS_SCALE_KEY, SpinePreferences.DEFAULT_SCENE_ICONS_SCALE);
@@ -299,6 +316,7 @@ namespace Spine.Unity.Editor {
 				EditorPrefs.SetBool(COMPONENTMATERIAL_WARNING_KEY, preferences.componentMaterialWarning);
 				EditorPrefs.SetBool(SKELETONDATA_ASSET_NO_FILE_ERROR_KEY, preferences.skeletonDataAssetNoFileError);
 				EditorPrefs.SetBool(WORKFLOW_MISMATCH_DIALOG_KEY, preferences.workflowMismatchDialog);
+				EditorPrefs.SetBool(SPLIT_COMPONENT_CHANGE_WARNING_KEY, preferences.splitComponentChangeWarning);
 				EditorPrefs.SetBool(TIMELINE_DEFAULT_MIX_DURATION_KEY, preferences.timelineDefaultMixDuration);
 				EditorPrefs.SetBool(TIMELINE_USE_BLEND_DURATION_KEY, preferences.timelineUseBlendDuration);
 				EditorPrefs.SetFloat(SCENE_ICONS_SCALE_KEY, preferences.handleScale);
@@ -445,6 +463,51 @@ namespace Spine.Unity.Editor {
 				}
 
 				GUILayout.Space(20);
+				EditorGUILayout.LabelField("Automatic Component Upgrade", EditorStyles.boldLabel);
+#if SPINE_AUTO_UPGRADE_COMPONENTS_OFF
+				bool upgradeComponentsEnabled = false;
+#else
+				bool upgradeComponentsEnabled = true;
+#endif
+				using (new GUILayout.HorizontalScope()) {
+					EditorGUILayout.PrefixLabel(new GUIContent("Split Component Upgrade", "Allow automatic upgrade of skeleton components to new split components."));
+					EnableDisableDefineButtons(SpineBuildEnvUtility.SPINE_AUTO_UPGRADE_COMPONENTS_OFF, upgradeComponentsEnabled, invert: true);
+				}
+
+				using (new EditorGUI.DisabledScope(!upgradeComponentsEnabled)) {
+					using (new GUILayout.HorizontalScope()) {
+						EditorGUILayout.PrefixLabel(new GUIContent("Upgrade Scenes & Prefabs", "Upgrades all scenes and " +
+							"prefabs in the project to Spine 4.3 split animation components."));
+						if (GUILayout.Button("Upgrade All", GUILayout.Width(132))) {
+							if (EditorUtility.DisplayDialog("Upgrade to Spine 4.3",
+								"This will open and process all scenes and prefabs in your project to upgrade Spine " +
+								"components to split animation components of version 4.3.\n\n" +
+								"This process may take a while for large projects.\n\n" +
+								"Make sure to backup your project before proceeding.\n\n" +
+								"Continue?", "Yes, Upgrade", "Cancel")) {
+#if AUTO_UPGRADE_TO_43_COMPONENTS
+								SpineEditorUtilities.UpgradeAllScenesAndPrefabsTo43();
+#endif
+							}
+						}
+					}
+				}
+
+				GUILayout.Space(20);
+				EditorGUILayout.LabelField("Threading Defaults", EditorStyles.boldLabel);
+				{
+					bool useThreadedMeshGeneration = RuntimeSettings.UseThreadedMeshGeneration;
+					bool useThreadedAnimation = RuntimeSettings.UseThreadedAnimation;
+					SpineEditorUtilities.BoolRuntimePropertiesField(
+						() => RuntimeSettings.UseThreadedMeshGeneration,
+						value => RuntimeSettings.UseThreadedMeshGeneration = value,
+						new GUIContent("Threaded MeshGeneration", "Default value for SkeletonRenderer and SkeletonGraphic Threaded Mesh Generation."));
+					SpineEditorUtilities.BoolRuntimePropertiesField(
+						() => RuntimeSettings.UseThreadedAnimation, value => RuntimeSettings.UseThreadedAnimation = value,
+						new GUIContent("Threaded Animation", "Default value for SkeletonAnimation and SkeletonMecanim Threaded Animation."));
+				}
+
+				GUILayout.Space(20);
 				EditorGUILayout.LabelField("Timeline Extension", EditorStyles.boldLabel);
 				{
 					SpineEditorUtilities.BoolPrefsField(ref timelineDefaultMixDuration, TIMELINE_DEFAULT_MIX_DURATION_KEY, new GUIContent("Default Mix Duration", "When enabled, the clip uses the default mix duration by default, as specified at the SkeletonDataAsset."));
@@ -483,7 +546,17 @@ namespace Spine.Unity.Editor {
 				EditorPrefs.SetBool(editorPrefsKey, currentValue);
 		}
 
-		static void FloatPrefsField (ref float currentValue, string editorPrefsKey, GUIContent label, float min = float.NegativeInfinity, float max = float.PositiveInfinity) {
+		public static void BoolRuntimePropertiesField (System.Func<bool> propertyGetter, System.Action<bool> propertySetter, GUIContent label) {
+			bool value = propertyGetter();
+			EditorGUI.BeginChangeCheck();
+			value = EditorGUILayout.Toggle(label, value);
+			if (EditorGUI.EndChangeCheck()) {
+				propertySetter(value);
+				RuntimeSettingsEditor.SaveToRuntimeAsset();
+			}
+		}
+
+		public static void FloatPrefsField (ref float currentValue, string editorPrefsKey, GUIContent label, float min = float.NegativeInfinity, float max = float.PositiveInfinity) {
 			EditorGUI.BeginChangeCheck();
 			currentValue = EditorGUILayout.DelayedFloatField(label, currentValue);
 			if (EditorGUI.EndChangeCheck()) {
@@ -528,6 +601,30 @@ namespace Spine.Unity.Editor {
 		public static void MaterialPropertyField (SerializedProperty property, GUIContent label) {
 			Material material = (EditorGUILayout.ObjectField(label, AssetDatabase.LoadAssetAtPath<Material>(property.stringValue), typeof(Material), false) as Material);
 			property.stringValue = material ? AssetDatabase.GetAssetPath(material) : "";
+		}
+
+		public static void EnableDisableDefineButtons (string define, bool isEnabled, bool invert = false) {
+			bool changed = false;
+			bool enable = false;
+
+			using (new EditorGUI.DisabledScope(!isEnabled)) {
+				if (GUILayout.Button("Disable", GUILayout.Width(64))) {
+					changed = true;
+					enable = invert;
+				}
+			}
+			using (new EditorGUI.DisabledScope(isEnabled)) {
+				if (GUILayout.Button("Enable", GUILayout.Width(64))) {
+					changed = true;
+					enable = !invert;
+				}
+			}
+			if (changed) {
+				if (enable)
+					SpineBuildEnvUtility.EnableBuildDefine(define);
+				else
+					SpineBuildEnvUtility.DisableBuildDefine(define);
+			}
 		}
 
 #if NEW_PREFERENCES_SETTINGS_PROVIDER

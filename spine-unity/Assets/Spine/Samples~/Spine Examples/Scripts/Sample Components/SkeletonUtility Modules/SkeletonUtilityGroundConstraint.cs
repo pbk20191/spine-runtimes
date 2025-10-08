@@ -65,12 +65,21 @@ namespace Spine.Unity.Examples {
 		float hitY;
 		float lastHitY;
 
+		Vector3 bonePositionToApply;
+
 		protected override void OnEnable () {
 			base.OnEnable();
 			lastHitY = transform.position.y;
 		}
 
 		public override void DoUpdate () {
+			UpdateConstraint();
+			var bonePose = bone.bone.Pose;
+			bonePose.X = bonePositionToApply.x;
+			bonePose.Y = bonePositionToApply.y;
+		}
+
+		protected void UpdateConstraint () {
 			rayOrigin = transform.position + new Vector3(castOffset, castDistance, 0);
 
 			float positionScale = hierarchy.PositionScale;
@@ -114,13 +123,10 @@ namespace Spine.Unity.Examples {
 
 			Vector3 v = transform.position;
 			v.y = Mathf.Clamp(v.y, Mathf.Min(lastHitY, hitY), float.MaxValue);
+			lastHitY = hitY;
 			transform.position = v;
 
-			var bonePose = bone.bone.Pose;
-			bonePose.X = transform.localPosition.x / hierarchy.PositionScale;
-			bonePose.Y = transform.localPosition.y / hierarchy.PositionScale;
-
-			lastHitY = hitY;
+			bonePositionToApply = transform.localPosition / hierarchy.PositionScale;
 		}
 
 		void OnDrawGizmos () {

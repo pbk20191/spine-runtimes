@@ -142,7 +142,7 @@ namespace Spine.Unity.Examples {
 
 		protected void UpdateCanvasRenderers () {
 			Mesh[] referenceMeshes = referenceSkeletonGraphic.MeshesMultipleCanvasRenderers.Items;
-			Material[] referenceMaterials = referenceSkeletonGraphic.MaterialsMultipleCanvasRenderers.Items;
+			Material[] referenceMaterials = referenceSkeletonGraphic.MaterialsMultipleCanvasRenderers;
 			Texture[] referenceTextures = referenceSkeletonGraphic.TexturesMultipleCanvasRenderers.Items;
 
 			int end = Math.Min(ownSubmeshGraphics.Count, referenceSkeletonGraphic.TexturesMultipleCanvasRenderers.Count);
@@ -192,7 +192,7 @@ namespace Spine.Unity.Examples {
 		}
 #endif
 
-		void UpdateOnCallback (SkeletonGraphic g) {
+		void UpdateOnCallback (ISkeletonRenderer renderer) {
 			UpdateMesh();
 		}
 
@@ -216,7 +216,7 @@ namespace Spine.Unity.Examples {
 					usedMaterial = referenceMaterial;
 				usedMaterial = referenceSkeletonGraphic.GetModifiedMaterial(usedMaterial);
 				ownGraphic.canvasRenderer.SetMaterial(usedMaterial, referenceSkeletonGraphic.mainTexture);
-				Mesh mesh = referenceSkeletonGraphic.GetLastMesh();
+				Mesh mesh = referenceSkeletonGraphic.GetCurrentMesh();
 				ownGraphic.canvasRenderer.SetMesh(mesh);
 			}
 		}

@@ -1133,7 +1133,7 @@ namespace Spine.Unity.Editor {
 					AssetDatabase.CreateAsset(skeletonDataAsset, filePath);
 					AssetDatabase.SaveAssets();
 				} else {
-					skeletonDataAsset.Clear();
+					SpineEditorUtilities.ClearSkeletonDataAsset(targetSkeletonDataAsset);
 					skeletonDataAsset.GetSkeletonData(true);
 				}
 
@@ -1379,12 +1379,12 @@ namespace Spine.Unity.Editor {
 
 		internal static readonly List<SkeletonComponentSpawnType> additionalSpawnTypes = new List<SkeletonComponentSpawnType>();
 
-		public static void TryInitializeSkeletonRendererSettings (SkeletonRenderer skeletonRenderer, Skin skin = null) {
+		public static void TryInitializeSkeletonRendererSettings (ISkeletonRenderer skeletonRenderer, Skin skin = null) {
 			const string PMAShaderQuery = "Spine/";
 			const string TintBlackShaderQuery = "Tint Black";
 
 			if (skeletonRenderer == null) return;
-			SkeletonDataAsset skeletonDataAsset = skeletonRenderer.skeletonDataAsset;
+			SkeletonDataAsset skeletonDataAsset = skeletonRenderer.SkeletonDataAsset;
 			if (skeletonDataAsset == null) return;
 
 			bool pmaVertexColors = false;
@@ -1409,9 +1409,11 @@ namespace Spine.Unity.Editor {
 				}
 			}
 
-			skeletonRenderer.pmaVertexColors = pmaVertexColors;
-			skeletonRenderer.tintBlack = tintBlack;
-			skeletonRenderer.zSpacing = SpineEditorUtilities.Preferences.defaultZSpacing;
+			MeshGenerator.Settings meshSettings = skeletonRenderer.MeshSettings;
+			meshSettings.pmaVertexColors = pmaVertexColors;
+			meshSettings.tintBlack = tintBlack;
+			meshSettings.zSpacing = SpineEditorUtilities.Preferences.defaultZSpacing;
+
 			skeletonRenderer.PhysicsPositionInheritanceFactor = SpineEditorUtilities.Preferences.defaultPhysicsPositionInheritance;
 			skeletonRenderer.PhysicsRotationInheritanceFactor = SpineEditorUtilities.Preferences.defaultPhysicsRotationInheritance;
 
@@ -1419,7 +1421,7 @@ namespace Spine.Unity.Editor {
 			bool noSkins = data.DefaultSkin == null && (data.Skins == null || data.Skins.Count == 0); // Support attachmentless/skinless SkeletonData.
 			skin = skin ?? data.DefaultSkin ?? (noSkins ? null : data.Skins.Items[0]);
 			if (skin != null && skin != data.DefaultSkin) {
-				skeletonRenderer.initialSkinName = skin.Name;
+				skeletonRenderer.InitialSkinName = skin.Name;
 			}
 		}
 
@@ -1451,10 +1453,11 @@ namespace Spine.Unity.Editor {
 
 			string spineGameObjectName = string.Format("Spine GameObject ({0})", skeletonDataAsset.name.Replace(AssetUtility.SkeletonDataSuffix, ""));
 			GameObject go = EditorInstantiation.NewGameObject(spineGameObjectName, useObjectFactory,
-				typeof(MeshFilter), typeof(MeshRenderer), typeof(SkeletonAnimation));
+				typeof(MeshFilter), typeof(MeshRenderer), typeof(SkeletonRenderer), typeof(SkeletonAnimation));
+			SkeletonRenderer skeletonRenderer = go.GetComponent<SkeletonRenderer>();
 			SkeletonAnimation newSkeletonAnimation = go.GetComponent<SkeletonAnimation>();
-			newSkeletonAnimation.skeletonDataAsset = skeletonDataAsset;
-			TryInitializeSkeletonRendererSettings(newSkeletonAnimation, skin);
+			skeletonRenderer.skeletonDataAsset = skeletonDataAsset;
+			TryInitializeSkeletonRendererSettings(skeletonRenderer, skin);
 
 			// Initialize
 			try {
@@ -1468,8 +1471,8 @@ namespace Spine.Unity.Editor {
 			}
 
 			newSkeletonAnimation.loop = SpineEditorUtilities.Preferences.defaultInstantiateLoop;
-			newSkeletonAnimation.state.Update(0);
-			newSkeletonAnimation.state.Apply(newSkeletonAnimation.skeleton);
+			newSkeletonAnimation.Update(0);
+			newSkeletonAnimation.AnimationState.Apply(newSkeletonAnimation.skeleton);
 			newSkeletonAnimation.skeleton.UpdateWorldTransform(Physics.Update);
 
 			return newSkeletonAnimation;
@@ -1491,6 +1494,16 @@ namespace Spine.Unity.Editor {
 				return ObjectFactory.CreateGameObject(name, components);
 #endif
 			return new GameObject(name, components);
+		}
+
+		/// <summary>Handles adding a Component to a GameObject in the Unity Editor.
+		/// This uses the new ObjectFactory API where applicable.</summary>
+		public static Component AddComponent (GameObject gameObject, bool useObjectFactory, System.Type type) {
+#if NEW_PREFAB_SYSTEM
+			if (useObjectFactory)
+				return ObjectFactory.AddComponent(gameObject, type);
+#endif
+			return gameObject.AddComponent(type);
 		}
 
 		public static void InstantiateEmptySpineGameObject<T> (string name, bool useObjectFactory) where T : MonoBehaviour {
@@ -1529,7 +1542,7 @@ namespace Spine.Unity.Editor {
 
 			string spineGameObjectName = string.Format("Spine Mecanim GameObject ({0})", skeletonDataAsset.name.Replace(AssetUtility.SkeletonDataSuffix, ""));
 			GameObject go = EditorInstantiation.NewGameObject(spineGameObjectName, useObjectFactory,
-				typeof(MeshFilter), typeof(MeshRenderer), typeof(Animator), typeof(SkeletonMecanim));
+				typeof(MeshFilter), typeof(MeshRenderer), typeof(Animator), typeof(SkeletonRenderer), typeof(SkeletonMecanim));
 
 			if (skeletonDataAsset.controller == null) {
 				SkeletonBaker.GenerateMecanimAnimationClips(skeletonDataAsset);
@@ -1538,9 +1551,10 @@ namespace Spine.Unity.Editor {
 
 			go.GetComponent<Animator>().runtimeAnimatorController = skeletonDataAsset.controller;
 
+			SkeletonRenderer skeletonRenderer = go.GetComponent<SkeletonRenderer>();
 			SkeletonMecanim newSkeletonMecanim = go.GetComponent<SkeletonMecanim>();
-			newSkeletonMecanim.skeletonDataAsset = skeletonDataAsset;
-			TryInitializeSkeletonRendererSettings(newSkeletonMecanim, skin);
+			skeletonRenderer.skeletonDataAsset = skeletonDataAsset;
+			TryInitializeSkeletonRendererSettings(skeletonRenderer, skin);
 
 			// Initialize
 			try {
@@ -1553,8 +1567,8 @@ namespace Spine.Unity.Editor {
 				throw e;
 			}
 
-			newSkeletonMecanim.skeleton.UpdateWorldTransform(Physics.Update);
-			newSkeletonMecanim.LateUpdate();
+			newSkeletonMecanim.UpdateOncePerFrame(0);
+			newSkeletonMecanim.Renderer.LateUpdate();
 
 			return newSkeletonMecanim;
 		}
