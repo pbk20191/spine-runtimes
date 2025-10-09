@@ -66,11 +66,13 @@ class BoundsProviderExample extends FlxState {
 		skeletonSpriteClipping.screenCenter();
 		skeletonSpriteClipping.x = FlxG.width / 4;
 		add(skeletonSpriteClipping);
+
+		var bounds = skeletonSpriteClipping.bounds;
 		var textClipping = new FlxText();
 		textClipping.text = "Bounds with clipping";
 		textClipping.size = 12;
-		textClipping.x = skeletonSpriteClipping.boundsX + skeletonSpriteClipping.width / 2 - textClipping.width / 2;
-		textClipping.y = skeletonSpriteClipping.boundsY + skeletonSpriteClipping.height + 20;
+		textClipping.x = bounds.x + skeletonSpriteClipping.width / 2 - textClipping.width / 2;
+		textClipping.y = bounds.y + skeletonSpriteClipping.height + 20;
 		textClipping.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.RED, 2);
 		add(textClipping);
 
@@ -79,11 +81,13 @@ class BoundsProviderExample extends FlxState {
 		skeletonSpriteNoClipping.screenCenter();
 		skeletonSpriteNoClipping.x = FlxG.width / 4 * 3;
 		add(skeletonSpriteNoClipping);
+
+		var bounds = skeletonSpriteNoClipping.bounds;
 		var textNoClipping = new FlxText();
 		textNoClipping.text = "Bounds without clipping";
 		textNoClipping.size = 12;
-		textNoClipping.x = skeletonSpriteNoClipping.boundsX + skeletonSpriteNoClipping.width / 2 - textNoClipping.width / 2;
-		textNoClipping.y = skeletonSpriteNoClipping.boundsY + skeletonSpriteNoClipping.height + 20;
+		textNoClipping.x = bounds.x + skeletonSpriteNoClipping.width / 2 - textNoClipping.width / 2;
+		textNoClipping.y = bounds.y + skeletonSpriteNoClipping.height + 20;
 		textNoClipping.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.RED, 2);
 		add(textNoClipping);
 

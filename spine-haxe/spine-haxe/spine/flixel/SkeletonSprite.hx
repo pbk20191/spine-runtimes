@@ -81,8 +81,9 @@ class SkeletonSprite extends FlxTypedGroup<FlxObject> {
 	public var y(default, set) = 0.;
 	public var width(get, set):Float;
 	public var height(get, set):Float;
-	public var boundsX(get, never):Float;
-	public var boundsY(get, never):Float;
+
+	/** The bounds of the gameobject. */
+	public var bounds(get, never):Rectangle;
 
 	@:isVar
 	public var scale(never, set):FlxPoint;
@@ -403,12 +404,13 @@ class SkeletonSprite extends FlxTypedGroup<FlxObject> {
 		return __bounds.height;
 	}
 
-	function get_boundsX():Float {
-		return __objectBounds.x;
-	}
-
-	function get_boundsY():Float {
-		return __objectBounds.y;
+	function get_bounds():Rectangle {
+		var bounds = new Rectangle();
+		bounds.x = __objectBounds.x;
+		bounds.y = __objectBounds.y;
+		bounds.width = __objectBounds.width;
+		bounds.height = __objectBounds.height;
+		return bounds;
 	}
 
 	// ============================================================

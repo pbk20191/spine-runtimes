@@ -29,6 +29,7 @@
 
 package flixelExamples;
 
+import spine.boundsprovider.SkinsAndAnimationBoundsProvider;
 import flixel.ui.FlxButton;
 import flixel.FlxG;
 import spine.flixel.SkeletonSprite;
@@ -56,8 +57,8 @@ class BasicExample extends FlxState {
 		var animationStateData = new AnimationStateData(skeletondata);
 		animationStateData.defaultMix = 0.25;
 
-		skeletonSprite = new SkeletonSprite(skeletondata, animationStateData);
-		// skeletonSprite.state.setAnimationByName(0, "walk", true);
+		skeletonSprite = new SkeletonSprite(skeletondata, animationStateData, new SkinsAndAnimationBoundsProvider("walk", null));
+		skeletonSprite.state.setAnimationByName(0, "walk", true);
 		skeletonSprite.screenCenter();
 		add(skeletonSprite);
 
