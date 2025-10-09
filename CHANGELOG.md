@@ -331,7 +331,7 @@
   - Attachment `ComputeWorldVertices()` methods now take an additional `skeleton` parameter
   - Renamed timeline constraint index methods to use unified `ConstraintIndex` property
   - Reorganized timeline class hierarchy with new base classes
-  
+
 ### Unity
 
 - **Officially supported Unity versions are 2017.1-6000.1**.
@@ -354,7 +354,7 @@
   - Added a workflow mismatch dialog showing whenever problematic PMA vs. straight alpha settings are detected at a newly imported `.atlas.txt` file. Invalid settings include the atlas being PMA and project using Linear color space, and a mismatch of Auto-Import presets set to straight alpha compared to the atlas being PMA and vice versa. The dialog offers an option to automatically fix the problematic setting on the import side and links website documentation for export settings. This dialog can be disabled and re-enabled via Spine preferences.
   - Added threading support for all skeleton rendering and animation components, disabled by default. Threading can be activated per component or globally via Edit → Preferences → Spine → Threading Defaults. Two threading options are available:
     - `Threaded MeshGeneration`: Default value for SkeletonRenderer and SkeletonGraphic threaded mesh generation
-    - `Threaded Animation`: Default value for SkeletonAnimation and SkeletonMecanim threaded animation updates  
+    - `Threaded Animation`: Default value for SkeletonAnimation and SkeletonMecanim threaded animation updates
   - Even when threading is enabled, the threading system defaults to user callbacks like `UpdateWorld` being issued on the main thread to support existing user code. Can be configured via `SkeletonUpdateSystem.Instance.MainThreadUpdateCallbacks = false` to perform callbacks on worker threads if parallel execution is supported and desired by the user code. Note that most Unity API calls are restricted to the main thread.
 
 - **Deprecated**
@@ -406,6 +406,13 @@
   - Added `Animation.getBones()` to get bone indices used by an animation
   - Added `Skeleton` properties `windX`, `windY`, `gravityX`, `gravityY` to allow rotating physics force directions
   - Added `SequenceTimeline` for sequence animation
+  - BoundsProvider System: added a new flexible BoundsProvider system to improve bounds calculation performance and correctness across all renderers.
+    - Added `BoundsProvider` abstract class with interface for calculating skeleton bounding boxes
+    - Implemented four concrete `BoundsProvider` classes:
+      - `AABBRectangleBoundsProvider` - Uses a simple axis-aligned bounding box rectangle
+      - `CurrentPoseBoundsProvider` - Calculates bounds dynamically from the current skeleton pose
+      - `SetupPoseBoundsProvider` - Uses setup pose bounds (default implementation)
+      - `SkinsAndAnimationBoundsProvider` - Calculates bounds based on specific skins and animations
 
 - **Breaking changes**
   - `Bone` now extends `PosedActive` with separate pose, constrained, and applied states
@@ -506,6 +513,42 @@
   - Timeline `apply()` methods now take an additional `appliedPose` parameter
   - Attachment `computeWorldVertices()` methods now take an additional `skeleton` parameter
   - Renamed timeline constraint index methods to use unified `getConstraintIndex()`
+
+### Starling
+
+- **Additions**
+  - BoundsProvider Integration
+    - Integrated BoundsProvider system into Starling renderer
+    - Added `boundsProvider` public field for customizing bounds calculation strategy
+    - Added `calculateBounds()` method to recalculate bounds on demand
+    - Constructor now accepts optional third parameter `boundsProvider` (defaults to `SetupPoseBoundsProvider`)
+    - Simplified `getBounds()` implementation to use `BoundsProvider` instead of direct calculation
+  - Scale Integration
+    - Connected `SkeletonSprite.scale`, `scaleX`, and `scaleY` properties to `skeleton.scaleX/scaleY` values
+    - Setting scale properties now automatically updates skeleton scale and recalculates bounds
+    - Ensures consistent scaling behavior between display object and skeleton
+
+- **Breaking changes**
+  - Removed `getAnimationBounds()` method - replace with appropriate `BoundsProvider` implementation or create custom one
+  - `hitTest()` now uses `BoundsProvider` using cached bounds from `BoundsProvider` instead of iterating all slots and attachments, for accurate hit testing with animated skeletons, use `CurrentPoseBoundsProvider` and call `calculateBounds()` each frame or on click
+  - Changed `_state` to state (public field)
+  - Changed `_skeleton` to skeleton (public field)
+
+### Flixel
+
+- **Additions**
+  - BoundsProvider Integration
+    - Integrated `BoundsProvider` system matching Starling implementation
+    - Constructor now accepts optional third parameter `boundsProvider` (defaults to `SetupPoseBoundsProvider`)
+    - Added `boundsProvider` public field for customizing bounds calculation strategy
+    - Added `calculateBounds()` method to recalculate bounds on demand
+    - Added `bounds` property to get the bounds coordinates
+- **Breaking changes**
+  - `SkeletonSprite` now extends `FlxTypedGroup<FlxObject>` instead of FlxObject. This was necessary because `FlxObject` bounding/hitbox is always connected to its position and size and cannot be offset
+    - This eables proper bounds handling independent of position
+    - Added methods and properties to maintain FlxObject-like API despite extending FlxTypedGroup
+  - Removed `getAnimationBounds()` method - replace with appropriate `BoundsProvider` implementation
+  - Removed `setBoundingBox()` method - use `BoundsProvider` features instead
 
 ## Java
 
