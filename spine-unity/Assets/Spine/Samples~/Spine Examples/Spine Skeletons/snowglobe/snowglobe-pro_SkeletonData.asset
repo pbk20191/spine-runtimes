@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Name: snowglobe-pro_SkeletonData
   m_EditorClassIdentifier: 
   atlasAssets:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: b9e4a2caef534b644a5daf4e4b7da32a, type: 2}
   scale: 0.01
   skeletonJSON: {fileID: 4900000, guid: 3c5679bf3b085444a862aa6d3ebe97ad, type: 3}
   isUpgradingBlendModeMaterials: 0
@@ -21,8 +21,6 @@ MonoBehaviour:
     applyAdditiveMaterial: 0
     additiveMaterials: []
     multiplyMaterials:
-    - pageName: snowglobe_4.png
-      material: {fileID: 2100000, guid: 457f3020c684d35468371a3d1f701bf5, type: 2}
     - pageName: snowglobe.png
       material: {fileID: 2100000, guid: 8fe6588f222e36643befb8dc4dd42d31, type: 2}
     screenMaterials: []
