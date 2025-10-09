@@ -55,6 +55,10 @@
 #define HAS_PACKAGE_INFO
 #endif
 
+#if UNITY_2018_2_OR_NEWER
+#define HAS_BATCHMODE_QUERY
+#endif
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -817,6 +821,9 @@ namespace Spine.Unity.Editor {
 
 		/// <returns>True if automatic fixing by switching to suitable settings was selected.</returns>
 		static bool ShowWorkflowMismatchDialog (SpineAtlasAsset atlasAsset, bool isLinearPMAMismatch, bool atlasIsPMA) {
+#if HAS_BATCHMODE_QUERY
+			if (Application.isBatchMode) return false;
+#endif
 			string atlasFileName = atlasAsset.atlasFile.name;
 			Selection.activeObject = atlasAsset.atlasFile;
 			EditorGUIUtility.PingObject(atlasAsset.atlasFile);

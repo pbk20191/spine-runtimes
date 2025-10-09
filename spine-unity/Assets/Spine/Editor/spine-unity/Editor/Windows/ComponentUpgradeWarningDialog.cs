@@ -31,6 +31,10 @@
 #define HAS_MODAL_UTILITY
 #endif
 
+#if UNITY_2018_2_OR_NEWER
+#define HAS_BATCHMODE_QUERY
+#endif
+
 using UnityEditor;
 using UnityEngine;
 
@@ -52,7 +56,9 @@ namespace Spine.Unity.Editor {
 		private static ComponentUpgradeWarningDialog currentWindow;
 
 		public static DialogResult ShowDialog () {
-
+#if HAS_BATCHMODE_QUERY
+			if (Application.isBatchMode) return DialogResult.None;
+#endif
 			if (currentWindow != null) {
 				currentWindow.Close();
 			}
