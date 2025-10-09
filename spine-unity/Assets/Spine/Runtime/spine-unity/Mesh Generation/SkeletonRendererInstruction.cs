@@ -147,13 +147,13 @@ namespace Spine.Unity {
 			if (calledFromMainThread && !Application.isPlaying)
 				return true;
 #endif
-
 			if (a.hasActiveClipping || b.hasActiveClipping) return true; // Triangles are unpredictable when clipping is active.
+
+			if (a.immutableTriangles != b.immutableTriangles) return true;
+			if (a.immutableTriangles) return false;
 
 			// Everything below assumes the raw vertex and triangle counts were used. (ie, no clipping was done)
 			if (a.rawVertexCount != b.rawVertexCount) return true;
-
-			if (a.immutableTriangles != b.immutableTriangles) return true;
 
 			int attachmentCountB = b.attachments.Count;
 			if (a.attachments.Count != attachmentCountB) return true; // Bounds check for the looped storedAttachments count below.
