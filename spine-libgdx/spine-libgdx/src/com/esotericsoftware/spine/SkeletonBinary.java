@@ -585,7 +585,7 @@ public class SkeletonBinary extends SkeletonLoader {
 			region.setHeight(height * scale);
 			Color.rgba8888ToColor(region.getColor(), color);
 			region.setSequence(sequence);
-			if (sequence == null) region.updateRegion();
+			if (region.getRegion() != null) region.updateRegion();
 			yield region;
 		}
 		case boundingbox -> {
@@ -626,7 +626,7 @@ public class SkeletonBinary extends SkeletonLoader {
 			mesh.setWorldVerticesLength(vertices.length);
 			mesh.setTriangles(triangles);
 			mesh.setRegionUVs(uvs);
-			if (sequence == null) mesh.updateRegion();
+			if (mesh.getRegion() != null) mesh.updateRegion();
 			mesh.setHullLength(hullLength << 1);
 			mesh.setSequence(sequence);
 			if (nonessential) {

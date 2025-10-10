@@ -43,10 +43,16 @@ import com.esotericsoftware.spine.Skin;
 @SuppressWarnings("javadoc")
 public class AtlasAttachmentLoader implements AttachmentLoader {
 	private TextureAtlas atlas;
+	public boolean allowMissingRegions;
 
 	public AtlasAttachmentLoader (TextureAtlas atlas) {
+		this(atlas, false);
+	}
+
+	public AtlasAttachmentLoader (TextureAtlas atlas, boolean allowMissingRegions) {
 		if (atlas == null) throw new IllegalArgumentException("atlas cannot be null.");
 		this.atlas = atlas;
+		this.allowMissingRegions = allowMissingRegions;
 	}
 
 	private void loadSequence (String name, String basePath, Sequence sequence) {
@@ -54,7 +60,11 @@ public class AtlasAttachmentLoader implements AttachmentLoader {
 		for (int i = 0, n = regions.length; i < n; i++) {
 			String path = sequence.getPath(basePath, i);
 			regions[i] = atlas.findRegion(path);
-			if (regions[i] == null) throw new RuntimeException("Region not found in atlas: " + path + " (sequence: " + name + ")");
+			if (regions[i] == null) {
+				if (!allowMissingRegions)
+					throw new RuntimeException("Region not found in atlas: " + path + " (sequence: " + name + ")");
+				continue;
+			}
 		}
 	}
 
@@ -64,7 +74,7 @@ public class AtlasAttachmentLoader implements AttachmentLoader {
 			loadSequence(name, path, sequence);
 		else {
 			AtlasRegion region = atlas.findRegion(path);
-			if (region == null)
+			if (region == null && !allowMissingRegions)
 				throw new RuntimeException("Region not found in atlas: " + path + " (region attachment: " + name + ")");
 			attachment.setRegion(region);
 		}
@@ -77,7 +87,7 @@ public class AtlasAttachmentLoader implements AttachmentLoader {
 			loadSequence(name, path, sequence);
 		else {
 			AtlasRegion region = atlas.findRegion(path);
-			if (region == null)
+			if (region == null && !allowMissingRegions)
 				throw new RuntimeException("Region not found in atlas: " + path + " (mesh attachment: " + name + ")");
 			attachment.setRegion(region);
 		}
