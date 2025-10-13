@@ -73,6 +73,7 @@ void spSkeletonDrawable_draw(spSkeletonDrawable *self, struct SDL_Renderer *rend
 	spSkeletonClipping *clipper = self->clipper;
 	SDL_Texture *texture;
 	SDL_Vertex sdlVertex;
+
 	for (int i = 0; i < skeleton->slotsCount; ++i) {
 		spSlot *slot = skeleton->drawOrder[i];
 		spAttachment *attachment = slot->attachment;
@@ -139,6 +140,7 @@ void spSkeletonDrawable_draw(spSkeletonDrawable *self, struct SDL_Renderer *rend
 		Uint8 g = (Uint8) (skeleton->color.g * slot->color.g * attachmentColor->g * 255);
 		Uint8 b = (Uint8) (skeleton->color.b * slot->color.b * attachmentColor->b * 255);
 		Uint8 a = (Uint8) (skeleton->color.a * slot->color.a * attachmentColor->a * 255);
+
 		sdlVertex.color.r = r;
 		sdlVertex.color.g = g;
 		sdlVertex.color.b = b;
@@ -188,15 +190,16 @@ void spSkeletonDrawable_draw(spSkeletonDrawable *self, struct SDL_Renderer *rend
 					SDL_SetTextureBlendMode(texture, target);
 					break;
 				case SP_BLEND_MODE_MULTIPLY:
-					SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_MOD);
+					target = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_DST_COLOR, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_DST_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+					SDL_SetTextureBlendMode(texture, target);
 					break;
 				case SP_BLEND_MODE_ADDITIVE:
 					target = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD);
-					SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_ADD);
+					SDL_SetTextureBlendMode(texture, target);
 					break;
 				case SP_BLEND_MODE_SCREEN:
 					target = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
-					SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+					SDL_SetTextureBlendMode(texture, target);
 					break;
 			}
 		}

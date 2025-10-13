@@ -115,15 +115,16 @@ void SkeletonDrawable::draw(SDL_Renderer *renderer) {
 					SDL_SetTextureBlendMode(texture, target);
 					break;
 				case BlendMode_Multiply:
-					SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_MOD);
+					target = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_DST_COLOR, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_DST_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+					SDL_SetTextureBlendMode(texture, target);
 					break;
 				case BlendMode_Additive:
 					target = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD);
-					SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_ADD);
+					SDL_SetTextureBlendMode(texture, target);
 					break;
 				case BlendMode_Screen:
 					target = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
-					SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+					SDL_SetTextureBlendMode(texture, target);
 					break;
 			}
 		}
