@@ -470,14 +470,16 @@ namespace Spine.Unity.Editor {
 				bool upgradeComponentsEnabled = true;
 #endif
 				using (new GUILayout.HorizontalScope()) {
-					EditorGUILayout.PrefixLabel(new GUIContent("Split Component Upgrade", "Allow automatic upgrade of skeleton components to new split components."));
+					EditorGUILayout.PrefixLabel(new GUIContent("Split Component Upgrade",
+						"Allow automatic upgrade of skeleton components to split components new in version 4.3. " + 
+						"Disable once all scenes and prefabs are migrated to avoid unnecessary editor checks."));
 					EnableDisableDefineButtons(SpineBuildEnvUtility.SPINE_AUTO_UPGRADE_COMPONENTS_OFF, upgradeComponentsEnabled, invert: true);
 				}
 
 				using (new EditorGUI.DisabledScope(!upgradeComponentsEnabled)) {
 					using (new GUILayout.HorizontalScope()) {
 						EditorGUILayout.PrefixLabel(new GUIContent("Upgrade Scenes & Prefabs", "Upgrades all scenes and " +
-							"prefabs in the project to Spine 4.3 split animation components."));
+							"prefabs in the project to split animation components new in version 4.3."));
 						if (GUILayout.Button("Upgrade All", GUILayout.Width(132))) {
 							if (EditorUtility.DisplayDialog("Upgrade to Spine 4.3",
 								"This will open and process all scenes and prefabs in your project to upgrade Spine " +
@@ -501,10 +503,10 @@ namespace Spine.Unity.Editor {
 					SpineEditorUtilities.BoolRuntimePropertiesField(
 						() => RuntimeSettings.UseThreadedMeshGeneration,
 						value => RuntimeSettings.UseThreadedMeshGeneration = value,
-						new GUIContent("Threaded MeshGeneration", "Default value for SkeletonRenderer and SkeletonGraphic Threaded Mesh Generation."));
+						new GUIContent("Threaded MeshGeneration", "Global setting for the equally named SkeletonRenderer and SkeletonGraphic Inspector parameter."));
 					SpineEditorUtilities.BoolRuntimePropertiesField(
 						() => RuntimeSettings.UseThreadedAnimation, value => RuntimeSettings.UseThreadedAnimation = value,
-						new GUIContent("Threaded Animation", "Default value for SkeletonAnimation and SkeletonMecanim Threaded Animation."));
+						new GUIContent("Threaded Animation", "Global setting for the equally named SkeletonAnimation and SkeletonGraphic Inspector parameter."));
 				}
 
 				GUILayout.Space(20);
