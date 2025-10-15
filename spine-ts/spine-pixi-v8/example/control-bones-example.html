@@ -46,14 +46,10 @@
 
         // Create the spine display object
         const stretchyman = spine.Spine.from({skeleton: "stretchymanData", atlas: "stretchymanAtlas",
-          scale: 1,
-          // scale: 0.75,
+          scale: 0.75,
         });
 
-        stretchyman.skeleton.scaleX = .5;
-        stretchyman.skeleton.scaleY = 1;
-
-         // Set the default mix time to use when transitioning
+        // Set the default mix time to use when transitioning
         // from one animation to the next.
         stretchyman.state.data.defaultMix = 0.2;
 
