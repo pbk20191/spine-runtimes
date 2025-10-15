@@ -27,8 +27,8 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-import { Animation, Timeline, InheritTimeline, AttachmentTimeline, RGBATimeline, RGBTimeline, RGBA2Timeline, RGB2Timeline, AlphaTimeline, RotateTimeline, TranslateTimeline, TranslateXTimeline, TranslateYTimeline, ScaleTimeline, ScaleXTimeline, ScaleYTimeline, ShearTimeline, ShearXTimeline, ShearYTimeline, IkConstraintTimeline, TransformConstraintTimeline, PathConstraintPositionTimeline, PathConstraintSpacingTimeline, PathConstraintMixTimeline, DeformTimeline, DrawOrderTimeline, EventTimeline, CurveTimeline1, CurveTimeline, SequenceTimeline, PhysicsConstraintResetTimeline, PhysicsConstraintInertiaTimeline, PhysicsConstraintStrengthTimeline, PhysicsConstraintDampingTimeline, PhysicsConstraintMassTimeline, PhysicsConstraintWindTimeline, PhysicsConstraintGravityTimeline, PhysicsConstraintMixTimeline, BoneTimeline2, SliderTimeline, SliderMixTimeline } from "./Animation.js";
-import { VertexAttachment, Attachment } from "./attachments/Attachment.js";
+import { AlphaTimeline, Animation, AttachmentTimeline, BoneTimeline2, CurveTimeline, CurveTimeline1, DeformTimeline, DrawOrderTimeline, EventTimeline, IkConstraintTimeline, InheritTimeline, PathConstraintMixTimeline, PathConstraintPositionTimeline, PathConstraintSpacingTimeline, PhysicsConstraintDampingTimeline, PhysicsConstraintGravityTimeline, PhysicsConstraintInertiaTimeline, PhysicsConstraintMassTimeline, PhysicsConstraintMixTimeline, PhysicsConstraintResetTimeline, PhysicsConstraintStrengthTimeline, PhysicsConstraintWindTimeline, RGB2Timeline, RGBA2Timeline, RGBATimeline, RGBTimeline, RotateTimeline, ScaleTimeline, ScaleXTimeline, ScaleYTimeline, SequenceTimeline, ShearTimeline, ShearXTimeline, ShearYTimeline, SliderMixTimeline, SliderTimeline, Timeline, TransformConstraintTimeline, TranslateTimeline, TranslateXTimeline, TranslateYTimeline } from "./Animation.js";
+import { Attachment, VertexAttachment } from "./attachments/Attachment.js";
 import { AttachmentLoader } from "./attachments/AttachmentLoader.js";
 import { HasTextureRegion } from "./attachments/HasTextureRegion.js";
 import { MeshAttachment } from "./attachments/MeshAttachment.js";
@@ -488,7 +488,7 @@ export class SkeletonBinary {
 				region.height = height * scale;
 				Color.rgba8888ToColor(region.color, color);
 				region.sequence = sequence;
-				if (sequence == null) region.updateRegion();
+				if (region.region != null) region.updateRegion();
 				return region;
 			}
 			case AttachmentType.BoundingBox: {
@@ -529,7 +529,7 @@ export class SkeletonBinary {
 				mesh.worldVerticesLength = vertices.length;
 				mesh.triangles = triangles;
 				mesh.regionUVs = uvs;
-				if (sequence == null) mesh.updateRegion();
+				if (mesh.region != null) mesh.updateRegion();
 				mesh.hullLength = hullLength << 1;
 				mesh.sequence = sequence;
 				if (nonessential) {

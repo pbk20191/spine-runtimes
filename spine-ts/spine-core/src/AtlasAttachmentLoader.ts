@@ -27,16 +27,16 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-import { AttachmentLoader } from "./attachments/AttachmentLoader.js";
+import type { AttachmentLoader } from "./attachments/AttachmentLoader.js";
 import { BoundingBoxAttachment } from "./attachments/BoundingBoxAttachment.js";
 import { ClippingAttachment } from "./attachments/ClippingAttachment.js";
 import { MeshAttachment } from "./attachments/MeshAttachment.js";
 import { PathAttachment } from "./attachments/PathAttachment.js";
 import { PointAttachment } from "./attachments/PointAttachment.js";
 import { RegionAttachment } from "./attachments/RegionAttachment.js";
-import { Skin } from "./Skin.js";
-import { TextureAtlas } from "./TextureAtlas.js";
-import { Sequence } from "./attachments/Sequence.js"
+import type { Sequence } from "./attachments/Sequence.js"
+import type { Skin } from "./Skin.js";
+import type { TextureAtlas } from "./TextureAtlas.js";
 
 /** An {@link AttachmentLoader} that configures attachments using texture regions from an {@link TextureAtlas}.
  *
@@ -44,40 +44,44 @@ import { Sequence } from "./attachments/Sequence.js"
  * Spine Runtimes Guide. */
 export class AtlasAttachmentLoader implements AttachmentLoader {
 	atlas: TextureAtlas;
+	allowMissingRegions: boolean;
 
-	constructor (atlas: TextureAtlas) {
+	constructor (atlas: TextureAtlas, allowMissingRegions = false) {
 		this.atlas = atlas;
+		this.allowMissingRegions = allowMissingRegions;
 	}
 
 	loadSequence (name: string, basePath: string, sequence: Sequence) {
-		let regions = sequence.regions;
+		const regions = sequence.regions;
 		for (let i = 0, n = regions.length; i < n; i++) {
-			let path = sequence.getPath(basePath, i);
-			let region = this.atlas.findRegion(path);
-			if (region == null) throw new Error("Region not found in atlas: " + path + " (sequence: " + name + ")");
-			regions[i] = region;
+			const path = sequence.getPath(basePath, i);
+			regions[i] = this.atlas.findRegion(path);
+			if (regions[i] == null && !this.allowMissingRegions)
+				throw new Error(`Region not found in atlas: ${path} (sequence: ${name})`);
 		}
 	}
 
 	newRegionAttachment (skin: Skin, name: string, path: string, sequence: Sequence): RegionAttachment {
-		let attachment = new RegionAttachment(name, path);
+		const attachment = new RegionAttachment(name, path);
 		if (sequence != null) {
 			this.loadSequence(name, path, sequence);
 		} else {
-			let region = this.atlas.findRegion(path);
-			if (!region) throw new Error("Region not found in atlas: " + path + " (region attachment: " + name + ")");
+			const region = this.atlas.findRegion(path);
+			if (region == null && !this.allowMissingRegions)
+				throw new Error(`Region not found in atlas: ${path} (region attachment: ${name})`);
 			attachment.region = region;
 		}
 		return attachment;
 	}
 
 	newMeshAttachment (skin: Skin, name: string, path: string, sequence: Sequence): MeshAttachment {
-		let attachment = new MeshAttachment(name, path);
+		const attachment = new MeshAttachment(name, path);
 		if (sequence != null) {
 			this.loadSequence(name, path, sequence);
 		} else {
-			let region = this.atlas.findRegion(path);
-			if (!region) throw new Error("Region not found in atlas: " + path + " (mesh attachment: " + name + ")");
+			const region = this.atlas.findRegion(path);
+			if (region == null && !this.allowMissingRegions)
+				throw new Error(`Region not found in atlas: ${path} (mesh attachment: ${name})`);
 			attachment.region = region;
 		}
 		return attachment;

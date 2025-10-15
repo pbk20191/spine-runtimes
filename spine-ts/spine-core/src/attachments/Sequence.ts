@@ -27,17 +27,17 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-import { TextureRegion } from "../Texture.js";
-import { HasTextureRegion } from "./HasTextureRegion.js";
+import type { SlotPose } from "src/SlotPose.js";
+import type { TextureRegion } from "../Texture.js";
 import { Utils } from "../Utils.js";
-import { SlotPose } from "src/SlotPose.js";
+import type { HasTextureRegion } from "./HasTextureRegion.js";
 
 
 export class Sequence {
 	private static _nextID = 0;
 
 	id = Sequence.nextID();
-	regions: TextureRegion[];
+	regions: Array<TextureRegion | null>;
 	start = 0;
 	digits = 0;
 	/** The index of the region to show for the setup pose. */
@@ -48,7 +48,7 @@ export class Sequence {
 	}
 
 	copy (): Sequence {
-		let copy = new Sequence(this.regions.length);
+		const copy = new Sequence(this.regions.length);
 		Utils.arrayCopy(this.regions, 0, copy.regions, 0, this.regions.length);
 		copy.start = this.start;
 		copy.digits = this.digits;
@@ -58,10 +58,10 @@ export class Sequence {
 
 	apply (slot: SlotPose, attachment: HasTextureRegion) {
 		let index = slot.sequenceIndex;
-		if (index == -1) index = this.setupIndex;
+		if (index === -1) index = this.setupIndex;
 		if (index >= this.regions.length) index = this.regions.length - 1;
-		let region = this.regions[index];
-		if (attachment.region != region) {
+		const region = this.regions[index];
+		if (attachment.region !== region) {
 			attachment.region = region;
 			attachment.updateRegion();
 		}
@@ -69,7 +69,7 @@ export class Sequence {
 
 	getPath (basePath: string, index: number): string {
 		let result = basePath;
-		let frame = (this.start + index).toString();
+		const frame = (this.start + index).toString();
 		for (let i = this.digits - frame.length; i > 0; i--)
 			result += "0";
 		result += frame;
