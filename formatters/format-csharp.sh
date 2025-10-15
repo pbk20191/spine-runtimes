@@ -11,15 +11,7 @@ log_title "C# Formatting"
 if command -v dotnet &> /dev/null; then
     # Store original directory
     pushd "$dir" > /dev/null
-
-    # Ensure line endings are reset after checkout from default branch
-    git rm --cached -r ../spine-csharp/
-    git rm --cached -r ../spine-monogame/
-    git rm --cached -r ../spine-unity/
-    git checkout HEAD -- ../spine-csharp/
-    git checkout HEAD -- ../spine-monogame/
-    git checkout HEAD -- ../spine-unity/
-
+    
     cp .editorconfig ../spine-csharp/ 2>/dev/null || true
     cp .editorconfig ../spine-monogame/ 2>/dev/null || true
     cp .editorconfig ../spine-unity/ 2>/dev/null || true
