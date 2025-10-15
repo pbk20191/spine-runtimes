@@ -92,6 +92,9 @@ export interface SpineFromOptions {
 
 	/** The bounds provider to use. If undefined the bounds will be dynamic, calculated when requested and based on the current frame. */
 	boundsProvider?: SpineBoundsProvider,
+
+	/** Set {@link AtlasAttachmentLoader.allowMissingRegions} property on the AtlasAttachmentLoader. */
+	allowMissingRegions?: boolean;
 };
 
 const vectorAux = new Vector2();
@@ -1075,7 +1078,7 @@ export class Spine extends ViewContainer {
 	 * @param options - Options to configure the Spine game object. See {@link SpineFromOptions}
 	 * @returns {Spine} The Spine game object instantiated
 	 */
-	static from ({ skeleton, atlas, scale = 1, darkTint, autoUpdate = true, boundsProvider }: SpineFromOptions) {
+	static from ({ skeleton, atlas, scale = 1, darkTint, autoUpdate = true, boundsProvider, allowMissingRegions = false }: SpineFromOptions) {
 		const cacheKey = `${skeleton}-${atlas}-${scale}`;
 
 		if (Cache.has(cacheKey)) {
@@ -1090,7 +1093,7 @@ export class Spine extends ViewContainer {
 		const skeletonAsset = Assets.get<any | Uint8Array>(skeleton);
 
 		const atlasAsset = Assets.get<TextureAtlas>(atlas);
-		const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
+		const attachmentLoader = new AtlasAttachmentLoader(atlasAsset, allowMissingRegions);
 		const parser = skeletonAsset instanceof Uint8Array
 			? new SkeletonBinary(attachmentLoader)
 			: new SkeletonJson(attachmentLoader);
