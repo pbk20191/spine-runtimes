@@ -561,7 +561,7 @@ namespace Spine {
 			case "scaleY": return new FromScaleY();
 			case "shearY": return new FromShearY();
 			default: throw new Exception("Invalid from property: " + type);
-			};
+			}
 		}
 
 		private float PropertyScale (String type, float scale) {
@@ -570,7 +570,7 @@ namespace Spine {
 			case "y":
 				return scale;
 			default: return 1;
-			};
+			}
 		}
 
 		private Attachment ReadAttachment (Dictionary<string, Object> map, Skin skin, int slotIndex, string name, SkeletonData skeletonData) {

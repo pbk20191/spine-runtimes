@@ -295,7 +295,7 @@ namespace Spine {
 							case 4: from = new FromScaleY(); break;
 							case 5: from = new FromShearY(); break;
 							default: from = null; break;
-							};
+							}
 							from.offset = input.ReadFloat() * fromScale;
 							ToProperty[] tos = from.to.Resize(tn = input.ReadSByte()).Items;
 							for (int t = 0; t < tn; t++) {
@@ -317,7 +317,7 @@ namespace Spine {
 								case 4: to = new ToScaleY(); break;
 								case 5: to = new ToShearY(); break;
 								default: to = null; break;
-								};
+								}
 								to.offset = input.ReadFloat() * toScale;
 								to.max = input.ReadFloat() * toScale;
 								to.scale = input.ReadFloat() * (toScale / fromScale);
@@ -426,7 +426,7 @@ namespace Spine {
 							case 4: data.property = new FromScaleY(); break;
 							case 5: data.property = new FromShearY(); break;
 							default: data.property = null; break;
-							};
+							}
 							data.property.offset = offset * propertyScale;
 							data.offset = input.ReadFloat();
 							data.scale = input.ReadFloat() / propertyScale;
