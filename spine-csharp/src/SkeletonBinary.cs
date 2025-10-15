@@ -461,7 +461,7 @@ namespace Spine {
 					if (parent == null) throw new Exception("Parent mesh not found: " + linkedMesh.parent);
 					linkedMesh.mesh.TimelineAttachment = linkedMesh.inheritTimelines ? (VertexAttachment)parent : linkedMesh.mesh;
 					linkedMesh.mesh.ParentMesh = (MeshAttachment)parent;
-					if (linkedMesh.mesh.Sequence == null) linkedMesh.mesh.UpdateRegion();
+					if (linkedMesh.mesh.Region != null) linkedMesh.mesh.UpdateRegion();
 				}
 				linkedMeshes.Clear();
 
@@ -568,7 +568,7 @@ namespace Spine {
 				region.height = height * scale;
 				region.SetColor(color.RGBA8888ToColor());
 				region.sequence = sequence;
-				if (sequence == null) region.UpdateRegion();
+				if (region.Region != null) region.UpdateRegion();
 				return region;
 			}
 			case AttachmentType.Boundingbox: {
@@ -609,7 +609,7 @@ namespace Spine {
 				mesh.WorldVerticesLength = vertices.length;
 				mesh.triangles = triangles;
 				mesh.regionUVs = uvs;
-				if (sequence == null) mesh.UpdateRegion();
+				if (mesh.Region != null) mesh.UpdateRegion();
 				mesh.HullLength = hullLength << 1;
 				mesh.Sequence = sequence;
 				if (nonessential) {
