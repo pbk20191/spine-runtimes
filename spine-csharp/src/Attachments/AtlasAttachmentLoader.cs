@@ -44,7 +44,7 @@ namespace Spine {
 		}
 
 		public AtlasAttachmentLoader (bool allowMissingRegions, params Atlas[] atlasArray) {
-			if (atlasArray == null) throw new ArgumentNullException ("atlas", "atlas array cannot be null.");
+			if (atlasArray == null) throw new ArgumentNullException("atlas", "atlas array cannot be null.");
 			this.atlasArray = atlasArray;
 			this.allowMissingRegions = allowMissingRegions;
 		}
