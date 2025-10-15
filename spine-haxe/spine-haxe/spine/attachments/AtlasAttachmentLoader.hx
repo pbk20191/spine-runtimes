@@ -40,21 +40,23 @@ import spine.Skin;
 class AtlasAttachmentLoader implements AttachmentLoader {
 	private var atlas:TextureAtlas;
 
-	public function new(atlas:TextureAtlas) {
+	public var allowMissingRegions:Bool;
+
+	public function new(atlas:TextureAtlas, allowMissingRegions = false) {
 		if (atlas == null) {
 			throw new SpineException("atlas cannot be null.");
 		}
 		this.atlas = atlas;
+		this.allowMissingRegions = allowMissingRegions;
 	}
 
 	private function loadSequence(name:String, basePath:String, sequence:Sequence) {
 		var regions = sequence.regions;
 		for (i in 0...regions.length) {
 			var path = sequence.getPath(basePath, i);
-			var region = this.atlas.findRegion(path);
-			if (region == null)
+			regions[i] = this.atlas.findRegion(path);
+			if (regions[i] == null)
 				throw new SpineException("Region not found in atlas: " + path + " (sequence: " + name + ")");
-			regions[i] = region;
 		}
 	}
 
@@ -67,7 +69,7 @@ class AtlasAttachmentLoader implements AttachmentLoader {
 			this.loadSequence(name, path, sequence);
 		} else {
 			var region = this.atlas.findRegion(path);
-			if (region == null)
+			if (region == null && !this.allowMissingRegions)
 				throw new SpineException("Region not found in atlas: " + path + " (region attachment: " + name + ")");
 			attachment.region = region;
 		}
@@ -83,7 +85,7 @@ class AtlasAttachmentLoader implements AttachmentLoader {
 			this.loadSequence(name, path, sequence);
 		} else {
 			var region = atlas.findRegion(path);
-			if (region == null)
+			if (region == null && !this.allowMissingRegions)
 				throw new SpineException("Region not found in atlas: " + path + " (mesh attachment: " + name + ")");
 			attachment.region = region;
 		}
