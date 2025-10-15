@@ -82,6 +82,9 @@ export interface SpineFromOptions {
 
 	/** The bounds provider to use. If undefined the bounds will be dynamic, calculated when requested and based on the current frame. */
 	boundsProvider?: SpineBoundsProvider,
+
+	/** Set {@link AtlasAttachmentLoader.allowMissingRegions} property on the AtlasAttachmentLoader. */
+	allowMissingRegions?: boolean;
 };
 
 export interface SpineOptions {
@@ -871,7 +874,7 @@ export class Spine extends Container {
 	 * @param options - Options to configure the Spine game object. See {@link SpineFromOptions}
 	 * @returns {Spine} The Spine game object instantiated
 	 */
-	public static from ({ skeleton, atlas, scale = 1, darkTint, autoUpdate = true, boundsProvider }: SpineFromOptions) {
+	public static from ({ skeleton, atlas, scale = 1, darkTint, autoUpdate = true, boundsProvider, allowMissingRegions }: SpineFromOptions) {
 		const cacheKey = `${skeleton}-${atlas}-${scale}`;
 
 		let skeletonData = Spine.skeletonCache[cacheKey];
@@ -879,7 +882,7 @@ export class Spine extends Container {
 			// biome-ignore lint/suspicious/noExplicitAny: json skeleton is any
 			const skeletonAsset = Assets.get<any | Uint8Array>(skeleton);
 			const atlasAsset = Assets.get<TextureAtlas>(atlas);
-			const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
+			const attachmentLoader = new AtlasAttachmentLoader(atlasAsset, allowMissingRegions);
 			const parser = skeletonAsset instanceof Uint8Array ? new SkeletonBinary(attachmentLoader) : new SkeletonJson(attachmentLoader);
 			parser.scale = scale;
 			skeletonData = parser.readSkeletonData(skeletonAsset);
