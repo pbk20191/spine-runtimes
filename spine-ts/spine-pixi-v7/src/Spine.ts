@@ -46,35 +46,16 @@ import {
 	Utils,
 	Vector2,
 } from "@esotericsoftware/spine-core";
-import type { SpineTexture } from "./SpineTexture.js";
-import { SlotMesh } from "./SlotMesh.js";
-import { DarkSlotMesh } from "./DarkSlotMesh.js";
-import type { ISpineDebugRenderer, SpineDebugRenderer } from "./SpineDebugRenderer.js";
 import { Assets } from "@pixi/assets";
-import { IPointData, Point } from "@pixi/core";
-import { Ticker } from "@pixi/core";
-import type { IDestroyOptions, DisplayObject } from "@pixi/display";
+import { type IPointData, Point, Ticker } from "@pixi/core";
+import type { DisplayObject, IDestroyOptions } from "@pixi/display";
 import { Bounds, Container } from "@pixi/display";
 import { Graphics } from "@pixi/graphics";
+import { DarkSlotMesh } from "./DarkSlotMesh.js";
+import { SlotMesh } from "./SlotMesh.js";
+import type { ISpineDebugRenderer, SpineDebugRenderer } from "./SpineDebugRenderer.js";
+import type { SpineTexture } from "./SpineTexture.js";
 import "@pixi/events";
-
-/**
- * @deprecated Use SpineFromOptions and SpineOptions.
- * Options to configure a {@link Spine} game object.
- */
-export interface ISpineOptions {
-	/**  Set the {@link Spine.autoUpdate} value. If omitted, it is set to `true`. */
-	autoUpdate?: boolean;
-	/**  The value passed to the skeleton reader. If omitted, 1 is passed. See {@link SkeletonBinary.scale} for details. */
-	scale?: number;
-	/**
-	 * @deprecated Use darkTint option instead.
-	 * A factory to override the default ones to render Spine meshes ({@link DarkSlotMesh} or {@link SlotMesh}).
-	 * If omitted, a factory returning a ({@link DarkSlotMesh} or {@link SlotMesh}) will be used depending on the presence of
-	 * a dark tint mesh in the skeleton.
-	 * */
-	slotMeshFactory?: () => ISlotMesh;
-}
 
 /**
  * Options to create a {@link Spine} using {@link Spine.from}.
@@ -171,7 +152,7 @@ export class SetupPoseBoundsProvider implements SpineBoundsProvider {
 		skeleton.setupPose();
 		skeleton.updateWorldTransform(Physics.update);
 		const bounds = skeleton.getBoundsRect(this.clipping ? new SkeletonClipping() : undefined);
-		return bounds.width == Number.NEGATIVE_INFINITY
+		return bounds.width === Number.NEGATIVE_INFINITY
 			? { x: 0, y: 0, width: 0, height: 0 }
 			: bounds;
 	}
@@ -209,7 +190,7 @@ export class SkinsAndAnimationBoundsProvider
 		const clipper = this.clipping ? new SkeletonClipping() : undefined;
 		const data = skeleton.data;
 		if (this.skins.length > 0) {
-			let customSkin = new Skin("custom-skin");
+			const customSkin = new Skin("custom-skin");
 			for (const skinName of this.skins) {
 				const skin = data.findSkin(skinName);
 				if (skin == null) continue;
@@ -219,12 +200,12 @@ export class SkinsAndAnimationBoundsProvider
 		}
 		skeleton.setupPose();
 
-		const animation = this.animation != null ? data.findAnimation(this.animation!) : null;
+		const animation = this.animation != null ? data.findAnimation(this.animation) : null;
 
 		if (animation == null) {
 			skeleton.updateWorldTransform(Physics.update);
 			const bounds = skeleton.getBoundsRect(clipper);
-			return bounds.width == Number.NEGATIVE_INFINITY
+			return bounds.width === Number.NEGATIVE_INFINITY
 				? { x: 0, y: 0, width: 0, height: 0 }
 				: bounds;
 		} else {
@@ -254,7 +235,7 @@ export class SkinsAndAnimationBoundsProvider
 				width: maxX - minX,
 				height: maxY - minY,
 			};
-			return bounds.width == Number.NEGATIVE_INFINITY
+			return bounds.width === Number.NEGATIVE_INFINITY
 				? { x: 0, y: 0, width: 0, height: 0 }
 				: bounds;
 		}
@@ -344,14 +325,11 @@ export class Spine extends Container {
 	private _boundsSpineID = -1;
 	private _boundsSpineDirty = true;
 
-	constructor (options: SpineOptions | SkeletonData, oldOptions?: ISpineOptions) {
+	constructor (options: SpineOptions | SkeletonData) {
 		if (options instanceof SkeletonData) {
 			options = {
-				...oldOptions,
 				skeletonData: options,
 			};
-		} else if (oldOptions) {
-			throw new Error("You cannot use options and oldOptions together.");
 		}
 
 		super();
@@ -361,40 +339,15 @@ export class Spine extends Container {
 		this.skeleton = new Skeleton(skeletonData);
 		const animData = new AnimationStateData(skeletonData);
 		this.state = new AnimationState(animData);
-
-		// dark tint can be enabled by options, otherwise is enable if at least one slot has tint black
-		if (options?.darkTint !== undefined || oldOptions?.slotMeshFactory === undefined) {
-			this.darkTint = options?.darkTint === undefined
-				? this.skeleton.slots.some(slot => !!slot.data.setup.darkColor)
-				: options?.darkTint;
-			if (this.darkTint) this.slotMeshFactory = () => new DarkSlotMesh();
-		} else {
-			this.initializeMeshFactory(oldOptions?.slotMeshFactory);
-		}
-
 		this.autoUpdate = options?.autoUpdate ?? true;
 
-		this.boundsProvider = options.boundsProvider;
-	}
+		// dark tint can be enabled by options, otherwise is enable if at least one slot has tint black
+		this.darkTint = options?.darkTint === undefined
+			? this.skeleton.slots.some(slot => !!slot.data.setup.darkColor)
+			: options?.darkTint;
+		if (this.darkTint) this.slotMeshFactory = () => new DarkSlotMesh();
 
-	/*
-	* @deprecated Remove when slotMeshFactory options is removed
-	*/
-	private initializeMeshFactory<T extends () => ISlotMesh> (slotMeshFactory?: T) {
-		if (slotMeshFactory) {
-			this.slotMeshFactory = slotMeshFactory;
-			const tempSlotMeshFactory = this.slotMeshFactory();
-			if (tempSlotMeshFactory instanceof DarkSlotMesh) this.darkTint = true;
-			tempSlotMeshFactory.destroy();
-		} else {
-			for (let i = 0; i < this.skeleton.slots.length; i++) {
-				if (this.skeleton.slots[i].data.setup.darkColor) {
-					this.slotMeshFactory = () => new DarkSlotMesh();
-					this.darkTint = true;
-					break;
-				}
-			}
-		}
+		this.boundsProvider = options.boundsProvider;
 	}
 
 	/** If {@link Spine.autoUpdate} is `false`, this method allows to update the AnimationState and the Skeleton with the given delta. */
@@ -434,7 +387,7 @@ export class Spine extends Container {
 		this.meshesCache.clear();
 		this.slotsObject.clear();
 
-		for (let maskKey in this.clippingSlotToPixiMasks) {
+		for (const maskKey in this.clippingSlotToPixiMasks) {
 			const mask = this.clippingSlotToPixiMasks[maskKey];
 			mask.destroy();
 			delete this.clippingSlotToPixiMasks[maskKey];
@@ -470,16 +423,17 @@ export class Spine extends Container {
 	 * If you want to manually handle which meshes go on which slot and how you cache, overwrite this method.
 	 */
 	protected getMeshForSlot (slot: Slot): ISlotMesh {
-		if (!this.hasMeshForSlot(slot)) {
-			let mesh = this.slotMeshFactory();
+		let mesh = this.hasMeshForSlot(slot) ? this.meshesCache.get(slot) : null;
+
+		if (!mesh) {
+			mesh = this.slotMeshFactory();
 			this.addChild(mesh);
 			this.meshesCache.set(slot, mesh);
-			return mesh;
 		} else {
-			let mesh = this.meshesCache.get(slot)!;
 			mesh.visible = true;
-			return mesh;
 		}
+
+		return mesh;
 	}
 
 	public slotsObject = new Map<Slot, { container: Container, followAttachmentTimeline: boolean }>();
@@ -508,7 +462,7 @@ export class Spine extends Container {
 	 * @param options.followAttachmentTimeline - If true, the attachment will follow the slot's attachment timeline.
 	 */
 	addSlotObject (slotRef: number | string | Slot, pixiObject: Container, options?: { followAttachmentTimeline?: boolean }): void {
-		let slot = this.getSlotFromRef(slotRef);
+		const slot = this.getSlotFromRef(slotRef);
 		const oldPixiObject = this.slotsObject.get(slot)?.container;
 		if (oldPixiObject && oldPixiObject === pixiObject) return;
 
@@ -547,8 +501,8 @@ export class Spine extends Container {
 	 * @param pixiObject - Optional, The pixi Container to remove.
 	 */
 	removeSlotObject (slotRef: number | string | Slot, pixiObject?: Container): void {
-		let slot = this.getSlotFromRef(slotRef);
-		let slotObject = this.slotsObject.get(slot)?.container;
+		const slot = this.getSlotFromRef(slotRef);
+		const slotObject = this.slotsObject.get(slot)?.container;
 		if (!slotObject) return;
 
 		// if pixiObject is passed, remove only if it is equal to the given one
@@ -571,7 +525,7 @@ export class Spine extends Container {
 	private verticesCache: NumberArrayLike = Utils.newFloatArray(1024);
 	private clippingSlotToPixiMasks: Record<string, Graphics> = {};
 	private pixiMaskCleanup (slot: Slot) {
-		let mask = this.clippingSlotToPixiMasks[slot.data.name];
+		const mask = this.clippingSlotToPixiMasks[slot.data.name];
 		if (mask) {
 			delete this.clippingSlotToPixiMasks[slot.data.name];
 			mask.destroy();
@@ -661,8 +615,8 @@ export class Spine extends Container {
 			const slot = drawOrder[i];
 
 			// render pixi object on the current slot on top of the slot attachment
-			let pixiObject = this.slotsObject.get(slot);
-			let zIndex = i + slotObjectsCounter;
+			const pixiObject = this.slotsObject.get(slot);
+			const zIndex = i + slotObjectsCounter;
 			if (pixiObject) {
 				this.updateSlotObject(pixiObject, slot, zIndex + 1);
 				slotObjectsCounter++;
@@ -771,7 +725,7 @@ export class Spine extends Container {
 					finalIndicesLength = triangles.length;
 				}
 
-				if (finalVerticesLength == 0 || finalIndicesLength == 0) {
+				if (finalVerticesLength === 0 || finalIndicesLength === 0) {
 					Spine.clipper.clipEnd(slot);
 					continue;
 				}
@@ -841,17 +795,14 @@ export class Spine extends Container {
 	 * @throws {Error}: if the given bone is not found in the skeleton, an error is thrown
 	 */
 	public setBonePosition (bone: string | Bone, position: IPointData): void {
-		const boneAux = bone;
-		if (typeof bone === "string") {
-			bone = this.skeleton.findBone(bone)!;
-		}
+		const actualBone = typeof bone === "string" ? this.skeleton.findBone(bone) : bone;
 
-		if (!bone) throw Error(`Cannot set bone position, bone ${String(boneAux)} not found`);
+		if (!actualBone) throw Error(`Cannot set bone position, bone ${String(bone)} not found`);
 		Spine.vectorAux.set(position.x, position.y);
 
-		const applied = bone.applied;
-		if (bone.parent) {
-			const aux = bone.parent.applied.worldToLocal(Spine.vectorAux);
+		const applied = actualBone.applied;
+		if (actualBone.parent) {
+			const aux = actualBone.parent.applied.worldToLocal(Spine.vectorAux);
 			applied.x = aux.x;
 			applied.y = aux.y;
 		} else {
@@ -867,13 +818,10 @@ export class Spine extends Container {
 	 * @returns {IPointData | undefined}: the position of the bone, or undefined if no matching bone is found in the skeleton
 	 */
 	public getBonePosition (bone: string | Bone, outPos?: IPointData): IPointData | undefined {
-		const boneAux = bone;
-		if (typeof bone === "string") {
-			bone = this.skeleton.findBone(bone)!;
-		}
+		const actualBone = typeof bone === "string" ? this.skeleton.findBone(bone) : bone;
 
-		if (!bone) {
-			console.error(`Cannot get bone position! Bone ${String(boneAux)} not found`);
+		if (!actualBone) {
+			console.error(`Cannot get bone position! Bone ${String(bone)} not found`);
 			return outPos;
 		}
 
@@ -881,8 +829,8 @@ export class Spine extends Container {
 			outPos = { x: 0, y: 0 };
 		}
 
-		outPos.x = bone.applied.worldX;
-		outPos.y = bone.applied.worldY;
+		outPos.x = actualBone.applied.worldX;
+		outPos.y = actualBone.applied.worldY;
 		return outPos;
 	}
 
@@ -923,65 +871,21 @@ export class Spine extends Container {
 	 * @param options - Options to configure the Spine game object. See {@link SpineFromOptions}
 	 * @returns {Spine} The Spine game object instantiated
 	 */
-	public static from (options: SpineFromOptions): Spine;
-
-	/**
-	 * @deprecated use the `from(options: SpineFromOptions)` version.
-	 * Use this method to instantiate a Spine game object.
-	 * Before instantiating a Spine game object, the skeleton (`.skel` or `.json`) and the atlas text files must be loaded into the Assets. For example:
-	 * ```
-	 * PIXI.Assets.add("sackData", "/assets/sack-pro.skel");
-	 * PIXI.Assets.add("sackAtlas", "/assets/sack-pma.atlas");
-	 * await PIXI.Assets.load(["sackData", "sackAtlas"]);
-	 * ```
-	 * Once a Spine game object is created, its skeleton data is cached into {@link Spine.skeletonCache} using the key:
-	 * `${skeletonAssetName}-${atlasAssetName}-${options?.scale ?? 1}`
-	 *
-	 * @param skeletonAssetName - the asset name for the skeleton `.skel` or `.json` file previously loaded into the Assets
-	 * @param atlasAssetName - the asset name for the atlas file previously loaded into the Assets
-	 * @param options - Options to configure the Spine game object
-	 * @returns {Spine} The Spine game object instantiated
-	 */
-	public static from (skeletonAssetName: string, atlasAssetName: string, options?: ISpineOptions): Spine;
-	public static from (
-		paramOne: string | SpineFromOptions,
-		atlasAssetName?: string,
-		options?: ISpineOptions)
-		: Spine {
-		if (typeof paramOne === "string") {
-			return Spine.oldFrom(paramOne, atlasAssetName!, options);
-		}
-
-		const { skeleton, atlas, scale = 1, darkTint, autoUpdate, boundsProvider } = paramOne;
+	public static from ({ skeleton, atlas, scale = 1, darkTint, autoUpdate = true, boundsProvider }: SpineFromOptions) {
 		const cacheKey = `${skeleton}-${atlas}-${scale}`;
+
 		let skeletonData = Spine.skeletonCache[cacheKey];
 		if (!skeletonData) {
+			// biome-ignore lint/suspicious/noExplicitAny: json skeleton is any
 			const skeletonAsset = Assets.get<any | Uint8Array>(skeleton);
 			const atlasAsset = Assets.get<TextureAtlas>(atlas);
 			const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
-			let parser = skeletonAsset instanceof Uint8Array ? new SkeletonBinary(attachmentLoader) : new SkeletonJson(attachmentLoader);
+			const parser = skeletonAsset instanceof Uint8Array ? new SkeletonBinary(attachmentLoader) : new SkeletonJson(attachmentLoader);
 			parser.scale = scale;
 			skeletonData = parser.readSkeletonData(skeletonAsset);
 			Spine.skeletonCache[cacheKey] = skeletonData;
 		}
 		return new Spine({ skeletonData, darkTint, autoUpdate, boundsProvider });
-	}
-
-
-	private static oldFrom (skeletonAssetName: string, atlasAssetName: string, options?: ISpineOptions): Spine {
-		const cacheKey = `${skeletonAssetName}-${atlasAssetName}-${options?.scale ?? 1}`;
-		let skeletonData = Spine.skeletonCache[cacheKey];
-		if (skeletonData) {
-			return new Spine(skeletonData, options);
-		}
-		const skeletonAsset = Assets.get<any | Uint8Array>(skeletonAssetName);
-		const atlasAsset = Assets.get<TextureAtlas>(atlasAssetName);
-		const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
-		let parser = skeletonAsset instanceof Uint8Array ? new SkeletonBinary(attachmentLoader) : new SkeletonJson(attachmentLoader);
-		parser.scale = options?.scale ?? 1;
-		skeletonData = parser.readSkeletonData(skeletonAsset);
-		Spine.skeletonCache[cacheKey] = skeletonData;
-		return new this(skeletonData, options);
 	}
 
 	public get tint (): number {
