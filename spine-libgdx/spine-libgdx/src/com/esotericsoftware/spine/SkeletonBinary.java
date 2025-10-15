@@ -477,7 +477,7 @@ public class SkeletonBinary extends SkeletonLoader {
 				if (parent == null) throw new SerializationException("Parent mesh not found: " + linkedMesh.parent);
 				linkedMesh.mesh.setTimelineAttachment(linkedMesh.inheritTimelines ? (VertexAttachment)parent : linkedMesh.mesh);
 				linkedMesh.mesh.setParentMesh((MeshAttachment)parent);
-				if (linkedMesh.mesh.getSequence() == null) linkedMesh.mesh.updateRegion();
+				if (linkedMesh.mesh.getRegion() == null) linkedMesh.mesh.updateRegion();
 			}
 			linkedMeshes.clear();
 

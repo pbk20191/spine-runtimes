@@ -60,11 +60,8 @@ public class AtlasAttachmentLoader implements AttachmentLoader {
 		for (int i = 0, n = regions.length; i < n; i++) {
 			String path = sequence.getPath(basePath, i);
 			regions[i] = atlas.findRegion(path);
-			if (regions[i] == null) {
-				if (!allowMissingRegions)
-					throw new RuntimeException("Region not found in atlas: " + path + " (sequence: " + name + ")");
-				continue;
-			}
+			if (regions[i] == null && !allowMissingRegions)
+				throw new RuntimeException("Region not found in atlas: " + path + " (sequence: " + name + ")");
 		}
 	}
 
