@@ -106,10 +106,18 @@ namespace Spine.Unity {
 		}
 
 		public static int SkeletonSortComparer (ISkeletonRenderer first, ISkeletonRenderer second) {
-			return first.Skeleton.Data.GetHashCode() - second.Skeleton.Data.GetHashCode();
+			Skeleton firstSkeleton = first.Skeleton;
+			Skeleton secondSkeleton = second.Skeleton;
+			if (firstSkeleton == null) return secondSkeleton == null ? 0 : -1;
+			else if (secondSkeleton == null) return 1;
+			else return firstSkeleton.Data.GetHashCode() - secondSkeleton.Data.GetHashCode();
 		}
 		public static int SkeletonSortComparer (SkeletonAnimationBase first, SkeletonAnimationBase second) {
-			return first.Skeleton.Data.GetHashCode() - second.Skeleton.Data.GetHashCode();
+			Skeleton firstSkeleton = first.Skeleton;
+			Skeleton secondSkeleton = second.Skeleton;
+			if (firstSkeleton == null) return secondSkeleton == null ? 0 : -1;
+			else if (secondSkeleton == null) return 1;
+			else return firstSkeleton.Data.GetHashCode() - secondSkeleton.Data.GetHashCode();
 		}
 		public static readonly Comparison<ISkeletonRenderer> SkeletonRendererComparer = SkeletonSortComparer;
 		public static readonly Comparison<SkeletonAnimationBase> SkeletonAnimationComparer = SkeletonSortComparer;
