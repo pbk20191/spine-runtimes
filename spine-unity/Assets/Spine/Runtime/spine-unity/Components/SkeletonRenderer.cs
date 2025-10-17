@@ -43,6 +43,10 @@
 #define CONFIGURABLE_ENTER_PLAY_MODE
 #endif
 
+#if UNITY_2020_1_OR_NEWER
+#define REVERT_HAS_OVERLOADS
+#endif
+
 #define USE_THREADED_SKELETON_UPDATE
 
 #if !SPINE_AUTO_UPGRADE_COMPONENTS_OFF
@@ -731,6 +735,11 @@ namespace Spine.Unity {
 			requiresEditorUpdate = true;
 		}
 
+		// revert each prefab override only once each editor-frame.
+		private static int lastPrefabRevertFrame = -1;
+		private static HashSet<MeshFilter> revertedPrefabMeshes = new HashSet<MeshFilter>();
+		private static bool preventReentrance = false;
+
 		public void EditorUpdateMeshFilterHideFlags () {
 			if (!meshFilter) {
 				meshFilter = GetComponent<MeshFilter>();
@@ -746,18 +755,45 @@ namespace Spine.Unity {
 
 			if (dontSaveInEditor) {
 #if NEW_PREFAB_SYSTEM
-				if (UnityEditor.PrefabUtility.IsPartOfAnyPrefab(meshFilter)) {
-					GameObject instanceRoot = UnityEditor.PrefabUtility.GetOutermostPrefabInstanceRoot(meshFilter);
-					if (instanceRoot != null) {
-						List<ObjectOverride> objectOverrides = UnityEditor.PrefabUtility.GetObjectOverrides(instanceRoot);
-						foreach (ObjectOverride objectOverride in objectOverrides) {
-							if (objectOverride.instanceObject == meshFilter) {
+				int currentFrame = Time.frameCount;
+				if (lastPrefabRevertFrame != currentFrame) {
+					lastPrefabRevertFrame = currentFrame;
+					revertedPrefabMeshes.Clear();
+				}
+
+				if (!preventReentrance && UnityEditor.PrefabUtility.IsPartOfAnyPrefab(meshFilter)) {
+					if (!revertedPrefabMeshes.Contains(meshFilter)) {
+						GameObject instanceRoot = UnityEditor.PrefabUtility.GetOutermostPrefabInstanceRoot(meshFilter);
+						if (instanceRoot != null) {
+							UnityEditor.PropertyModification[] mods = UnityEditor.PrefabUtility.GetPropertyModifications(instanceRoot);
+							bool hasMeshOverride = false;
+							if (mods != null) {
+								foreach (var mod in mods) {
+									if (mod.target == meshFilter && mod.propertyPath == "m_Mesh") {
+										hasMeshOverride = true;
+										break;
+									}
+								}
+							}
+							if (hasMeshOverride) {
+								preventReentrance = true;
+								try {
+									List<ObjectOverride> objectOverrides = UnityEditor.PrefabUtility.GetObjectOverrides(instanceRoot);
+									foreach (ObjectOverride objectOverride in objectOverrides) {
+										if (objectOverride.instanceObject == meshFilter) {
 #if REVERT_HAS_OVERLOADS
-								objectOverride.Revert(UnityEditor.InteractionMode.AutomatedAction);
+											objectOverride.Revert(UnityEditor.InteractionMode.AutomatedAction);
 #else
- 								objectOverride.Revert();
+											objectOverride.Revert();
 #endif
-								break;
+											revertedPrefabMeshes.Add(meshFilter);
+											break;
+										}
+									}
+								}
+								finally {
+									preventReentrance = false;
+								}
 							}
 						}
 					}
