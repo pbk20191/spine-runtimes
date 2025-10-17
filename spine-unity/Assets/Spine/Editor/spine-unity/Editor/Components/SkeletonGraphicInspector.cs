@@ -195,7 +195,7 @@ namespace Spine.Unity.Editor {
 				GUILayout.FlexibleSpace();
 				if (GUILayout.Button("Detect Settings", EditorStyles.miniButton, GUILayout.Width(100f))) {
 					Undo.RecordObjects(targets, "Detect Settings");
-					foreach (UnityEngine.Object targets in targets) {
+					foreach (UnityEngine.Object target in targets) {
 						SkeletonGraphic skeletonGraphic = target as SkeletonGraphic;
 						if (skeletonGraphic == null) continue;
 						DetectTintBlack(skeletonGraphic);
