@@ -27,17 +27,15 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-import * as THREE from "three"
-
-import { ThreeJsTexture, ThreeBlendOptions } from "./ThreeJsTexture.js";
 import { BlendMode } from "@esotericsoftware/spine-core";
+import * as THREE from "three"
 import { SkeletonMesh } from "./SkeletonMesh.js";
+import { ThreeBlendOptions, ThreeJsTexture } from "./ThreeJsTexture.js";
 
 export type MaterialWithMap = THREE.Material & { map: THREE.Texture | null };
 export class MeshBatcher extends THREE.Mesh {
 	public static MAX_VERTICES = 10920;
 
-	// private static VERTEX_SIZE = 9;
 	private vertexSize = 9;
 	private vertexBuffer: THREE.InterleavedBuffer;
 	private vertices: Float32Array;
@@ -169,18 +167,23 @@ export class MeshBatcher extends THREE.Mesh {
 		this.indicesLength += indicesLength;
 	}
 
+	private verticesMaxLength = -1;
 	end () {
 		this.vertexBuffer.needsUpdate = this.verticesLength > 0;
 		this.vertexBuffer.addUpdateRange(0, this.verticesLength);
-		let geo = (<THREE.BufferGeometry>this.geometry);
+		const geo = (<THREE.BufferGeometry>this.geometry);
 		this.closeMaterialGroups();
-		let index = geo.getIndex();
+		const index = geo.getIndex();
 		if (!index) throw new Error("BufferAttribute must not be null.");
 		index.needsUpdate = this.indicesLength > 0;
 		index.addUpdateRange(0, this.indicesLength);
 		geo.drawRange.start = 0;
 		geo.drawRange.count = this.indicesLength;
-		geo.computeVertexNormals();
+
+		if (this.verticesMaxLength < this.verticesLength) {
+			this.verticesMaxLength = this.verticesLength;
+			geo.computeVertexNormals();
+		}
 	}
 
 	addMaterialGroup (indicesLength: number, materialGroup: number) {
