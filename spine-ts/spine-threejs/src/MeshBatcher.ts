@@ -27,10 +27,10 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-import { BlendMode } from "@esotericsoftware/spine-core";
+import type { BlendMode } from "@esotericsoftware/spine-core";
 import * as THREE from "three"
 import { SkeletonMesh } from "./SkeletonMesh.js";
-import { ThreeBlendOptions, ThreeJsTexture } from "./ThreeJsTexture.js";
+import { type ThreeBlendOptions, ThreeJsTexture } from "./ThreeJsTexture.js";
 
 export type MaterialWithMap = THREE.Material & { map: THREE.Texture | null };
 export class MeshBatcher extends THREE.Mesh {
@@ -52,7 +52,7 @@ export class MeshBatcher extends THREE.Mesh {
 	) {
 		super();
 
-		if (maxVertices > MeshBatcher.MAX_VERTICES) throw new Error("Can't have more than 10920 triangles per batch: " + maxVertices);
+		if (maxVertices > MeshBatcher.MAX_VERTICES) throw new Error(`Can't have more than 10920 triangles per batch: ${maxVertices}`);
 
 		if (twoColorTint) {
 			this.vertexSize += 3;
@@ -99,7 +99,7 @@ export class MeshBatcher extends THREE.Mesh {
 			this.material.dispose();
 		else if (this.material) {
 			for (let i = 0; i < this.material.length; i++) {
-				let material = this.material[i];
+				const material = this.material[i];
 				if (material instanceof THREE.Material)
 					material.dispose();
 			}
@@ -107,7 +107,7 @@ export class MeshBatcher extends THREE.Mesh {
 	}
 
 	clear () {
-		let geo = (<THREE.BufferGeometry>this.geometry);
+		const geo = (<THREE.BufferGeometry>this.geometry);
 		geo.drawRange.start = 0;
 		geo.drawRange.count = 0;
 		geo.clearGroups();
@@ -138,8 +138,8 @@ export class MeshBatcher extends THREE.Mesh {
 	}
 
 	batch (vertices: ArrayLike<number>, verticesLength: number, indices: ArrayLike<number>, indicesLength: number, z: number = 0) {
-		let indexStart = this.verticesLength / this.vertexSize;
-		let vertexBuffer = this.vertices;
+		const indexStart = this.verticesLength / this.vertexSize;
+		const vertexBuffer = this.vertices;
 		let i = this.verticesLength;
 		let j = 0;
 		if (this.twoColorTint) {
@@ -178,7 +178,7 @@ export class MeshBatcher extends THREE.Mesh {
 		}
 		this.verticesLength = i;
 
-		let indicesArray = this.indices;
+		const indicesArray = this.indices;
 		for (i = this.indicesLength, j = 0; j < indicesLength; i++, j++)
 			indicesArray[i] = indices[j] + indexStart;
 		this.indicesLength += indicesLength;
@@ -187,9 +187,9 @@ export class MeshBatcher extends THREE.Mesh {
 	end () {
 		this.vertexBuffer.needsUpdate = this.verticesLength > 0;
 		this.vertexBuffer.addUpdateRange(0, this.verticesLength);
-		let geo = (<THREE.BufferGeometry>this.geometry);
+		const geo = (<THREE.BufferGeometry>this.geometry);
 		this.closeMaterialGroups();
-		let index = geo.getIndex();
+		const index = geo.getIndex();
 		if (!index) throw new Error("BufferAttribute must not be null.");
 		index.needsUpdate = this.indicesLength > 0;
 		index.addUpdateRange(0, this.indicesLength);
@@ -277,7 +277,7 @@ export class MeshBatcher extends THREE.Mesh {
 
 const spineOnBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
 
-	let code;
+	let code: string;
 
 	// VERTEX SHADER MODIFICATIONS
 
@@ -286,7 +286,7 @@ const spineOnBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) 
 		#if defined( USE_SPINE_DARK_TINT )
 			attribute vec3 darkcolor;
 		#endif
-	` + shader.vertexShader;
+	${shader.vertexShader}`;
 
 	// Add dark color attribute
 	code = `
@@ -368,7 +368,7 @@ export class SkeletonMeshMaterial extends THREE.ShaderMaterial {
 
 	constructor (parameters: THREE.ShaderMaterialParameters) {
 
-		let vertexShader = `
+		const vertexShader = `
 			varying vec2 vUv;
 			varying vec4 vColor;
 			void main() {
@@ -377,7 +377,7 @@ export class SkeletonMeshMaterial extends THREE.ShaderMaterial {
 				gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);
 			}
 		`;
-		let fragmentShader = `
+		const fragmentShader = `
 			uniform sampler2D map;
 			#ifdef USE_SPINE_ALPHATEST
 			uniform float alphaTest;
