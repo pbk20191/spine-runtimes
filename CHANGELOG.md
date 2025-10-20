@@ -346,6 +346,7 @@
   - `Skeleton.Physics` was moved to `Physics` directly in `Spine` namespace, thus might clash with `UnityEngine.Physics`.
     - Spine Physics: `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
     - UnityEngine Physics: `Physics.gravity` → `UnityEngine.Physics.gravity`.
+  - When enabling `Threaded Animation` at `SkeletonAnimation` components, `SkeletonAnimation.AnimationState` callbacks are not automatically called on the main thread. There are additional main thread callbacks provided to subscribe to instead, like `MainThreadComplete` for `Complete` and the like - see *Additions* below. Please note that this requires a change of user code to subscribe to these main thread delegate variants instead.
 - **Changes of default values**
   - Changed default atlas texture workflow from PMA to straight alpha textures. This move was done because straight alpha textures are compatible with both Gamma and Linear color space, with the latter being the default for quite some time now in Unity. Note that `PMA Vertex Color` is unaffected and shall be enabled as usual to allow for single-pass additive rendering.
 
@@ -355,7 +356,8 @@
   - Added threading support for all skeleton rendering and animation components, disabled by default. Threading can be activated per component or globally via Edit → Preferences → Spine → Threading Defaults. Two threading options are available:
     - `Threaded MeshGeneration`: Default value for SkeletonRenderer and SkeletonGraphic threaded mesh generation
     - `Threaded Animation`: Default value for SkeletonAnimation and SkeletonMecanim threaded animation updates
-  - Even when threading is enabled, the threading system defaults to user callbacks like `UpdateWorld` being issued on the main thread to support existing user code. Can be configured via `SkeletonUpdateSystem.Instance.MainThreadUpdateCallbacks = false` to perform callbacks on worker threads if parallel execution is supported and desired by the user code. Note that most Unity API calls are restricted to the main thread.
+  - Even when threading is enabled, the threading system defaults to  `SkeletonRenderer` and `SkeletonAnimation` user callbacks like `UpdateWorld` (not including `AnimationState` callbacks) being issued on the main thread to support existing user code. Can be configured via `SkeletonUpdateSystem.Instance.MainThreadUpdateCallbacks = false` to perform callbacks on worker threads if parallel execution is supported and desired by the user code. `OnPostProcessVertices` is an exception, as it it's deliberately left on worker threads so that parallellization can be utilized. Note that most Unity API calls are restricted to the main thread.
+  - For `SkeletonAnimation.AnimationState` callbacks, there are additional main thread callbacks `MainThreadStart`, `MainThreadInterrupt`, `MainThreadEnd`, `MainThreadDispose`, `MainThreadComplete` and `MainThreadEvent` provided directly at `SkeletonAnimation`, e.g. `SkeletonAnimation.MainThreadComplete` for `SkeletonAnimation.AnimationState.Complete` and so on. Please note that this requires a change of user code to subscribe to these main thread delegate variants instead. 
 
 - **Deprecated**
 
