@@ -57,19 +57,35 @@ export class MeshBatcher extends THREE.Mesh {
 			this.vertexSize += 3;
 		}
 
-		let vertices = this.vertices = new Float32Array(maxVertices * this.vertexSize);
-		let indices = this.indices = new Uint16Array(maxVertices * 3);
-		let geo = new THREE.BufferGeometry();
-		let vertexBuffer = this.vertexBuffer = new THREE.InterleavedBuffer(vertices, this.vertexSize);
-		vertexBuffer.usage = WebGLRenderingContext.DYNAMIC_DRAW;
+		this.vertices = new Float32Array(maxVertices * this.vertexSize);
+		this.indices = new Uint16Array(maxVertices * 3);
+
+		const normals = new Float32Array(maxVertices * 3);
+		for (let i = 0; i < maxVertices * 3; i += 3) {
+			normals[i] = 0;
+			normals[i + 1] = 0;
+			normals[i + 2] = -1;
+		}
+
+		const vertexBuffer = new THREE.InterleavedBuffer(this.vertices, this.vertexSize)
+		this.vertexBuffer = vertexBuffer;
+		this.vertexBuffer.usage = WebGLRenderingContext.DYNAMIC_DRAW;
+
+		const geo = new THREE.BufferGeometry();
 		geo.setAttribute("position", new THREE.InterleavedBufferAttribute(vertexBuffer, 3, 0, false));
 		geo.setAttribute("color", new THREE.InterleavedBufferAttribute(vertexBuffer, 4, 3, false));
 		geo.setAttribute("uv", new THREE.InterleavedBufferAttribute(vertexBuffer, 2, 7, false));
-		if (twoColorTint) {
+		if (twoColorTint)
 			geo.setAttribute("darkcolor", new THREE.InterleavedBufferAttribute(vertexBuffer, 3, 9, false));
-		}
-		geo.setIndex(new THREE.BufferAttribute(indices, 1));
-		geo.getIndex()!.usage = WebGLRenderingContext.DYNAMIC_DRAW;
+
+		const normalBuffer = new THREE.BufferAttribute(normals, 3);
+		normalBuffer.usage = WebGLRenderingContext.STATIC_DRAW;
+		geo.setAttribute("normal", normalBuffer);
+
+		const indexBuffer = new THREE.BufferAttribute(this.indices, 1);
+		indexBuffer.usage = WebGLRenderingContext.DYNAMIC_DRAW;
+		geo.setIndex(indexBuffer);
+
 		geo.drawRange.start = 0;
 		geo.drawRange.count = 0;
 		this.geometry = geo;
@@ -167,7 +183,6 @@ export class MeshBatcher extends THREE.Mesh {
 		this.indicesLength += indicesLength;
 	}
 
-	private verticesMaxLength = -1;
 	end () {
 		this.vertexBuffer.needsUpdate = this.verticesLength > 0;
 		this.vertexBuffer.addUpdateRange(0, this.verticesLength);
@@ -179,11 +194,6 @@ export class MeshBatcher extends THREE.Mesh {
 		index.addUpdateRange(0, this.indicesLength);
 		geo.drawRange.start = 0;
 		geo.drawRange.count = this.indicesLength;
-
-		if (this.verticesMaxLength < this.verticesLength) {
-			this.verticesMaxLength = this.verticesLength;
-			geo.computeVertexNormals();
-		}
 	}
 
 	addMaterialGroup (indicesLength: number, materialGroup: number) {
