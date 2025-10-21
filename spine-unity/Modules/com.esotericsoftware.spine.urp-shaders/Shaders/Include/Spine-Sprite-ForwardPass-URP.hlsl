@@ -18,7 +18,7 @@
 	#define NEEDS_POSITION_WS
 #endif
 
-#if !defined(DYNAMICLIGHTMAP_ON) && !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if !defined(DYNAMICLIGHTMAP_ON) && !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) && defined(__PROBEVOLUME_HLSL__)
 #define USE_ADAPTIVE_PROBE_VOLUMES
 #endif
 
