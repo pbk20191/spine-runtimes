@@ -16,8 +16,8 @@
 #define USE_ADAPTIVE_PROBE_VOLUMES
 #endif
 
-#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-#define _FOG
+#if !(defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+#undef _FOG
 #endif
 
 struct appdata {
