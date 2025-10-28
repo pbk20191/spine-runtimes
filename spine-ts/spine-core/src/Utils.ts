@@ -301,7 +301,7 @@ export class Utils {
 	}
 
 	static newArray<T> (size: number, defaultValue: T): Array<T> {
-		const array = new Array<T>(size);
+		const array: T[] = [];
 		for (let i = 0; i < size; i++) array[i] = defaultValue;
 		return array;
 	}
@@ -310,7 +310,7 @@ export class Utils {
 		if (Utils.SUPPORTS_TYPED_ARRAYS)
 			return new Float32Array(size)
 		else {
-			const array = new Array<number>(size);
+			const array: number[] = [];
 			for (let i = 0; i < array.length; i++) array[i] = 0;
 			return array;
 		}
@@ -320,7 +320,7 @@ export class Utils {
 		if (Utils.SUPPORTS_TYPED_ARRAYS)
 			return new Int16Array(size)
 		else {
-			const array = new Array<number>(size);
+			const array: number[] = [];
 			for (let i = 0; i < array.length; i++) array[i] = 0;
 			return array;
 		}

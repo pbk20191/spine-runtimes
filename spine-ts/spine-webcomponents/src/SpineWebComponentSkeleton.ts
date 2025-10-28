@@ -1276,7 +1276,7 @@ export class SpineWebComponentSkeleton extends HTMLElement implements Disposable
 		skeleton.setupPose();
 
 		const offset = new Vector2(), size = new Vector2();
-		const tempArray = new Array<number>(2);
+		const tempArray = [0, 0];
 		if (!animation) {
 			skeleton.updateWorldTransform(Physics.update);
 			skeleton.getBounds(offset, size, tempArray, renderer.skeletonRenderer.getSkeletonClipping());

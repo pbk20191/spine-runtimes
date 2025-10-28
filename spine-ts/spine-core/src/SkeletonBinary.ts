@@ -648,7 +648,7 @@ export class SkeletonBinary {
 	}
 
 	private readFloatArray (input: BinaryInput, n: number, scale: number): number[] {
-		const array = new Array<number>(n);
+		const array: number[] = [];
 		if (scale === 1) {
 			for (let i = 0; i < n; i++)
 				array[i] = input.readFloat();
@@ -660,7 +660,7 @@ export class SkeletonBinary {
 	}
 
 	private readShortArray (input: BinaryInput, n: number): number[] {
-		const array = new Array<number>(n);
+		const array: number[] = [];
 		for (let i = 0; i < n; i++)
 			array[i] = input.readInt(true);
 		return array;
