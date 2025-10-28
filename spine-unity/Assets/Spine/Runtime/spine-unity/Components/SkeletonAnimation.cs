@@ -492,7 +492,7 @@ namespace Spine.Unity {
 
 			skeletonRenderer.clearStateOnDisable = this.clearStateOnDisableDeprecated;
 			skeletonRenderer.singleSubmesh = this.singleSubmeshDeprecated;
-			skeletonRenderer.maskInteraction = this.maskInteractionDeprecated;
+			skeletonRenderer.MaskInteraction = this.maskInteractionDeprecated;
 		}
 
 		[SerializeField] protected bool wasDeprecatedTransferred = false;

@@ -347,9 +347,10 @@
     - Spine Physics: `UpdateWorldTransform(Skeleton.Physics.Update)` → `UpdateWorldTransform(Spine.Physics.Update)`
     - UnityEngine Physics: `Physics.gravity` → `UnityEngine.Physics.gravity`.
   - When enabling `Threaded Animation` at `SkeletonAnimation` components, `SkeletonAnimation.AnimationState` callbacks and `TrackEntry` callbacks are not automatically called on the main thread. There are additional main thread callbacks provided to subscribe to instead, like `MainThreadComplete` for `Complete` and the like - see *Additions* below. Please note that this requires a change of user code to subscribe to these main thread delegate variants instead.
+  - `SkeletonRenderer`: `maskInteraction` → `MaskInteraction`.
 - **Changes of default values**
   - Changed default atlas texture workflow from PMA to straight alpha textures. This move was done because straight alpha textures are compatible with both Gamma and Linear color space, with the latter being the default for quite some time now in Unity. Note that `PMA Vertex Color` is unaffected and shall be enabled as usual to allow for single-pass additive rendering.
-
+  
 - **Additions**
   - Added Spine Preferences `Switch Texture Workflow` functionality to quickly switch to the respective PMA or straight-alpha texture and material presets.
   - Added a workflow mismatch dialog showing whenever problematic PMA vs. straight alpha settings are detected at a newly imported `.atlas.txt` file. Invalid settings include the atlas being PMA and project using Linear color space, and a mismatch of Auto-Import presets set to straight alpha compared to the atlas being PMA and vice versa. The dialog offers an option to automatically fix the problematic setting on the import side and links website documentation for export settings. This dialog can be disabled and re-enabled via Spine preferences.

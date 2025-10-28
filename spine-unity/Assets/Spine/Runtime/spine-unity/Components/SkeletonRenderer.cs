@@ -118,10 +118,8 @@ namespace Spine.Unity {
 #endif
 
 #if BUILT_IN_SPRITE_MASK_COMPONENT
-		/// <summary>This enum controls the mode under which the sprite will interact with the masking system.</summary>
-		/// <remarks>Interaction modes with <see cref="UnityEngine.SpriteMask"/> components are identical to Unity's <see cref="UnityEngine.SpriteRenderer"/>,
-		/// see https://docs.unity3d.com/ScriptReference/SpriteMaskInteraction.html. </remarks>
-		public SpriteMaskInteraction maskInteraction = SpriteMaskInteraction.None;
+		/// <seealso cref="MaskInteraction"/>
+		protected SpriteMaskInteraction maskInteraction = SpriteMaskInteraction.None;
 
 		/// <summary>Cached reference to the already setup material override set at the respective
 		/// SkeletonDataAsset.atlasAssets array entry.</summary>
@@ -160,6 +158,19 @@ namespace Spine.Unity {
 
 		#region Properties
 		#region General Properties
+#if BUILT_IN_SPRITE_MASK_COMPONENT
+		/// <summary>This enum controls the mode under which the sprite will interact with the masking system.</summary>
+		/// <remarks>Interaction modes with <see cref="UnityEngine.SpriteMask"/> components are identical to Unity's <see cref="UnityEngine.SpriteRenderer"/>,
+		/// see https://docs.unity3d.com/ScriptReference/SpriteMaskInteraction.html. </remarks>
+		public SpriteMaskInteraction MaskInteraction {
+			set {
+				if (maskInteraction == value) return;
+				maskInteraction = value;
+				materialsNeedUpdate = true;
+			}
+			get { return maskInteraction; }
+		}
+#endif
 		/// <summary>Use this Dictionary to override a Material with a different Material.</summary>
 		public Dictionary<Material, Material> CustomMaterialOverride {
 			get { materialsNeedUpdate = true; return customMaterialOverride; }
@@ -790,8 +801,7 @@ namespace Spine.Unity {
 											break;
 										}
 									}
-								}
-								finally {
+								} finally {
 									preventReentrance = false;
 								}
 							}

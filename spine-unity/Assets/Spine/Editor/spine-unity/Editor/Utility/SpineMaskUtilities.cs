@@ -104,7 +104,7 @@ namespace Spine.Unity.Editor {
 		}
 
 		public static void EditorSetupSpriteMaskMaterials (SkeletonRenderer skeleton) {
-			SpriteMaskInteraction maskInteraction = skeleton.maskInteraction;
+			SpriteMaskInteraction maskInteraction = skeleton.MaskInteraction;
 			if (maskInteraction == SpriteMaskInteraction.VisibleInsideMask) {
 				if (skeleton.insideMaskMaterials == null)
 					EditorInitSpriteMaskMaterialsInsideMask(skeleton);
