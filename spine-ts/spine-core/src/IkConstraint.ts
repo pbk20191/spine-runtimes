@@ -134,7 +134,7 @@ export class IkConstraint extends Constraint<IkConstraint, IkConstraintData, IkC
 				const sc = pc / skeleton.scaleY;
 				pb = -sc * s * skeleton.scaleX;
 				pd = sa * s * skeleton.scaleY;
-				rotationIK += Math.atan2(sc, sa) * MathUtils.radDeg;
+				rotationIK += MathUtils.atan2Deg(sc, sa);
 			}
 			// Fall through
 			default: {

@@ -164,7 +164,7 @@ export class BonePose extends BoneLocal implements Update {
 				r = Math.PI / 2 + Math.atan2(zc, za);
 				const zb = Math.cos(r) * s;
 				const zd = Math.sin(r) * s;
-				const rx = MathUtils.degRad;
+				const rx = shearX * MathUtils.degRad;
 				const ry = (90 + shearY) * MathUtils.degRad;
 				const la = Math.cos(rx) * scaleX;
 				const lb = Math.cos(ry) * scaleY;
