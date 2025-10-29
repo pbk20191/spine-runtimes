@@ -3,7 +3,7 @@ import 'package:spine_flutter/spine_flutter.dart';
 import 'package:flutter/material.dart';
 
 class AnimationStateEvents extends StatelessWidget {
-  const AnimationStateEvents({Key? key}) : super(key: key);
+  const AnimationStateEvents({super.key});
 
   @override
   Widget build(BuildContext context) {

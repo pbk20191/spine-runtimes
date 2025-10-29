@@ -28,7 +28,6 @@
 // *****************************************************************************/
 
 import 'package:universal_ffi/ffi.dart';
-import 'package:universal_ffi/ffi_utils.dart';
 import 'dart:collection';
 
 /// Base class for native spine arrays.
