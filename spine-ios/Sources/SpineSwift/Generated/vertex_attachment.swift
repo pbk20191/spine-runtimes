@@ -51,27 +51,31 @@ open class VertexAttachment: Attachment {
     public var bones: ArrayInt {
         get {
             let result = spine_vertex_attachment_get_bones(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self))
-        return ArrayInt(fromPointer: result!)
+            return ArrayInt(fromPointer: result!)
         }
         set {
-            spine_vertex_attachment_set_bones(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), newValue._ptr.assumingMemoryBound(to: spine_array_int_wrapper.self))
+            spine_vertex_attachment_set_bones(
+                _ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self),
+                newValue._ptr.assumingMemoryBound(to: spine_array_int_wrapper.self))
         }
     }
 
     public var vertices: ArrayFloat {
         get {
             let result = spine_vertex_attachment_get_vertices(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self))
-        return ArrayFloat(fromPointer: result!)
+            return ArrayFloat(fromPointer: result!)
         }
         set {
-            spine_vertex_attachment_set_vertices(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), newValue._ptr.assumingMemoryBound(to: spine_array_float_wrapper.self))
+            spine_vertex_attachment_set_vertices(
+                _ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self),
+                newValue._ptr.assumingMemoryBound(to: spine_array_float_wrapper.self))
         }
     }
 
     public var worldVerticesLength: Int {
         get {
             let result = spine_vertex_attachment_get_world_vertices_length(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_vertex_attachment_set_world_vertices_length(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), newValue)
@@ -81,43 +85,52 @@ open class VertexAttachment: Attachment {
     public var timelineAttachment: Attachment? {
         get {
             let result = spine_vertex_attachment_get_timeline_attachment(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self))
-        guard let ptr = result else { return nil }
-        let rtti = spine_attachment_get_rtti(ptr)
-        let rttiClassName = String(cString: spine_rtti_get_class_name(rtti)!)
-        switch rttiClassName {
-        case "BoundingBoxAttachment":
-            let castedPtr = spine_attachment_cast_to_bounding_box_attachment(ptr)
-            return BoundingBoxAttachment(fromPointer: castedPtr!)
-        case "ClippingAttachment":
-            let castedPtr = spine_attachment_cast_to_clipping_attachment(ptr)
-            return ClippingAttachment(fromPointer: castedPtr!)
-        case "MeshAttachment":
-            let castedPtr = spine_attachment_cast_to_mesh_attachment(ptr)
-            return MeshAttachment(fromPointer: castedPtr!)
-        case "PathAttachment":
-            let castedPtr = spine_attachment_cast_to_path_attachment(ptr)
-            return PathAttachment(fromPointer: castedPtr!)
-        case "PointAttachment":
-            let castedPtr = spine_attachment_cast_to_point_attachment(ptr)
-            return PointAttachment(fromPointer: castedPtr!)
-        case "RegionAttachment":
-            let castedPtr = spine_attachment_cast_to_region_attachment(ptr)
-            return RegionAttachment(fromPointer: castedPtr!)
-        default:
-            fatalError("Unknown concrete type: \(rttiClassName) for abstract class Attachment")
-        }
+            guard let ptr = result else { return nil }
+            let rtti = spine_attachment_get_rtti(ptr)
+            let rttiClassName = String(cString: spine_rtti_get_class_name(rtti)!)
+            switch rttiClassName {
+            case "BoundingBoxAttachment":
+                let castedPtr = spine_attachment_cast_to_bounding_box_attachment(ptr)
+                return BoundingBoxAttachment(fromPointer: castedPtr!)
+            case "ClippingAttachment":
+                let castedPtr = spine_attachment_cast_to_clipping_attachment(ptr)
+                return ClippingAttachment(fromPointer: castedPtr!)
+            case "MeshAttachment":
+                let castedPtr = spine_attachment_cast_to_mesh_attachment(ptr)
+                return MeshAttachment(fromPointer: castedPtr!)
+            case "PathAttachment":
+                let castedPtr = spine_attachment_cast_to_path_attachment(ptr)
+                return PathAttachment(fromPointer: castedPtr!)
+            case "PointAttachment":
+                let castedPtr = spine_attachment_cast_to_point_attachment(ptr)
+                return PointAttachment(fromPointer: castedPtr!)
+            case "RegionAttachment":
+                let castedPtr = spine_attachment_cast_to_region_attachment(ptr)
+                return RegionAttachment(fromPointer: castedPtr!)
+            default:
+                fatalError("Unknown concrete type: \(rttiClassName) for abstract class Attachment")
+            }
         }
         set {
-            spine_vertex_attachment_set_timeline_attachment(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), newValue?._ptr.assumingMemoryBound(to: spine_attachment_wrapper.self))
+            spine_vertex_attachment_set_timeline_attachment(
+                _ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self),
+                newValue?._ptr.assumingMemoryBound(to: spine_attachment_wrapper.self))
         }
     }
 
     public func copyTo(_ other: VertexAttachment) {
-        spine_vertex_attachment_copy_to(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), other._ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self))
+        spine_vertex_attachment_copy_to(
+            _ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self),
+            other._ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self))
     }
 
-    public func computeWorldVertices(_ skeleton: Skeleton, _ slot: Slot, _ start: Int, _ count: Int, _ worldVertices: ArrayFloat, _ offset: Int, _ stride: Int) {
-        spine_vertex_attachment_compute_world_vertices_2(_ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), skeleton._ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), slot._ptr.assumingMemoryBound(to: spine_slot_wrapper.self), start, count, worldVertices._ptr.assumingMemoryBound(to: spine_array_float_wrapper.self), offset, stride)
+    public func computeWorldVertices(
+        _ skeleton: Skeleton, _ slot: Slot, _ start: Int, _ count: Int, _ worldVertices: ArrayFloat, _ offset: Int, _ stride: Int
+    ) {
+        spine_vertex_attachment_compute_world_vertices_2(
+            _ptr.assumingMemoryBound(to: spine_vertex_attachment_wrapper.self), skeleton._ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self),
+            slot._ptr.assumingMemoryBound(to: spine_slot_wrapper.self), start, count,
+            worldVertices._ptr.assumingMemoryBound(to: spine_array_float_wrapper.self), offset, stride)
     }
 
 }

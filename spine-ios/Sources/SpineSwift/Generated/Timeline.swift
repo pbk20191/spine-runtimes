@@ -83,8 +83,14 @@ open class Timeline: NSObject {
     /// - Parameter blend: Controls how mixing is applied when alpha is than 1.
     /// - Parameter direction: Indicates whether the timeline is mixing in or out. Used by timelines which perform instant transitions such as DrawOrderTimeline and AttachmentTimeline.
     /// - Parameter appliedPose: True to modify the applied pose.
-    public func apply(_ skeleton: Skeleton, _ lastTime: Float, _ time: Float, _ events: ArrayEvent?, _ alpha: Float, _ blend: MixBlend, _ direction: MixDirection, _ appliedPose: Bool) {
-        spine_timeline_apply(_ptr.assumingMemoryBound(to: spine_timeline_wrapper.self), skeleton._ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), lastTime, time, events?._ptr.assumingMemoryBound(to: spine_array_event_wrapper.self), alpha, spine_mix_blend(rawValue: UInt32(blend.rawValue)), spine_mix_direction(rawValue: UInt32(direction.rawValue)), appliedPose)
+    public func apply(
+        _ skeleton: Skeleton, _ lastTime: Float, _ time: Float, _ events: ArrayEvent?, _ alpha: Float, _ blend: MixBlend, _ direction: MixDirection,
+        _ appliedPose: Bool
+    ) {
+        spine_timeline_apply(
+            _ptr.assumingMemoryBound(to: spine_timeline_wrapper.self), skeleton._ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), lastTime,
+            time, events?._ptr.assumingMemoryBound(to: spine_array_event_wrapper.self), alpha, spine_mix_blend(rawValue: UInt32(blend.rawValue)),
+            spine_mix_direction(rawValue: UInt32(direction.rawValue)), appliedPose)
     }
 
     public static func rttiStatic() -> Rtti {

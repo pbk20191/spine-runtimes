@@ -52,7 +52,7 @@ public class Sequence: NSObject {
     public var id: Int32 {
         get {
             let result = spine_sequence_get_id(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_sequence_set_id(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self), newValue)
@@ -62,7 +62,7 @@ public class Sequence: NSObject {
     public var start: Int32 {
         get {
             let result = spine_sequence_get_start(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_sequence_set_start(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self), newValue)
@@ -72,7 +72,7 @@ public class Sequence: NSObject {
     public var digits: Int32 {
         get {
             let result = spine_sequence_get_digits(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_sequence_set_digits(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self), newValue)
@@ -83,7 +83,7 @@ public class Sequence: NSObject {
     public var setupIndex: Int32 {
         get {
             let result = spine_sequence_get_setup_index(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_sequence_set_setup_index(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self), newValue)
@@ -101,7 +101,9 @@ public class Sequence: NSObject {
     }
 
     public func apply(_ slot: SlotPose?, _ attachment: Attachment?) {
-        spine_sequence_apply(_ptr.assumingMemoryBound(to: spine_sequence_wrapper.self), slot?._ptr.assumingMemoryBound(to: spine_slot_pose_wrapper.self), attachment?._ptr.assumingMemoryBound(to: spine_attachment_wrapper.self))
+        spine_sequence_apply(
+            _ptr.assumingMemoryBound(to: spine_sequence_wrapper.self), slot?._ptr.assumingMemoryBound(to: spine_slot_pose_wrapper.self),
+            attachment?._ptr.assumingMemoryBound(to: spine_attachment_wrapper.self))
     }
 
     public func getPath(_ basePath: String, _ index: Int32) -> String {

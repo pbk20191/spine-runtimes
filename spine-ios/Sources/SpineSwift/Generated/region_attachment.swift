@@ -49,7 +49,7 @@ public class RegionAttachment: Attachment {
     public var x: Float {
         get {
             let result = spine_region_attachment_get_x(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_x(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -59,7 +59,7 @@ public class RegionAttachment: Attachment {
     public var y: Float {
         get {
             let result = spine_region_attachment_get_y(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_y(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -69,7 +69,7 @@ public class RegionAttachment: Attachment {
     public var rotation: Float {
         get {
             let result = spine_region_attachment_get_rotation(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_rotation(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -79,7 +79,7 @@ public class RegionAttachment: Attachment {
     public var scaleX: Float {
         get {
             let result = spine_region_attachment_get_scale_x(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_scale_x(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -89,7 +89,7 @@ public class RegionAttachment: Attachment {
     public var scaleY: Float {
         get {
             let result = spine_region_attachment_get_scale_y(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_scale_y(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -99,7 +99,7 @@ public class RegionAttachment: Attachment {
     public var width: Float {
         get {
             let result = spine_region_attachment_get_width(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_width(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -109,7 +109,7 @@ public class RegionAttachment: Attachment {
     public var height: Float {
         get {
             let result = spine_region_attachment_get_height(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_region_attachment_set_height(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -124,7 +124,7 @@ public class RegionAttachment: Attachment {
     public var path: String {
         get {
             let result = spine_region_attachment_get_path(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return String(cString: result!)
+            return String(cString: result!)
         }
         set {
             spine_region_attachment_set_path(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue)
@@ -134,20 +134,24 @@ public class RegionAttachment: Attachment {
     public var region: TextureRegion? {
         get {
             let result = spine_region_attachment_get_region(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result.map { TextureRegion(fromPointer: $0) }
+            return result.map { TextureRegion(fromPointer: $0) }
         }
         set {
-            spine_region_attachment_set_region(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue?._ptr.assumingMemoryBound(to: spine_texture_region_wrapper.self))
+            spine_region_attachment_set_region(
+                _ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self),
+                newValue?._ptr.assumingMemoryBound(to: spine_texture_region_wrapper.self))
         }
     }
 
     public var sequence: Sequence? {
         get {
             let result = spine_region_attachment_get_sequence(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self))
-        return result.map { Sequence(fromPointer: $0) }
+            return result.map { Sequence(fromPointer: $0) }
         }
         set {
-            spine_region_attachment_set_sequence(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), newValue?._ptr.assumingMemoryBound(to: spine_sequence_wrapper.self))
+            spine_region_attachment_set_sequence(
+                _ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self),
+                newValue?._ptr.assumingMemoryBound(to: spine_sequence_wrapper.self))
         }
     }
 
@@ -166,7 +170,9 @@ public class RegionAttachment: Attachment {
     }
 
     public func computeWorldVertices(_ slot: Slot, _ worldVertices: ArrayFloat, _ offset: Int, _ stride: Int) {
-        spine_region_attachment_compute_world_vertices_2(_ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), slot._ptr.assumingMemoryBound(to: spine_slot_wrapper.self), worldVertices._ptr.assumingMemoryBound(to: spine_array_float_wrapper.self), offset, stride)
+        spine_region_attachment_compute_world_vertices_2(
+            _ptr.assumingMemoryBound(to: spine_region_attachment_wrapper.self), slot._ptr.assumingMemoryBound(to: spine_slot_wrapper.self),
+            worldVertices._ptr.assumingMemoryBound(to: spine_array_float_wrapper.self), offset, stride)
     }
 
     public func dispose() {

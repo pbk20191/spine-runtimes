@@ -58,10 +58,11 @@ public class TrackEntry: NSObject {
     public var animation: Animation {
         get {
             let result = spine_track_entry_get_animation(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return Animation(fromPointer: result!)
+            return Animation(fromPointer: result!)
         }
         set {
-            spine_track_entry_set_animation(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue._ptr.assumingMemoryBound(to: spine_animation_wrapper.self))
+            spine_track_entry_set_animation(
+                _ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue._ptr.assumingMemoryBound(to: spine_animation_wrapper.self))
         }
     }
 
@@ -75,7 +76,7 @@ public class TrackEntry: NSObject {
     public var loop: Bool {
         get {
             let result = spine_track_entry_get_loop(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_loop(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -91,13 +92,13 @@ public class TrackEntry: NSObject {
     /// from 0% to 100%. Setting holdPrevious to true applies the first animation at 100% during the
     /// mix so the lower track value is overwritten. Such dipping does not occur on the lowest track
     /// which keys the property, only when a higher track also keys the property.
-///
+    ///
     /// Snapping will occur if holdPrevious is true and this animation does not key all the same
     /// properties as the previous animation.
     public var holdPrevious: Bool {
         get {
             let result = spine_track_entry_get_hold_previous(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_hold_previous(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -107,7 +108,7 @@ public class TrackEntry: NSObject {
     public var reverse: Bool {
         get {
             let result = spine_track_entry_get_reverse(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_reverse(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -117,7 +118,7 @@ public class TrackEntry: NSObject {
     public var shortestRotation: Bool {
         get {
             let result = spine_track_entry_get_shortest_rotation(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_shortest_rotation(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -131,14 +132,14 @@ public class TrackEntry: NSObject {
     /// >= this track entry's delay).
     ///
     /// getTimeScale() affects the delay.
-///
+    ///
     /// When passing delay < = 0 to AnimationState::addAnimation(int, Animation, bool, float) this
     /// delay is set using a mix duration from AnimationStateData. To change the getMixDuration()
     /// afterward, use setMixDuration(float, float) so this delay is adjusted.
     public var delay: Float {
         get {
             let result = spine_track_entry_get_delay(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_delay(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -151,7 +152,7 @@ public class TrackEntry: NSObject {
     public var trackTime: Float {
         get {
             let result = spine_track_entry_get_track_time(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_track_time(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -170,7 +171,7 @@ public class TrackEntry: NSObject {
     public var trackEnd: Float {
         get {
             let result = spine_track_entry_get_track_end(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_track_end(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -184,7 +185,7 @@ public class TrackEntry: NSObject {
     public var animationStart: Float {
         get {
             let result = spine_track_entry_get_animation_start(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_animation_start(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -197,7 +198,7 @@ public class TrackEntry: NSObject {
     public var animationEnd: Float {
         get {
             let result = spine_track_entry_get_animation_end(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_animation_end(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -211,7 +212,7 @@ public class TrackEntry: NSObject {
     public var animationLast: Float {
         get {
             let result = spine_track_entry_get_animation_last(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_animation_last(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -233,19 +234,19 @@ public class TrackEntry: NSObject {
     /// animation to pass slower or faster. Defaults to 1.
     ///
     /// Values < 0 are not supported. To play an animation in reverse, use getReverse().
-///
+    ///
     /// getMixTime() is not affected by track entry time scale, so getMixDuration() may need to be
     /// adjusted to match the animation speed.
-///
+    ///
     /// When using AnimationState::addAnimation(int, Animation, bool, float) with a delay < = 0, the
     /// getDelay() is set using the mix duration from the AnimationStateData, assuming time scale to
     /// be 1. If the time scale is not 1, the delay may need to be adjusted.
-///
+    ///
     /// See AnimationState getTimeScale() for affecting all animations.
     public var timeScale: Float {
         get {
             let result = spine_track_entry_get_time_scale(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_time_scale(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -261,7 +262,7 @@ public class TrackEntry: NSObject {
     public var alpha: Float {
         get {
             let result = spine_track_entry_get_alpha(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_alpha(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -274,7 +275,7 @@ public class TrackEntry: NSObject {
     public var eventThreshold: Float {
         get {
             let result = spine_track_entry_get_event_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_event_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -287,7 +288,7 @@ public class TrackEntry: NSObject {
     public var mixAttachmentThreshold: Float {
         get {
             let result = spine_track_entry_get_mix_attachment_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_mix_attachment_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -299,7 +300,7 @@ public class TrackEntry: NSObject {
     public var alphaAttachmentThreshold: Float {
         get {
             let result = spine_track_entry_get_alpha_attachment_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_alpha_attachment_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -312,7 +313,7 @@ public class TrackEntry: NSObject {
     public var mixDrawOrderThreshold: Float {
         get {
             let result = spine_track_entry_get_mix_draw_order_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_mix_draw_order_threshold(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -336,7 +337,7 @@ public class TrackEntry: NSObject {
     public var mixTime: Float {
         get {
             let result = spine_track_entry_get_mix_time(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_track_entry_set_mix_time(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue)
@@ -349,7 +350,7 @@ public class TrackEntry: NSObject {
     /// The mix duration can be set manually rather than use the value from
     /// AnimationStateData.GetMix. In that case, the mixDuration must be set before
     /// AnimationState.update(float) is next called.
-///
+    ///
     /// When using AnimationState::addAnimation(int, Animation, bool, float) with a delay less than
     /// or equal to 0, note the Delay is set using the mix duration from the AnimationStateData
     public var mixDuration: Float {
@@ -360,10 +361,11 @@ public class TrackEntry: NSObject {
     public var mixBlend: MixBlend {
         get {
             let result = spine_track_entry_get_mix_blend(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return MixBlend(rawValue: Int32(result.rawValue))!
+            return MixBlend(rawValue: Int32(result.rawValue))!
         }
         set {
-            spine_track_entry_set_mix_blend(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), spine_mix_blend(rawValue: UInt32(newValue.rawValue)))
+            spine_track_entry_set_mix_blend(
+                _ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), spine_mix_blend(rawValue: UInt32(newValue.rawValue)))
         }
     }
 
@@ -414,10 +416,12 @@ public class TrackEntry: NSObject {
     public var animationState: AnimationState? {
         get {
             let result = spine_track_entry_get_animation_state(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self))
-        return result.map { AnimationState(fromPointer: $0) }
+            return result.map { AnimationState(fromPointer: $0) }
         }
         set {
-            spine_track_entry_set_animation_state(_ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self), newValue?._ptr.assumingMemoryBound(to: spine_animation_state_wrapper.self))
+            spine_track_entry_set_animation_state(
+                _ptr.assumingMemoryBound(to: spine_track_entry_wrapper.self),
+                newValue?._ptr.assumingMemoryBound(to: spine_animation_state_wrapper.self))
         }
     }
 

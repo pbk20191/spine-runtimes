@@ -53,17 +53,17 @@ public enum Property: Int32, CaseIterable {
     case pathConstraintPosition = 131072
     case pathConstraintSpacing = 262144
     case pathConstraintMix = 524288
-    case physicsConstraintInertia = 1048576
-    case physicsConstraintStrength = 2097152
-    case physicsConstraintDamping = 4194304
-    case physicsConstraintMass = 8388608
-    case physicsConstraintWind = 16777216
-    case physicsConstraintGravity = 33554432
-    case physicsConstraintMix = 67108864
-    case physicsConstraintReset = 134217728
-    case sequence = 268435456
-    case sliderTime = 536870912
-    case sliderMix = 1073741824
+    case physicsConstraintInertia = 1_048_576
+    case physicsConstraintStrength = 2_097_152
+    case physicsConstraintDamping = 4_194_304
+    case physicsConstraintMass = 8_388_608
+    case physicsConstraintWind = 16_777_216
+    case physicsConstraintGravity = 33_554_432
+    case physicsConstraintMix = 67_108_864
+    case physicsConstraintReset = 134_217_728
+    case sequence = 268_435_456
+    case sliderTime = 536_870_912
+    case sliderMix = 1_073_741_824
 
     public static func fromValue(_ value: Int32) -> Property? {
         return Property(rawValue: value)

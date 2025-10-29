@@ -101,7 +101,7 @@ public class Skeleton: NSObject {
     public var scaleX: Float {
         get {
             let result = spine_skeleton_get_scale_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_scale_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -111,7 +111,7 @@ public class Skeleton: NSObject {
     public var scaleY: Float {
         get {
             let result = spine_skeleton_get_scale_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_scale_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -121,7 +121,7 @@ public class Skeleton: NSObject {
     public var x: Float {
         get {
             let result = spine_skeleton_get_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -131,7 +131,7 @@ public class Skeleton: NSObject {
     public var y: Float {
         get {
             let result = spine_skeleton_get_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -141,7 +141,7 @@ public class Skeleton: NSObject {
     public var windX: Float {
         get {
             let result = spine_skeleton_get_wind_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_wind_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -151,7 +151,7 @@ public class Skeleton: NSObject {
     public var windY: Float {
         get {
             let result = spine_skeleton_get_wind_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_wind_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -161,7 +161,7 @@ public class Skeleton: NSObject {
     public var gravityX: Float {
         get {
             let result = spine_skeleton_get_gravity_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_gravity_x(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -171,7 +171,7 @@ public class Skeleton: NSObject {
     public var gravityY: Float {
         get {
             let result = spine_skeleton_get_gravity_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_gravity_y(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -181,7 +181,7 @@ public class Skeleton: NSObject {
     public var time: Float {
         get {
             let result = spine_skeleton_get_time(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self))
-        return result
+            return result
         }
         set {
             spine_skeleton_set_time(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue)
@@ -191,7 +191,8 @@ public class Skeleton: NSObject {
     public var setColor: Color {
         get { fatalError("Setter-only property") }
         set(newValue) {
-            spine_skeleton_set_color_1(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue._ptr.assumingMemoryBound(to: spine_color_wrapper.self))
+            spine_skeleton_set_color_1(
+                _ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newValue._ptr.assumingMemoryBound(to: spine_color_wrapper.self))
         }
     }
 
@@ -206,11 +207,13 @@ public class Skeleton: NSObject {
     }
 
     public func constrained(_ object: Posed) {
-        spine_skeleton_constrained(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), object._ptr.assumingMemoryBound(to: spine_posed_wrapper.self))
+        spine_skeleton_constrained(
+            _ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), object._ptr.assumingMemoryBound(to: spine_posed_wrapper.self))
     }
 
     public func sortBone(_ bone: Bone?) {
-        spine_skeleton_sort_bone(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), bone?._ptr.assumingMemoryBound(to: spine_bone_wrapper.self))
+        spine_skeleton_sort_bone(
+            _ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), bone?._ptr.assumingMemoryBound(to: spine_bone_wrapper.self))
     }
 
     public static func sortReset(_ bones: ArrayBone) {
@@ -222,7 +225,8 @@ public class Skeleton: NSObject {
     /// See [World transforms](http://esotericsoftware.com/spine-runtime-skeletons#World-transforms)
     /// in the Spine Runtimes Guide.
     public func updateWorldTransform(_ physics: Physics) {
-        spine_skeleton_update_world_transform(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), spine_physics(rawValue: UInt32(physics.rawValue)))
+        spine_skeleton_update_world_transform(
+            _ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), spine_physics(rawValue: UInt32(physics.rawValue)))
     }
 
     /// Sets the bones, constraints, and slots to their setup pose values.
@@ -293,7 +297,8 @@ public class Skeleton: NSObject {
     ///
     /// - Parameter newSkin: May be NULL.
     public func setSkin2(_ newSkin: Skin?) {
-        spine_skeleton_set_skin_2(_ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newSkin?._ptr.assumingMemoryBound(to: spine_skin_wrapper.self))
+        spine_skeleton_set_skin_2(
+            _ptr.assumingMemoryBound(to: spine_skeleton_wrapper.self), newSkin?._ptr.assumingMemoryBound(to: spine_skin_wrapper.self))
     }
 
     /// - Returns: May be NULL.
