@@ -23,11 +23,11 @@ else
 fi
 
 log_action "Publishing to Dart Pub"
-if DART_OUTPUT=$(dart pub publish 2>&1); then
+# Don't capture output so user can interact with the confirmation prompt
+if dart pub publish; then
     log_ok
     log_summary "✓ Flutter package published successfully"
 else
     log_fail
-    log_error_output "$DART_OUTPUT"
     exit 1
 fi
