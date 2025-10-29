@@ -155,7 +155,7 @@ class BonePose extends BoneLocal implements Update {
 				r = Math.PI / 2 + Math.atan2(zc, za);
 				var zb:Float = Math.cos(r) * s;
 				var zd:Float = Math.sin(r) * s;
-				var rx = MathUtils.degRad;
+				var rx = shearX * MathUtils.degRad;
 				var ry = (90 + shearY) * MathUtils.degRad;
 				var la = Math.cos(rx) * scaleX;
 				var lb = Math.cos(ry) * scaleY;
