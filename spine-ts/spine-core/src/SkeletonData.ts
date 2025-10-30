@@ -91,7 +91,7 @@ export class SkeletonData {
 
 	// Nonessential
 	/** The dopesheet FPS in Spine. Available only when nonessential data was exported. */
-	fps = 0;
+	fps = 30;
 
 	/** The path to the images directory as defined in Spine. Available only when nonessential data was exported. May be null. */
 	imagesPath: string | null = null;

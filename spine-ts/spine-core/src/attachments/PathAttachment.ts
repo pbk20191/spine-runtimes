@@ -58,7 +58,7 @@ export class PathAttachment extends VertexAttachment {
 		this.copyTo(copy);
 		copy.lengths = [];
 		Utils.arrayCopy(this.lengths, 0, copy.lengths, 0, this.lengths.length);
-		copy.closed = closed;
+		copy.closed = this.closed;
 		copy.constantSpeed = this.constantSpeed;
 		copy.color.setFromColor(this.color);
 		return copy;
