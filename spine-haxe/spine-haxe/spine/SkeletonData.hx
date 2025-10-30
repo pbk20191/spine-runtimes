@@ -92,7 +92,7 @@ class SkeletonData {
 	// Nonessential.
 
 	/** The dopesheet FPS in Spine, or zero if nonessential data was not exported. */
-	public var fps:Float = 0;
+	public var fps:Float = 30;
 
 	/** The path to the images directory as defined in Spine, or null if nonessential data was not exported. */
 	public var imagesPath:String;
