@@ -32,7 +32,7 @@
 
 #define READ_VOLATILE_ONCE
 #if UNITY_2017_3_OR_NEWER
-//#define ENABLE_THREAD_PROFILING
+#define ENABLE_THREAD_PROFILING
 #endif
 
 #define DONT_WAIT_FOR_ALL_LATEUPDATE_TASKS // enabled improves performance a bit.
@@ -209,7 +209,7 @@ namespace Spine.Unity {
 
 #if USE_THREADED_ANIMATION_UPDATE
 		public void RegisterForUpdate (UpdateTiming updateTiming, SkeletonAnimationBase skeletonAnimation) {
-			skeletonAnimation.isUpdatedExternally = true;
+			skeletonAnimation.IsUpdatedExternally = true;
 
 			var skeletonAnimations = skeletonAnimationsUpdate;
 			if (updateTiming == UpdateTiming.InFixedUpdate) skeletonAnimations = skeletonAnimationsFixedUpdate;
@@ -226,7 +226,7 @@ namespace Spine.Unity {
 			else if (updateTiming == UpdateTiming.InLateUpdate) skeletonAnimations = skeletonAnimationsLateUpdate;
 
 			skeletonAnimations.Remove(skeletonAnimation);
-			skeletonAnimation.isUpdatedExternally = false;
+			skeletonAnimation.IsUpdatedExternally = false;
 		}
 #endif
 
