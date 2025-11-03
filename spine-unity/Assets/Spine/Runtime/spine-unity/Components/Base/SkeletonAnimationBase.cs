@@ -93,7 +93,7 @@ namespace Spine.Unity {
 #if USE_THREADED_ANIMATION_UPDATE
 		#region Threaded update system
 		[SerializeField] protected SettingsTriState threadedAnimation = SettingsTriState.UseGlobalSetting;
-		public bool isUpdatedExternally = false;
+		protected bool isUpdatedExternally = false;
 
 		public bool IsUpdatedExternally {
 			get { return isUpdatedExternally; }
