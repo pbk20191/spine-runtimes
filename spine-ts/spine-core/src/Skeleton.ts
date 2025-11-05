@@ -407,7 +407,7 @@ export class Skeleton {
 	/** A convenience method to set an attachment by finding the slot with {@link findSlot()}, finding the attachment with
 	 * {@link getAttachment()}, then setting the slot's {@link Slot.attachment}.
 	 * @param attachmentName May be null to clear the slot's attachment. */
-	setAttachment (slotName: string, attachmentName: string) {
+	setAttachment (slotName: string, attachmentName: string | null) {
 		if (!slotName) throw new Error("slotName cannot be null.");
 		const slot = this.findSlot(slotName);
 		if (!slot) throw new Error(`Slot not found: ${slotName}`);
