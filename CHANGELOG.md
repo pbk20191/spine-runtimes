@@ -351,7 +351,7 @@
   - Removed rather useless old menu entries `GameObject - Spine - SkeletonRenderer` and the like which are spawning e.g. a GameObject with an empty `SkeletonRenderer` component without `SkeletonDataAsset` assigned and thus also not initialized properly.
 - **Changes of default values**
   - Changed default atlas texture workflow from PMA to straight alpha textures. This move was done because straight alpha textures are compatible with both Gamma and Linear color space, with the latter being the default for quite some time now in Unity. Note that `PMA Vertex Color` is unaffected and shall be enabled as usual to allow for single-pass additive rendering.
-  
+
 - **Additions**
   - Added Spine Preferences `Switch Texture Workflow` functionality to quickly switch to the respective PMA or straight-alpha texture and material presets.
   - Added a workflow mismatch dialog showing whenever problematic PMA vs. straight alpha settings are detected at a newly imported `.atlas.txt` file. Invalid settings include the atlas being PMA and project using Linear color space, and a mismatch of Auto-Import presets set to straight alpha compared to the atlas being PMA and vice versa. The dialog offers an option to automatically fix the problematic setting on the import side and links website documentation for export settings. This dialog can be disabled and re-enabled via Spine preferences.
@@ -359,7 +359,7 @@
     - `Threaded MeshGeneration`: Default value for SkeletonRenderer and SkeletonGraphic threaded mesh generation
     - `Threaded Animation`: Default value for SkeletonAnimation and SkeletonMecanim threaded animation updates
   - Even when threading is enabled, the threading system defaults to  `SkeletonRenderer` and `SkeletonAnimation` user callbacks like `UpdateWorld` (not including `AnimationState` callbacks) being issued on the main thread to support existing user code. Can be configured via `SkeletonUpdateSystem.Instance.MainThreadUpdateCallbacks = false` to perform callbacks on worker threads if parallel execution is supported and desired by the user code. `OnPostProcessVertices` is an exception, as it it's deliberately left on worker threads so that parallellization can be utilized. Note that most Unity API calls are restricted to the main thread.
-  - For `SkeletonAnimation.AnimationState` callbacks, there are additional main thread callbacks `MainThreadStart`, `MainThreadInterrupt`, `MainThreadEnd`, `MainThreadDispose`, `MainThreadComplete` and `MainThreadEvent` provided directly at `SkeletonAnimation`, e.g. `SkeletonAnimation.MainThreadComplete` for `SkeletonAnimation.AnimationState.Complete` and so on. Please note that this requires a change of user code to subscribe to these main thread delegate variants instead. 
+  - For `SkeletonAnimation.AnimationState` callbacks, there are additional main thread callbacks `MainThreadStart`, `MainThreadInterrupt`, `MainThreadEnd`, `MainThreadDispose`, `MainThreadComplete` and `MainThreadEvent` provided directly at `SkeletonAnimation`, e.g. `SkeletonAnimation.MainThreadComplete` for `SkeletonAnimation.AnimationState.Complete` and so on. Please note that this requires a change of user code to subscribe to these main thread delegate variants instead.
   - The same applies to the `TrackEntry.Start`, `Interrupt`, `End`, `Dispose`, `Complete`, and `Event` events. If you need these callbacks to run on the main thread instead of worker threads, you should register them using the corresponding `SkeletonAnimation.MainThreadStart`, `MainThreadInterrupt`, etc. callbacks. Note that this does require a small code change, since these events are **not** automatically unregistered when the `TrackEntry` is removed. You’ll need to handle that manually, typically with logic such as `if (trackEntry.Animation == attackAnimation) ..`.
   - Added `SkeletonUpdateSystem.Instance.GroupRenderersBySkeletonType` and `GroupAnimationBySkeletonType` properties. Defaults to disabled. Later when smart partitioning is implemented, enabling this parameter might slightly improve cache locality. Until then having it enabled combined with different skeleton complexity would lead to worse load balancing.
   - Added previously missing editor drag & drop skeleton instantiation option *SkeletonGraphic (UI) Mecanim* combining components `SkeletonGraphic` and `SkeletonMecanim`.
@@ -398,6 +398,10 @@
   - Timeline `apply()` methods now take an additional `appliedPose` parameter
 
 ### Flutter
+
+- **Additions**
+  - Added `fromMemory` methods to `AtlasFlutter`, `SkeletonDataFlutter`, `SkeletonDrawableFlutter`, and `SpineWidget` for loading Spine data from custom sources (memory, encrypted storage, databases, custom caching, etc.)
+  - Added example `load_from_memory.dart` demonstrating how to load all assets into memory and use the `fromMemory` API
 
 - **Breaking changes**
   - Updated to use the new auto-generated Dart runtime with all the Dart API changes above

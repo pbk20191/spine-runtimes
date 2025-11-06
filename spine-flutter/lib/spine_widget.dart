@@ -28,6 +28,7 @@
 //
 
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/rendering.dart' as rendering;
 import 'package:flutter/scheduler.dart';
@@ -164,7 +165,7 @@ class SpineWidgetController {
   }
 }
 
-enum _AssetType { asset, file, http, drawable }
+enum _AssetType { asset, file, http, memory, drawable }
 
 /// Base class for bounds providers. A bounds provider calculates the axis aligned bounding box
 /// used to scale and fit a skeleton inside the bounds of a [SpineWidget].
@@ -262,7 +263,8 @@ class SkinAndAnimationBounds extends BoundsProvider {
 }
 
 /// A [StatefulWidget] to display a Spine skeleton. The skeleton can be loaded from an asset bundle ([SpineWidget.fromAsset],
-/// local files [SpineWidget.fromFile], URLs [SpineWidget.fromHttp], or a pre-loaded [SkeletonDrawableFlutter] ([SpineWidget.fromDrawable]).
+/// local files [SpineWidget.fromFile], URLs [SpineWidget.fromHttp], memory ([SpineWidget.fromMemory]), or a pre-loaded
+/// [SkeletonDrawableFlutter] ([SpineWidget.fromDrawable]).
 ///
 /// The skeleton displayed by a `SpineWidget` can be controlled via a [SpineWidgetController].
 ///
@@ -274,6 +276,7 @@ class SpineWidget extends StatefulWidget {
   final String? _skeletonFile;
   final String? _atlasFile;
   final SkeletonDrawableFlutter? _drawable;
+  final Future<Uint8List> Function(String)? _loadFile;
   final SpineWidgetController _controller;
   final BoxFit _fit;
   final Alignment _alignment;
@@ -308,6 +311,7 @@ class SpineWidget extends StatefulWidget {
         _boundsProvider = boundsProvider ?? const SetupPoseBounds(),
         _sizedByBounds = sizedByBounds ?? false,
         _drawable = null,
+        _loadFile = null,
         _bundle = bundle ?? rootBundle;
 
   /// Constructs a new [SpineWidget] from files. The [_atlasFile] specifies the `.atlas` file to be loaded for the images used to render
@@ -336,7 +340,8 @@ class SpineWidget extends StatefulWidget {
         _alignment = alignment ?? Alignment.center,
         _boundsProvider = boundsProvider ?? const SetupPoseBounds(),
         _sizedByBounds = sizedByBounds ?? false,
-        _drawable = null;
+        _drawable = null,
+        _loadFile = null;
 
   /// Constructs a new [SpineWidget] from HTTP URLs. The [_atlasFile] specifies the `.atlas` file to be loaded for the images used to render
   /// the skeleton. The [_skeletonFile] specifies either a Skeleton `.json` or `.skel` file containing the skeleton data.
@@ -359,6 +364,38 @@ class SpineWidget extends StatefulWidget {
     bool? sizedByBounds,
     super.key,
   })  : _assetType = _AssetType.http,
+        _bundle = null,
+        _fit = fit ?? BoxFit.contain,
+        _alignment = alignment ?? Alignment.center,
+        _boundsProvider = boundsProvider ?? const SetupPoseBounds(),
+        _sizedByBounds = sizedByBounds ?? false,
+        _drawable = null,
+        _loadFile = null;
+
+  /// Constructs a new [SpineWidget] using a custom file loading function.
+  ///
+  /// This is the most flexible loading method that allows loading skeleton data from any source
+  /// (memory, custom storage, network with caching, etc.).
+  ///
+  /// After initialization is complete, the provided [_controller] is invoked as per the [SpineWidgetController] semantics, to allow
+  /// modifying how the skeleton inside the widget is animated and rendered.
+  ///
+  /// The skeleton is fitted and aligned inside the widget as per the [fit] and [alignment] arguments. For this purpose, the skeleton
+  /// bounds must be computed via a [BoundsProvider]. By default, [BoxFit.contain], [Alignment.center], and a [SetupPoseBounds] provider
+  /// are used.
+  ///
+  /// The widget can optionally by sized by the bounds provided by the [BoundsProvider] by passing `true` for [sizedByBounds].
+  const SpineWidget.fromMemory(
+    this._atlasFile,
+    this._skeletonFile,
+    this._loadFile,
+    this._controller, {
+    BoxFit? fit,
+    Alignment? alignment,
+    BoundsProvider? boundsProvider,
+    bool? sizedByBounds,
+    super.key,
+  })  : _assetType = _AssetType.memory,
         _bundle = null,
         _fit = fit ?? BoxFit.contain,
         _alignment = alignment ?? Alignment.center,
@@ -391,7 +428,8 @@ class SpineWidget extends StatefulWidget {
         _boundsProvider = boundsProvider ?? const SetupPoseBounds(),
         _sizedByBounds = sizedByBounds ?? false,
         _skeletonFile = null,
-        _atlasFile = null;
+        _atlasFile = null,
+        _loadFile = null;
 
   @override
   State<SpineWidget> createState() => _SpineWidgetState();
@@ -458,6 +496,9 @@ class _SpineWidgetState extends State<SpineWidget> {
         break;
       case _AssetType.http:
         loadDrawable(await SkeletonDrawableFlutter.fromHttp(atlasFile, skeletonFile));
+        break;
+      case _AssetType.memory:
+        loadDrawable(await SkeletonDrawableFlutter.fromMemory(atlasFile, skeletonFile, widget._loadFile!));
         break;
       case _AssetType.drawable:
         throw Exception("Drawable can not be loaded via loadFromAsset().");
