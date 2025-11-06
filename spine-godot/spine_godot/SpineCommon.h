@@ -33,6 +33,15 @@
 #include "core/version_generated.gen.h"
 #ifdef SPINE_GODOT_EXTENSION
 #include <godot_cpp/core/version.hpp>
+
+// When running scons with deprecated=no, these are not defined in version.h in Godot 4.5.1
+// but our code for older versions of Godot relies on them.
+#ifndef VERSION_MAJOR
+#define VERSION_MAJOR GODOT_VERSION_MAJOR
+#define VERSION_MINOR GODOT_VERSION_MINOR
+#define VERSION_PATCH GODOT_VERSION_PATCH
+#endif
+
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 using namespace godot;
