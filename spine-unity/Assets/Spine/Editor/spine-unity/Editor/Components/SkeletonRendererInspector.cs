@@ -107,8 +107,8 @@ namespace Spine.Unity.Editor {
 			EditorGUILayout.PropertyField(calculateTangents, CalculateTangentsLabel);
 		}
 
-		protected override void AdvancedPropertyFields () {
-			base.AdvancedPropertyFields();
+		protected override void RendererProperties () {
+			base.RendererProperties();
 
 			if (singleSubmesh != null) EditorGUILayout.PropertyField(singleSubmesh, SingleSubmeshLabel);
 

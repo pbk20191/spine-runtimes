@@ -218,7 +218,7 @@ namespace Spine.Unity.Editor {
 			EditorGUILayout.PropertyField(immutableTriangles, ImmutableTrianglesLabel);
 		}
 
-		protected override void AdvancedPropertyFields () {
+		protected override void RendererProperties () {
 
 			bool isSingleRendererOnly = (!allowMultipleCanvasRenderers.hasMultipleDifferentValues && allowMultipleCanvasRenderers.boolValue == false);
 			bool isSeparationEnabledButNotMultipleRenderers =
@@ -229,76 +229,72 @@ namespace Spine.Unity.Editor {
 			if (isSeparationEnabledButNotMultipleRenderers || meshRendersIncorrectlyWithSingleRenderer)
 				advancedFoldout = true;
 
-			base.AdvancedPropertyFields();
+			base.RendererProperties();
 
-			if (advancedFoldout) {
-				EditorGUILayout.Space();
+			EditorGUILayout.Space();
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PropertyField(allowMultipleCanvasRenderers, allowMultipleCanvasRenderersLabel);
+
+			if (GUILayout.Button(new GUIContent("Trim Renderers", "Remove currently unused CanvasRenderer GameObjects. These will be regenerated whenever needed."),
+				EditorStyles.miniButton, GUILayout.Width(100f))) {
+
+				Undo.RecordObjects(targets, "Trim Renderers");
+				foreach (UnityEngine.Object target in targets) {
+					SkeletonGraphic skeletonGraphic = target as SkeletonGraphic;
+					if (skeletonGraphic == null) continue;
+					skeletonGraphic.TrimRenderers();
+				}
+			}
+			EditorGUILayout.EndHorizontal();
+
+			BlendModeMaterials blendModeMaterials = thisSkeletonGraphic.skeletonDataAsset.blendModeMaterials;
+			if (allowMultipleCanvasRenderers.boolValue == true && blendModeMaterials.RequiresBlendModeMaterials) {
 				using (new SpineInspectorUtility.IndentScope()) {
 					EditorGUILayout.BeginHorizontal();
-					EditorGUILayout.PropertyField(allowMultipleCanvasRenderers, allowMultipleCanvasRenderersLabel);
+					EditorGUILayout.LabelField("Blend Mode Materials", EditorStyles.boldLabel);
 
-					if (GUILayout.Button(new GUIContent("Trim Renderers", "Remove currently unused CanvasRenderer GameObjects. These will be regenerated whenever needed."),
+					if (GUILayout.Button(new GUIContent("Detect", "Auto-Assign Blend Mode Materials according to Vertex Data and Texture settings."),
 						EditorStyles.miniButton, GUILayout.Width(100f))) {
 
-						Undo.RecordObjects(targets, "Trim Renderers");
+						Undo.RecordObjects(targets, "Detect Blend Mode Materials");
 						foreach (UnityEngine.Object target in targets) {
 							SkeletonGraphic skeletonGraphic = target as SkeletonGraphic;
 							if (skeletonGraphic == null) continue;
-							skeletonGraphic.TrimRenderers();
+							SkeletonGraphicUtility.DetectBlendModeMaterials(skeletonGraphic);
 						}
 					}
 					EditorGUILayout.EndHorizontal();
 
-					BlendModeMaterials blendModeMaterials = thisSkeletonGraphic.skeletonDataAsset.blendModeMaterials;
-					if (allowMultipleCanvasRenderers.boolValue == true && blendModeMaterials.RequiresBlendModeMaterials) {
-						using (new SpineInspectorUtility.IndentScope()) {
-							EditorGUILayout.BeginHorizontal();
-							EditorGUILayout.LabelField("Blend Mode Materials", EditorStyles.boldLabel);
-
-							if (GUILayout.Button(new GUIContent("Detect", "Auto-Assign Blend Mode Materials according to Vertex Data and Texture settings."),
-								EditorStyles.miniButton, GUILayout.Width(100f))) {
-
-								Undo.RecordObjects(targets, "Detect Blend Mode Materials");
-								foreach (UnityEngine.Object target in targets) {
-									SkeletonGraphic skeletonGraphic = target as SkeletonGraphic;
-									if (skeletonGraphic == null) continue;
-									SkeletonGraphicUtility.DetectBlendModeMaterials(skeletonGraphic);
-								}
-							}
-							EditorGUILayout.EndHorizontal();
-
-							bool usesAdditiveMaterial = blendModeMaterials.applyAdditiveMaterial;
-							bool pmaVertexColors = thisSkeletonGraphic.MeshSettings.pmaVertexColors;
-							if (pmaVertexColors)
-								using (new EditorGUI.DisabledGroupScope(true)) {
-									EditorGUILayout.LabelField("Additive Material - Unused with PMA Vertex Colors", EditorStyles.label);
-								}
-							else if (usesAdditiveMaterial)
-								EditorGUILayout.PropertyField(additiveMaterial, SpineInspectorUtility.TempContent("Additive Material", null, "SkeletonGraphic Material for 'Additive' blend mode slots. Unused when 'PMA Vertex Colors' is enabled."));
-							else
-								using (new EditorGUI.DisabledGroupScope(true)) {
-									EditorGUILayout.LabelField("No Additive Mat - 'Apply Additive Material' disabled at SkeletonDataAsset", EditorStyles.label);
-								}
-							EditorGUILayout.PropertyField(multiplyMaterial, SpineInspectorUtility.TempContent("Multiply Material", null, "SkeletonGraphic Material for 'Multiply' blend mode slots."));
-							EditorGUILayout.PropertyField(screenMaterial, SpineInspectorUtility.TempContent("Screen Material", null, "SkeletonGraphic Material for 'Screen' blend mode slots."));
+					bool usesAdditiveMaterial = blendModeMaterials.applyAdditiveMaterial;
+					bool pmaVertexColors = thisSkeletonGraphic.MeshSettings.pmaVertexColors;
+					if (pmaVertexColors)
+						using (new EditorGUI.DisabledGroupScope(true)) {
+							EditorGUILayout.LabelField("Additive Material - Unused with PMA Vertex Colors", EditorStyles.label);
 						}
-					}
+					else if (usesAdditiveMaterial)
+						EditorGUILayout.PropertyField(additiveMaterial, SpineInspectorUtility.TempContent("Additive Material", null, "SkeletonGraphic Material for 'Additive' blend mode slots. Unused when 'PMA Vertex Colors' is enabled."));
+					else
+						using (new EditorGUI.DisabledGroupScope(true)) {
+							EditorGUILayout.LabelField("No Additive Mat - 'Apply Additive Material' disabled at SkeletonDataAsset", EditorStyles.label);
+						}
+					EditorGUILayout.PropertyField(multiplyMaterial, SpineInspectorUtility.TempContent("Multiply Material", null, "SkeletonGraphic Material for 'Multiply' blend mode slots."));
+					EditorGUILayout.PropertyField(screenMaterial, SpineInspectorUtility.TempContent("Screen Material", null, "SkeletonGraphic Material for 'Screen' blend mode slots."));
+				}
+			}
 
-					// warning box
-					if (isSeparationEnabledButNotMultipleRenderers) {
-						using (new SpineInspectorUtility.BoxScope()) {
-							meshSettings.isExpanded = true;
-							EditorGUILayout.LabelField(SpineInspectorUtility.TempContent("'Multiple Canvas Renderers' must be enabled\nwhen 'Enable Separation' is enabled.", Icons.warning), GUILayout.Height(42), GUILayout.Width(340));
-						}
-					} else if (meshRendersIncorrectlyWithSingleRenderer) {
-						using (new SpineInspectorUtility.BoxScope()) {
-							meshSettings.isExpanded = true;
-							EditorGUILayout.LabelField(SpineInspectorUtility.TempContent("This mesh uses multiple atlas pages or blend modes.\n" +
-																						"You need to enable 'Multiple Canvas Renderers'\n" +
-																						"for correct rendering. Consider packing\n" +
-																						"attachments to a single atlas page if possible.", Icons.warning), GUILayout.Height(60), GUILayout.Width(340));
-						}
-					}
+			// warning box
+			if (isSeparationEnabledButNotMultipleRenderers) {
+				using (new SpineInspectorUtility.BoxScope()) {
+					meshSettings.isExpanded = true;
+					EditorGUILayout.LabelField(SpineInspectorUtility.TempContent("'Multiple Canvas Renderers' must be enabled\nwhen 'Enable Separation' is enabled.", Icons.warning), GUILayout.Height(42), GUILayout.Width(340));
+				}
+			} else if (meshRendersIncorrectlyWithSingleRenderer) {
+				using (new SpineInspectorUtility.BoxScope()) {
+					meshSettings.isExpanded = true;
+					EditorGUILayout.LabelField(SpineInspectorUtility.TempContent("This mesh uses multiple atlas pages or blend modes.\n" +
+																				"You need to enable 'Multiple Canvas Renderers'\n" +
+																				"for correct rendering. Consider packing\n" +
+																				"attachments to a single atlas page if possible.", Icons.warning), GUILayout.Height(60), GUILayout.Width(340));
 				}
 			}
 		}
