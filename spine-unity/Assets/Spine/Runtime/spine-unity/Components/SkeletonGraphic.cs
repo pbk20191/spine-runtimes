@@ -1181,8 +1181,9 @@ namespace Spine.Unity {
 						if (blendModeMaterial != null)
 							sharedMaterials[i] = blendModeMaterial;
 #if HAS_CULL_TRANSPARENT_MESH
-						canvasRenderers[i].cullTransparentMesh = allowCullTransparentMesh ?
-							mainCullTransparentMesh : false;
+						if (!UsesSingleSubmesh)
+							canvasRenderers[i].cullTransparentMesh = allowCullTransparentMesh ?
+								mainCullTransparentMesh : false;
 #endif
 					}
 				}
