@@ -7,13 +7,16 @@
 
 #ifndef spine_apple_extension_hpp
 #define spine_apple_extension_hpp
-#include <spine-c/prefix.h>
-#include <spine-c/texture_loader.h>
+#include <spine-c.h>
+#include <spine_apple_extension/texture_loader.h>
+#include <spine_apple_extension/SpineTextureLoaderContext.h>
+#include <spine_apple_extension/block_support.h>
 
 #if __cplusplus
 #include <spine/Extension.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <spine/TextureLoader.h>
+#include <spine_apple_extension/SpineContextTextureLoader.hpp>
 
 namespace spine {
 class AtlasPage;

@@ -30,10 +30,6 @@ let package = Package(
             targets: ["SpineiOSWrapper"]
         ),
         .library(
-            name: "spine-c",
-            targets: ["spine-c"]
-        ),
-        .library(
             name: "SpineRuntime",
             targets: ["SpineRuntime"]
         )
@@ -78,26 +74,22 @@ let package = Package(
             name: "SpineShadersStructs",
             path: "spine-ios/Sources/SpineShadersStructs"
         ),
-        .target(
-            name: "spine-c",
-            dependencies: [],
-            path: "spine-ios/Sources/spine-c",
-            cxxSettings: [
-//                cxxLambdaSetting
-            ]
-        ),
+
         .target(
             name: "spine_apple_extension",
             dependencies: [
-                "spine-c"
+                "SpineC"
             ],
-            path: "spine-ios/Sources/spine_apple_extension"
+            path: "spine-ios/Sources/spine_apple_extension",
+            linkerSettings: [
+                .linkedLibrary("c++")
+            ]
 
         ),
         .target(
             name: "SpineRuntime",
             dependencies: [
-                "spine-c", "SpineShadersStructs", "spine_apple_extension"
+                "SpineC", "SpineShadersStructs", "spine_apple_extension"
             ],
             path: "spine-ios/Sources/SpineRuntime",
             resources: [
@@ -107,14 +99,14 @@ let package = Package(
         .testTarget(
             name: "HeadlessTests",
             dependencies: [
-                "spine-c",
+                "SpineC",
                 .target(
                     name: "spine_apple_extension",
-                    condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .visionOS, .macOS])
+                    condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .macOS])
                 ),
                 .target(
                     name: "SpineRuntime",
-                    condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .visionOS, .macOS])
+                    condition: .when(platforms: [.iOS, .tvOS, .watchOS, .macCatalyst, .visionOS, .macOS])
                 ),
             ],
             path: "spine-ios/Tests/HeadlessTests",

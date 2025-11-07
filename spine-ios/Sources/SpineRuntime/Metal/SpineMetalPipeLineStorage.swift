@@ -6,7 +6,8 @@
 //
 #if canImport(Metal)
     import Metal
-    import spine_c
+    import SpineC
+    import spine_apple_extension
 
     public class SpineMetalPipeLineStorage: NSObject {
 

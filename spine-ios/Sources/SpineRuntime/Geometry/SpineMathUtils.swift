@@ -7,7 +7,8 @@ import CoreGraphics
 //
 import Foundation
 import SpineShadersStructs
-import spine_c
+import SpineC
+import spine_apple_extension
 
 public final class SpineMathUtils: NSObject {
 

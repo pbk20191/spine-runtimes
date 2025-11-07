@@ -5,7 +5,7 @@
 //  Created by 박병관 on 7/17/25.
 //
 
-#include "spine_apple_extension.hpp"
+#include "spine_apple_extension/spine_apple_extension.hpp"
 #include <spine/spine.h>
 #include <Foundation/Foundation.h>
 #include <OSLog/OSLog.h>
@@ -110,11 +110,11 @@ void NSDictionaryTextureLoader::unload(void* texture) {
 }
 
 
-spine::SpineExtension* spine::getDefaultExtension() {    
-    static AppleExtension extension;
-    return &extension;
-}
-
+//spine::SpineExtension* spine::getDefaultExtension() {    
+//    static AppleExtension extension;
+//    return &extension;
+//}
+//
 
 
 spine_texture_loader spine_get_default_dictionary_texture_loader(void) {

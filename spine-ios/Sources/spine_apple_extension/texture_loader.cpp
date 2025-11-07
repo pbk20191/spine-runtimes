@@ -5,17 +5,17 @@
 //  Created by pbk0619 on 7/16/25.
 //
 
-#include "spine-c/texture_loader.h"
+#include "spine_apple_extension/texture_loader.h"
 #include <spine/spine.h>
-#include "spine-c/SpineCTextureLoader.hpp"
-#include "spine-c/SpineTextureLoaderContext.h"
+#include "spine_apple_extension/SpineContextTextureLoader.hpp"
+#include "spine_apple_extension/SpineTextureLoaderContext.h"
 
 spine_texture_loader spine_texture_loader_create(const SpineTextureLoaderContext *vtable) {
 	if (!vtable) {
 		return nullptr;
 	}
 
-	auto loader = new (__FILE__, __LINE__) spine::SpineCTextureLoader(*vtable);
+	auto loader = new (__FILE__, __LINE__) spine::SpineContextTextureLoader(*vtable);
 	return reinterpret_cast<spine_texture_loader>(loader);
 }
 
@@ -27,7 +27,7 @@ void spine_texture_loader_dispose(spine_texture_loader loader) {
 	delete self;
 }
 
-spine_atlas spine_atlas_load(const char *path, spine_texture_loader textureLoader, bool createTexture) {
+spine_atlas spine_atlas_load_with_loader(const char *path, spine_texture_loader textureLoader, bool createTexture) {
 	if (!path) {
 		return nullptr;
 	}
@@ -36,7 +36,7 @@ spine_atlas spine_atlas_load(const char *path, spine_texture_loader textureLoade
 	return reinterpret_cast<spine_atlas>(native);
 }
 
-spine_atlas spine_atlas_create(const char *_Nonnull data, int length, const char *dir, spine_texture_loader _Nonnull textureLoader,
+spine_atlas spine_atlas_create_with_loader(const char *_Nonnull data, int length, const char *dir, spine_texture_loader _Nonnull textureLoader,
 							   bool createTexture) {
 	if (!data || length <= 0) {
 		return nullptr;

@@ -5,7 +5,8 @@ import Foundation
 //
 //  Created by 박병관 on 3/17/25.
 //
-import spine_c
+import SpineC
+import spine_apple_extension
 
 public struct ColorBlendPipeLineKey: Hashable, BitwiseCopyable, Sendable {
 

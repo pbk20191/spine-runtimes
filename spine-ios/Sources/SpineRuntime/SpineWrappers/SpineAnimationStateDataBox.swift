@@ -5,7 +5,8 @@ import Foundation
 //
 //  Created by 박병관 on 4/6/25.
 //
-import spine_c
+import SpineC
+import spine_apple_extension
 
 open class SpineAnimationStateDataBox: NSObject {
 

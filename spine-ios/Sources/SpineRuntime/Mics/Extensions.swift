@@ -5,7 +5,8 @@ import Foundation
 //
 //  Created by 박병관 on 3/14/25.
 //
-import spine_c
+import SpineC
+import spine_apple_extension
 
 extension spine_atlas_page {
 

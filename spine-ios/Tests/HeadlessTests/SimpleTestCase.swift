@@ -7,8 +7,8 @@
 
 import Foundation
 import Testing
-import spine_c
-import spine_c.block_support
+import SpineC
+import spine_apple_extension
 
 struct SimpleTestCase {
 
@@ -74,7 +74,7 @@ struct SimpleTestCase {
                 spine_texture_loader_dispose(loader)
             }
 
-            let atlas = spine_atlas_load(Bundle.module.path(forResource: "spineboy", ofType: "atlas")!, loader, true)
+            let atlas = spine_atlas_load_with_loader(Bundle.module.path(forResource: "spineboy", ofType: "atlas")!, loader, true)
             defer {
                 spine_atlas_dispose(atlas)
             }

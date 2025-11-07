@@ -6,7 +6,8 @@
 //
 
 import Foundation
-import spine_c
+import SpineC
+import spine_apple_extension
 
 #if canImport(Metal)
     import Metal

@@ -5,8 +5,12 @@
 //  Created by 박병관 on 7/22/25.
 //
 
-#include <spine-c/block_support.h>
+//#include <spine-c/block_support.h>
+#include <spine_apple_extension/block_support.h>
 #include <spine/spine.h>
+
+
+
 
 #if __BLOCKS__
 

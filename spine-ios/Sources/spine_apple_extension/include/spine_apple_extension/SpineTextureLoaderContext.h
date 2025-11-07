@@ -8,9 +8,9 @@
 #ifndef SpineTextureLoaderContext_h
 #define SpineTextureLoaderContext_h
 
-#include "spine-c/prefix.h"
+#include <spine-c.h>
 
-SPINE_FORWARD_OPAQUE_TYPE(spine_atlas_page)
+//SPINE_FORWARD_OPAQUE_TYPE(spine_atlas_page)
 
 typedef struct SpineTextureLoaderContext {
 	void *_Nullable (*_Nullable initialize)(const void *_Nullable input);

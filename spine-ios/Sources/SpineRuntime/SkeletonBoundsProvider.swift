@@ -15,7 +15,8 @@ import CoreGraphics
 //
 import Foundation
 import simd
-import spine_c
+import SpineC
+import spine_apple_extension
 
 @objc
 public protocol SkeletonBoundsProvider {
