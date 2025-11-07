@@ -148,7 +148,7 @@ namespace Spine.Unity.Editor {
 
 		protected void PreviewAnimationInScene (AnimationClip clip, float time) {
 			foreach (UnityEngine.Object c in targets) {
-				SkeletonRenderer skeletonRenderer = c as SkeletonRenderer;
+				SkeletonRenderer skeletonRenderer = ((SkeletonMecanim)c).Renderer as SkeletonRenderer;
 				if (skeletonRenderer == null) continue;
 				Skeleton skeleton = skeletonRenderer.Skeleton;
 				SkeletonData skeletonData = skeleton.Data;
