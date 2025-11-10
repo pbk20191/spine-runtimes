@@ -30,7 +30,6 @@
 #ifndef SPINE_COMMON_H
 #define SPINE_COMMON_H
 
-#include "core/version_generated.gen.h"
 #ifdef SPINE_GODOT_EXTENSION
 #include <godot_cpp/core/version.hpp>
 
@@ -56,12 +55,7 @@ using namespace godot;
 #define RES Ref<Resource>
 #define REF Ref<RefCounted>
 #define GEOMETRY2D Geometry2D
-#ifndef VERSION_MAJOR
-#define VERSION_MAJOR GODOT_VERSION_MAJOR
-#endif
-#ifndef VERSION_MINOR
-#define VERSION_MINOR GODOT_VERSION_MINOR
-#endif
+
 // FIXME this doesn't do the same as the engine SNAME in terms of caching
 #define SNAME(name) StringName(name)
 #define RS RenderingServer
