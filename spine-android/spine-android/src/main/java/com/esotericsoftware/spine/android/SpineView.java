@@ -352,10 +352,10 @@ public class SpineView extends View implements Choreographer.FrameCallback {
 		this.rendering = rendering;
 	}
 
-	/** Load the skeleton from a {@link AndroidSkeletonDrawableLoader}. This method is asynchronous.
-	 * If you want to control the loading thread yourself, obtain an {@link AndroidSkeletonDrawable}
-	 * using {@link AndroidSkeletonDrawable#fromHttp(URL, URL, File)} or another load method,
-	 * then call {@link SpineView#loadFromDrawable(AndroidSkeletonDrawable)} or
+	/** Load the skeleton from a {@link AndroidSkeletonDrawableLoader}. This method is asynchronous. If you want to control the
+	 * loading thread yourself, obtain an {@link AndroidSkeletonDrawable} using
+	 * {@link AndroidSkeletonDrawable#fromHttp(URL, URL, File)} or another load method, then call
+	 * {@link SpineView#loadFromDrawable(AndroidSkeletonDrawable)} or
 	 * {@link SpineView#setSkeletonDrawable(AndroidSkeletonDrawable)}. */
 	public void loadFrom (AndroidSkeletonDrawableLoader loader) {
 		Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -365,14 +365,14 @@ public class SpineView extends View implements Choreographer.FrameCallback {
 				mainHandler.post( () -> {
 					setSkeletonDrawable(skeletonDrawable);
 				});
-			}catch (Exception e) {
+			} catch (Exception e) {
 				Log.e("SpineView", "Error loading skeleton", e);
 			}
 		});
 		backgroundThread.start();
 	}
 
-	/** Set the skeleton drawable. Must be called from the main thread.*/
+	/** Set the skeleton drawable. Must be called from the main thread. */
 	@MainThread
 	public final void setSkeletonDrawable (@NonNull AndroidSkeletonDrawable skeletonDrawable) {
 		computedBounds = boundsProvider.computeBounds(skeletonDrawable);

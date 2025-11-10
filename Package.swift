@@ -32,7 +32,7 @@ let package = Package(
         .target(
             name: "SpineiOSWrapper",
             dependencies: [
-                .target(name: "SpineiOS", condition: .when(platforms: [.iOS, .visionOS, .tvOS, .macCatalyst ]))
+                .target(name: "SpineiOS", condition: .when(platforms: [.iOS, .visionOS, .tvOS, .macCatalyst]))
             ],
             path: "spine-ios/Sources/SpineiOSWrapper"
         ),
@@ -49,7 +49,7 @@ let package = Package(
             path: "spine-ios/Sources/SpineC",
             sources: [
                 "src",
-                "spine"
+                "spine",
             ],
             linkerSettings: [
                 .linkedLibrary("c++")
